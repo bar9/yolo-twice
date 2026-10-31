@@ -24,8 +24,8 @@ export type Command =
   | { close: string }
   /** Bring one event's passage to the middle of the text (its id from events.ndjson), opening its part. */
   | { reveal: string }
-  /** Type into the search box, a character at a time. */
-  | { type: string }
+  /** Type into the search box, a character at a time (`ms` per character, default 160). */
+  | { type: string; ms?: number }
   /** A key of the keymap, named as keys.ts names it: "n", "Shift+n", "c", "3", "ArrowDown". */
   | { key: string }
   | { tab: "story" | "results" }

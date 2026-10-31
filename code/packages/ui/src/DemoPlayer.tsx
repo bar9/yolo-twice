@@ -111,7 +111,7 @@ export function useDemo(host: DemoHost) {
       else if ("type" in c) {
         for (let i = 1; i <= c.type.length && alive(); i++) {
           h.current.setView({ q: c.type.slice(0, i) });
-          await sleep(90);
+          await sleep(c.ms ?? 160);
         }
       } else if ("key" in c) bindingFor(c.key)?.run(h.current.keys, c.key);
       else if ("tab" in c) h.current.tab(c.tab);
