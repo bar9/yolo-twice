@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T19:19:18.869Z",
+  "granularity": "abstract",
+  "hash": "89cba10241668780",
+  "node": "t45",
+  "text": "A stale \"working\" row stayed up for an hour while the engine's last event was 10 seconds old, which points to a lost Stop hook; the engine logged no hooks, so the cause could not be confirmed. Commit a83086d in packages/engine/src/server.ts and packages/ui/src/App.tsx drops the claim after 10 minutes without an event or hook, and logs each turn's lifecycle hooks (prompt, Stop, Notification, compaction, session start/end, not every tool call) to ~/.yolo-twice/engine.log. A Playwright fake-clock test showed the row at 9 minutes and gone at 11, 72 unit tests pass, and the root cause stays open until the log shows a \"hook Stop\" line for session 34b27ceb.",
+  "version": "2"
+}

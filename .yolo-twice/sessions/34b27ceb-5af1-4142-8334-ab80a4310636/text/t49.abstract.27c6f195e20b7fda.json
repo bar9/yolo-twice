@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T19:19:18.197Z",
+  "granularity": "abstract",
+  "hash": "27c6f195e20b7fda",
+  "node": "t49",
+  "text": "Added a hover target to each activity bar in `packages/ui/src/Timeline.tsx`, since nothing on the timeline explained them. Hovering a slice now shows its event count and time range (e.g. \"6 events, 09:35:34 AM to 09:39:34 AM\") and darkens the bar, and an \"activity\" legend next to the axis start time explains the bars on hover (styles in `packages/ui/src/styles.css`). The build passed, a headless browser check found 94 slots with titles, and the change is committed as 2cf3b68 without being pushed.",
+  "version": "2"
+}

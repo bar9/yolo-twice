@@ -1,0 +1,9 @@
+{
+  "analyzer": "structural",
+  "created": "2026-10-31T19:19:16.966Z",
+  "granularity": "abstract",
+  "hash": "5ec68fe7dc1e0642",
+  "node": "t50",
+  "text": "[user.prompt] give the user the possibility to step through the results of the text search by scrolling the found match into view [assistant.thinking] [assistant.text] First, how the existing match stepping (`n` / `⇧N`) works, and how matches are marked in the text. [tool Bash] {\"command\":\"cd $PROJ…",
+  "version": "2"
+}

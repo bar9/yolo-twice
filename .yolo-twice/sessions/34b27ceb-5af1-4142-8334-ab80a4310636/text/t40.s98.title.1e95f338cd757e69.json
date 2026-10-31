@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T19:10:37.312Z",
+  "granularity": "title",
+  "hash": "1e95f338cd757e69",
+  "node": "t40.s98",
+  "text": "Add react-joyride tour that skips off-screen stops and shows once",
+  "version": "2"
+}

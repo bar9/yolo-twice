@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T19:10:26.398Z",
+  "granularity": "title",
+  "hash": "fcb72da37847d14c",
+  "node": "t40.s19",
+  "text": "Map UI components, shortcut wiring and style tokens in packages/ui",
+  "version": "2"
+}

@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T19:10:35.407Z",
+  "granularity": "title",
+  "hash": "af135b2b4d011895",
+  "node": "t40.s85",
+  "text": "react-joyride: target is required; onEvent payload carries type, waiting, scroll",
+  "version": "2"
+}

@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T19:10:34.453Z",
+  "granularity": "title",
+  "hash": "336dcef5ec0fe39b",
+  "node": "t40.s74",
+  "text": "Help dialog renders in both themes; ? opens Keyboard, no page errors",
+  "version": "2"
+}

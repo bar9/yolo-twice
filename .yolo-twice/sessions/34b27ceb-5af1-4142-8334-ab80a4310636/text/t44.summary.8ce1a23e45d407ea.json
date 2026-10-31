@@ -1,0 +1,9 @@
+{
+  "analyzer": "structural",
+  "created": "2026-10-31T19:12:17.536Z",
+  "granularity": "summary",
+  "hash": "8ce1a23e45d407ea",
+  "node": "t44",
+  "text": "[user.prompt] is there a hook so we can make \"Claude is working\" tell the truth? if yes, animate the cirlces. if no remove [assistant.thinking] [assistant.text] Yes. Claude Code's hooks mark exactly when a turn runs: `UserPromptSubmit` fires when work starts and `Stop` when Claude finishes. `Notification` fires when Claude waits for you, for example for a permission. I'll check what our plugin already registers and what the engine does with it. [tool Bash] {\"command\":\"cd $PROJECT/code && cat plugin/hooks/*.json; grep -n \\\"hook\\\" packages/engine/src/server.ts | head -20\",\"description\":\"Inspect registered hooks and the engine's hook route\"} [tool.result] { \"description\": \"Forward session lifecycle events to the local yolo-twice engine (silent when the engine is not running).\", \"hooks\": { \"S…",
+  "version": "2"
+}

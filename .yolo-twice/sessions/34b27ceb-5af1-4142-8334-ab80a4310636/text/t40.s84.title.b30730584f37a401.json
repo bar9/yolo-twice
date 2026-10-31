@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T19:10:33.869Z",
+  "granularity": "title",
+  "hash": "b30730584f37a401",
+  "node": "t40.s84",
+  "text": "react-joyride typings: action/event enums, controlled stepIndex mode, custom tooltip props",
+  "version": "2"
+}

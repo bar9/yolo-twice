@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T19:11:21.362Z",
+  "granularity": "title",
+  "hash": "d28bed1b57f1ba64",
+  "node": "t44",
+  "text": "Working row driven by Claude Code hooks; follow-mode scroll flicker fixed",
+  "version": "2"
+}

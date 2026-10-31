@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T19:10:31.428Z",
+  "granularity": "title",
+  "hash": "ad21cbd71f73db12",
+  "node": "t40.s72",
+  "text": "Add Help banner, tabs, guide and about card styles to styles.css",
+  "version": "2"
+}

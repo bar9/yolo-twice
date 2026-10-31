@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T19:12:24.738Z",
+  "granularity": "title",
+  "hash": "a0864d7b7c19fa62",
+  "node": "t28.s111",
+  "text": "useDefaultLayout takes id and storage; onLayoutChanged replaces deprecated onLayoutChange",
+  "version": "2"
+}

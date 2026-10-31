@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T19:12:26.736Z",
+  "granularity": "title",
+  "hash": "d968012221248006",
+  "node": "t35.s8",
+  "text": "Persist light, dark or system theme choice in localStorage, not .yolo-twice",
+  "version": "2"
+}

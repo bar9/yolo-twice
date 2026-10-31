@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T19:12:16.511Z",
+  "granularity": "summary",
+  "hash": "0579b20da3709899",
+  "node": "t35",
+  "text": "Added an Appearance setting (System, Light, Dark) to the header settings popover, stored in localStorage as `yt.theme` and written to `<html data-theme>`. A new `src/theme.ts` hook manages it, and an inline script in `index.html` applies it before first paint. `styles.css` keys the dark tokens on `[data-theme=\"dark\"]` with a system fallback, and shadcn's `dark:` variant now follows the chosen theme. Typecheck and the UI build pass. A Playwright run with the OS set to light confirmed Dark applies immediately, survives a reload from first paint, and System follows OS changes. Design doc updated; committed as 03e0624, not pushed.",
+  "version": "2"
+}

@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T19:12:19.706Z",
+  "granularity": "abstract",
+  "hash": "b1fa54058fef6ef2",
+  "node": "t40",
+  "text": "Added a Help dialog (header ? button or ? key) with Guide, Keyboard and About tabs, moving the shortcut list out of the settings popover in `Header.tsx`, and a react-joyride tour of 11 stops in `Tour.tsx`, lazy-loaded and offered once on first visit via `TourInvite.tsx`. The About tab links the build commit stamped by `vite.config.ts` to GitHub, plus feedback, PR, license and website links from `product.ts`, and the UI now uses the website's palette, OT mark, favicon and Nunito wordmark. Typecheck, build, 69 unit tests and the browser suites (linked 30/30, keys 25/25, tour 12/12) pass; the work is committed as d7b8f3b and 2c04d8d, nothing is pushed.",
+  "version": "2"
+}

@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T19:12:18.637Z",
+  "granularity": "abstract",
+  "hash": "98cc6b6659fe505f",
+  "node": "t35",
+  "text": "Added an Appearance setting (System, Light, Dark) to the header settings popover, stored per browser in localStorage under `yt.theme`; `theme.ts` writes the resolved value to `<html data-theme>`, and an inline script in `index.html` applies it before first paint. `styles.css` moved the dark tokens from a `prefers-color-scheme` media query to a `data-theme` selector with a system fallback, and the shadcn `dark` variant now keys on `data-theme`. Typecheck and the UI build passed, a Playwright run confirmed Dark persists across reload and System follows OS changes, and it is committed as 03e0624 (not pushed).",
+  "version": "2"
+}

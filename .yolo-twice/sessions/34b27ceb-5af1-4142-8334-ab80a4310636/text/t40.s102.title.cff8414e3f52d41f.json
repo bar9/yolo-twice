@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T19:10:41.308Z",
+  "granularity": "title",
+  "hash": "cff8414e3f52d41f",
+  "node": "t40.s102",
+  "text": "Fix Tour's storage import to localStorage; let keyboard guard skip alertdialogs",
+  "version": "2"
+}

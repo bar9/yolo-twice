@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T19:12:24.212Z",
+  "granularity": "title",
+  "hash": "b1f6dfe88edef568",
+  "node": "t28.s99",
+  "text": "Agent steps labeled from first 70 characters of their start text",
+  "version": "2"
+}
