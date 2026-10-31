@@ -36,3 +36,30 @@
 .cover-tag { font-size: 1.15rem; color: #fde68a; text-shadow: 0 1px 2px rgb(0 0 0 / .6); }
 .cover-sub { font-size: .9rem; opacity: .9; }
 .cover-team { font-size: .7rem; opacity: .7; padding-top: .35rem; }
+
+/* story slide: one line at a time, large */
+.story p { font-size: 1.6rem; line-height: 1.4; margin: 0.9rem 0; }
+
+/* three-gap cards */
+.card {
+  border: 1px solid rgba(127, 127, 127, 0.3);
+  border-radius: 8px;
+  padding: 0.6rem 1rem 0.8rem;
+  background: rgba(127, 127, 127, 0.06);
+}
+.card h3 { margin-top: 0.2rem; }
+.card p { font-size: 0.95rem; opacity: 0.9; }
+
+/* zoom ladder: the same session at five levels, each step more detailed and smaller */
+.zoom { display: flex; flex-direction: column; gap: 0.45rem; }
+.zoom .z {
+  border-left: 3px solid #2563eb;
+  padding: 0.25rem 0.7rem;
+  background: rgba(37, 99, 235, 0.07);
+  border-radius: 0 6px 6px 0;
+}
+.zoom .z1 { font-size: 1.25rem; font-weight: 600; }
+.zoom .z2 { font-size: 0.9rem; margin-left: 0.6rem; }
+.zoom .z3 { font-size: 0.85rem; margin-left: 1.2rem; }
+.zoom .z4 { font-size: 0.8rem; margin-left: 1.8rem; }
+.zoom .z5 { font-size: 0.7rem; margin-left: 2.4rem; font-family: ui-monospace, monospace; opacity: 0.6; }
