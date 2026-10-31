@@ -11,23 +11,24 @@
  */
 
 :root {
-  --paper: #f6f7f9;
-  --sheet: #ffffff;
-  --sheet-2: #f0f2f5;
-  --ink: #1d2230;
-  --ink-2: #5b6475;
-  --ink-3: #8a92a3;
-  --rule: #e3e6ec;
-  --rule-strong: #c9ced8;
-  --rec: #f25c05;
+  /* the website's palette (code/site): cream paper, navy ink, the brand orange */
+  --paper: #f8f4ec;
+  --sheet: #fffdf9;
+  --sheet-2: #f2ece0;
+  --ink: #101648;
+  --ink-2: #4a4f78;
+  --ink-3: #85879f;
+  --rule: #e7e0d2;
+  --rule-strong: #d0c7b5;
+  --rec: #e8590c;
   --rec-soft: color-mix(in srgb, var(--rec) 12%, transparent);
   --mark: #e8b100;
   --mark-soft: color-mix(in srgb, var(--mark) 26%, transparent);
 
   /* event kinds: the same hue in reader, tape, graph and filters */
   --k-you: #3866d6;
-  --k-text: #6b7385;
-  --k-think: #9aa1b1;
+  --k-text: #5d6187;
+  --k-think: #9a9bb5;
   --k-tool: #0f8c74;
   --k-error: #d23f3f;
   --k-agent: #7656d6;
@@ -64,48 +65,32 @@
 :root { color-scheme: light; }
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --paper: #12151b;
-  --sheet: #181c24;
-  --sheet-2: #20252f;
-  --ink: #e7eaf0;
-  --ink-2: #a2aaba;
-  --ink-3: #6f7889;
-  --rule: #2a303b;
-  --rule-strong: #3a4250;
-  --rec: #ff7a2e;
+  --paper: #070a2a;  --sheet: #0d1236;  --sheet-2: #151b46;  --ink: #f8f1e4;  --ink-2: #c3bfd9;  --ink-3: #8b8ab2;  --rule: #232a5a;  --rule-strong: #343c74;  --rec: #fd6a1a;
   --mark: #f2c94c;
   --k-you: #7d9cf0;
-  --k-text: #a2aaba;
-  --k-think: #6f7889;
+  --k-text: #c3bfd9;
+  --k-think: #8b8ab2;
   --k-tool: #3fbf9f;
   --k-error: #f06a6a;
   --k-agent: #a58cf2;
   --k-rewind: #e47aa4;
   --k-system: #c2ad86;
-  --primary-foreground: #12151b;
+  --primary-foreground: #070a2a;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme]) {
     color-scheme: dark;
-    --paper: #12151b;
-    --sheet: #181c24;
-    --sheet-2: #20252f;
-    --ink: #e7eaf0;
-    --ink-2: #a2aaba;
-    --ink-3: #6f7889;
-    --rule: #2a303b;
-    --rule-strong: #3a4250;
-    --rec: #ff7a2e;
+    --paper: #070a2a;    --sheet: #0d1236;    --sheet-2: #151b46;    --ink: #f8f1e4;    --ink-2: #c3bfd9;    --ink-3: #8b8ab2;    --rule: #232a5a;    --rule-strong: #343c74;    --rec: #fd6a1a;
     --mark: #f2c94c;
     --k-you: #7d9cf0;
-    --k-text: #a2aaba;
-    --k-think: #6f7889;
+    --k-text: #c3bfd9;
+    --k-think: #8b8ab2;
     --k-tool: #3fbf9f;
     --k-error: #f06a6a;
     --k-agent: #a58cf2;
     --k-rewind: #e47aa4;
     --k-system: #c2ad86;
-    --primary-foreground: #12151b;
+    --primary-foreground: #070a2a;
   }
 }
 
@@ -172,7 +157,12 @@
   background: var(--sheet); border-bottom: 1px solid var(--rule);
 }
 .brand { display: inline-flex; align-items: center; gap: 8px; font-weight: 650; letter-spacing: -0.01em; white-space: nowrap; color: var(--ink); }
-.brand-mark { width: 22px; height: 22px; flex: none; }
+.brand-mark { width: 26px; height: 26px; flex: none; object-fit: contain; }
+/* dark: the website's navy and purple glows, kept to the header */
+:root[data-theme="dark"] .header { background: radial-gradient(520px 140px at 0% 0%, rgb(22 44 150 / .32), transparent 70%), radial-gradient(640px 160px at 100% 0%, rgb(76 16 150 / .26), transparent 70%), var(--sheet); }
+.brand-name { font-family: "Nunito", var(--font-ui); font-weight: 900; font-size: 16px; letter-spacing: -0.01em; }
+/* the mark has a navy O for light pages and a cream one for dark */
+:root[data-theme="dark"] .on-light, :root:not([data-theme="dark"]) .on-dark { display: none; }
 .crumbs { display: flex; align-items: center; gap: 2px; min-width: 0; flex: 1; overflow: hidden; }
 .crumb {
   display: inline-flex; align-items: center; gap: 6px; min-width: 0;

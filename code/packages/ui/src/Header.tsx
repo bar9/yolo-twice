@@ -30,15 +30,13 @@ export interface Crumb {
   label: string;
 }
 
-/** Two reels: a recorder for agent sessions. */
-function BrandMark() {
+/** The mark from the website: a navy O for light pages, a cream one for dark. */
+export function BrandMark({ className = "brand-mark" }: { className?: string }) {
   return (
-    <svg className="brand-mark" viewBox="0 0 22 22" aria-hidden>
-      <rect x="0.5" y="2.5" width="21" height="17" rx="4.5" fill="var(--ink)" />
-      <circle cx="7" cy="11" r="3.2" fill="none" stroke="var(--paper)" strokeWidth="1.6" />
-      <circle cx="15" cy="11" r="3.2" fill="none" stroke="var(--paper)" strokeWidth="1.6" />
-      <circle cx="15" cy="11" r="1.1" fill="var(--rec)" />
-    </svg>
+    <>
+      <img className={`${className} on-light`} src="/mark-light.png" alt="" aria-hidden />
+      <img className={`${className} on-dark`} src="/mark.png" alt="" aria-hidden />
+    </>
   );
 }
 
