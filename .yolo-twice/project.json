@@ -3,11 +3,28 @@
   "sessions": [
     {
       "agent": "claude-code",
-      "events": 820,
+      "cost_usd": 43.12544080000003,
+      "events": 922,
       "id": "34b27ceb-5af1-4142-8334-ab80a4310636",
       "label": "Yolo-twice insights tool for Claude Code",
       "ts_first": "2026-10-31T08:19:31.745Z",
-      "ts_last": "2026-10-31T10:24:35.553Z"
+      "ts_last": "2026-10-31T10:46:31.508Z"
+    },
+    {
+      "agent": "claude-code",
+      "events": 54,
+      "id": "7f825bc9-97c2-4932-8575-d8beab55a0eb",
+      "label": "Dogfooding status",
+      "ts_first": "2026-10-31T10:13:53.548Z",
+      "ts_last": "2026-10-31T10:25:48.118Z"
+    },
+    {
+      "agent": "claude-code",
+      "events": 4,
+      "id": "5fb80521-9a5e-4652-a91f-b5fdecabb9fd",
+      "label": "Yolo-twice insights UI",
+      "ts_first": "2026-10-31T10:22:57.048Z",
+      "ts_last": "2026-10-31T10:23:05.141Z"
     }
   ],
   "version": 1

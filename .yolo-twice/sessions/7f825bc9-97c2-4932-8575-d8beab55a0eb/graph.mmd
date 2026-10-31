@@ -1,0 +1,33 @@
+flowchart TD
+  s_7f825bc9_97c2_4932_8575_d8beab55a0eb(["Dogfooding status"])
+  subgraph p1 ["are we already dogfooding?  +5 turns "]
+    direction TD
+    t1["are we already dogfooding?"]
+    t2["how do I run the engine from my local checkout?"]
+    t3["ok i switched to the local marketplace"]
+    t4["ok, running, what would you suggest about the smaller thing…"]
+    t5["sync and enforce the version"]
+    t6["yes, commit the sessions"]
+  end
+  s_7f825bc9_97c2_4932_8575_d8beab55a0eb --> t1
+  t1 --> t2
+  t2 --> t3
+  t3 --> t4
+  t4 --> t5
+  t5 --> t6
+  classDef session fill:#1f2937,color:#fff,stroke:#111;
+  classDef phase fill:#e5e7eb,stroke:#9ca3af;
+  classDef turn fill:#dbeafe,stroke:#60a5fa;
+  classDef branch fill:#fde68a,stroke:#d97706;
+  classDef subagent fill:#ede9fe,stroke:#8b5cf6;
+  classDef tool fill:#dcfce7,stroke:#22c55e;
+  classDef error fill:#fee2e2,stroke:#ef4444;
+  classDef text fill:#f3f4f6,stroke:#9ca3af;
+  classDef thinking fill:#f3f4f6,stroke:#d1d5db,stroke-dasharray: 3 3;
+  class s_7f825bc9_97c2_4932_8575_d8beab55a0eb session;
+  class t1 turn;
+  class t2 turn;
+  class t3 turn;
+  class t4 turn;
+  class t5 turn;
+  class t6 turn;

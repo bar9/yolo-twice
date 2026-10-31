@@ -212,7 +212,11 @@ export class Engine {
     });
 
     // UI
-    const uiDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..", "ui", "dist");
+    // Published package ships the UI at <pkg>/ui; the monorepo has it at packages/ui/dist.
+    const here = path.dirname(fileURLToPath(import.meta.url));
+    const uiDir = [path.resolve(here, "..", "ui"), path.resolve(here, "..", "..", "ui", "dist")].find((d) =>
+      fs.existsSync(path.join(d, "index.html")),
+    ) ?? path.resolve(here, "..", "..", "ui", "dist");
     const index = path.join(uiDir, "index.html");
     app.get("/*", (c) => {
       const p = c.req.path === "/" ? "/index.html" : c.req.path;
