@@ -1,6 +1,6 @@
 ---
 description: Open the yolo-twice insights UI for this project (starts the engine if needed). Use `stop`, `status`, `mode <micro|attentive|balanced|yolo>`, `autocommit [on|off]` to commit the .yolo-twice folder every 10 min for this engine run, or `resume [session]` to continue a committed session as a fork.
-argument-hint: "[stop|status|mode <detent>|autocommit [on|off]|resume [session]]"
+argument-hint: "[stop|status|mode <micro|attentive|balanced|yolo>|autocommit [on|off]|resume [session]]"
 allowed-tools: Bash(*/bin/yolo-twice *)
 ---
 

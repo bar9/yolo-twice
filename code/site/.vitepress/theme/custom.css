@@ -1,4 +1,5 @@
-/* pele diagrams follow the VitePress theme in light and dark mode. */
+/* pele diagrams follow the VitePress theme in light and dark mode; the shared look comes from
+   @yolo-twice/pele-markdown/theme.css (imported in index.ts). */
 .pele {
   --pele-bg: var(--vp-c-bg);
   --pele-fg: var(--vp-c-text-1);
@@ -7,15 +8,15 @@
   --pele-surface: var(--vp-c-bg-soft);
   --pele-surface-alt: var(--vp-c-bg-alt);
   --pele-border: var(--vp-c-divider);
-  --pele-accent: var(--vp-c-brand-1);
   --pele-font: var(--vp-font-family-base);
-  --pele-radius: 6px;
-  margin: 1.5rem 0;
-  overflow-x: auto;
+  --yt-pele-outline: #6f3fd0; /* light mode: deep purple, readable on cream */
 }
-.pele svg {
-  max-width: 100%;
-  height: auto;
+.dark .pele {
+  --yt-pele-outline: #c39bff;
+}
+div.pele {
+  margin: 1.75rem 0;
+  overflow-x: auto;
 }
 .pele-error {
   border: 1px solid var(--vp-c-danger-1);

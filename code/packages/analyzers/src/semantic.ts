@@ -245,7 +245,7 @@ export function isOpenNode(node: StructureNode, root: StructureNode, now = Date.
   return Number.isNaN(last) || now - last < idleMs;
 }
 
-/** Which (node, granularity) pairs the attention detent wants computed eagerly. */
+/** Which (node, granularity) pairs the attention mode wants computed eagerly. */
 export function planJobs(session: StructureNode, attention: Attention, openTurnId?: string): SemanticJob[] {
   const jobs: SemanticJob[] = [];
   const push = (node: StructureNode, g: SemanticJob["granularity"], interim = false) => jobs.push({ node, granularity: g, interim });

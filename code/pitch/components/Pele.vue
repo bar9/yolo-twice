@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref, watch } from "vue";
 import { mount } from "pele";
+import "@yolo-twice/pele-markdown/theme.css";
 
 const props = defineProps<{ text: string }>();
 const el = ref<HTMLElement | null>(null);

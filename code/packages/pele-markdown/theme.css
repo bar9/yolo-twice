@@ -1,0 +1,82 @@
+/*
+ * yolo-twice look for pele diagrams, shared by the website and the pitch deck.
+ *
+ * Plain and high contrast: solid boxes with one outline colour, full-strength text,
+ * clearly visible lines. pele colours everything through --pele-* variables and SVG
+ * presentation attributes, so CSS rules here restyle the output without re-rendering.
+ * Set the --pele-* basics (bg, fg, muted, line, surface, border, font) on the host;
+ * this file adds one variable:
+ *
+ *   --yt-pele-outline   outline colour of every box (purple)
+ */
+
+.pele {
+  --yt-pele-outline: #c39bff;
+}
+
+/* ---------- the card the diagram sits on ---------- */
+div.pele {
+  box-sizing: border-box;
+  padding: 1.5rem;
+  border-radius: 12px;
+  border: 1px solid var(--pele-border);
+  background: var(--pele-bg);
+  text-align: center;
+}
+div.pele > svg.pele {
+  display: block;
+  /* never shrink a wide diagram below a readable size; the card scrolls instead */
+  min-width: min(var(--pele-w, 0px), 760px);
+  margin: 0 auto;
+  overflow: visible;
+}
+
+/* ---------- nodes: solid fill, one outline colour, full-contrast text ---------- */
+svg.pele .pele-node > :is(rect, path, polygon, circle, ellipse) {
+  stroke: var(--yt-pele-outline);
+  stroke-width: 1.75px;
+}
+svg.pele .pele-node > :is(rect, path, polygon, circle, ellipse):not([fill="none"]) {
+  fill: var(--pele-surface);
+}
+svg.pele .pele-node > rect { rx: 8px; }
+svg.pele .pele-node .pele-label {
+  fill: var(--pele-fg);
+  font-weight: 600;
+}
+
+/* ---------- edges ---------- */
+svg.pele .pele-edge > path:not(.pele-marker) {
+  stroke: var(--pele-line);
+  stroke-width: 1.6px;
+}
+svg.pele .pele-edge > .pele-marker {
+  fill: var(--pele-line);
+}
+
+/* edge labels sit on the card background so the line does not cross the text */
+svg.pele .pele-edge-label > rect {
+  fill: var(--pele-bg);
+}
+svg.pele .pele-edge-label > text {
+  fill: var(--pele-fg);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+/* ---------- sequence diagrams ---------- */
+svg.pele .pele-lifeline {
+  stroke: var(--pele-muted);
+}
+svg.pele .pele-note > rect {
+  fill: var(--pele-surface-alt);
+  stroke: var(--yt-pele-outline);
+}
+
+/* ---------- subgraphs ---------- */
+svg.pele .pele-cluster > rect {
+  fill: none;
+  stroke: var(--yt-pele-outline);
+  stroke-dasharray: 4 4;
+  rx: 10px;
+}

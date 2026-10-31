@@ -215,10 +215,10 @@ ul.plain li::before { content: ""; position: absolute; left: 0; top: 0.55em; wid
 
 /* ---------- pele diagrams on the dark background ---------- */
 .pele {
-  --pele-bg: transparent;
+  --pele-bg: #070a2a;
   --pele-fg: #f8f1e4;
-  --pele-muted: #8a96a8;
-  --pele-line: #6b778a;
+  --pele-muted: #b9bdd6;
+  --pele-line: #d8d3e6;
   --pele-surface: #11163f;
   --pele-surface-alt: #1a2052;
   --pele-border: #303770;

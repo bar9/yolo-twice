@@ -6,7 +6,7 @@ describe("pele-markdown", () => {
   test("renders a mermaid fence to inline svg", () => {
     const md = new MarkdownIt().use(peleMarkdown);
     const html = md.render("# hi\n\n```mermaid\nflowchart LR\n  A[Start] --> B[End]\n```\n\n```js\nconst x = 1\n```\n");
-    expect(html).toContain('<div class="pele"><svg');
+    expect(html).toContain('<div class="pele" style="--pele-w:199px"><svg');
     expect(html).toContain("Start");
     expect(html).toContain("language-js");
   });

@@ -11,12 +11,12 @@ The slider therefore decides only **which summaries the engine writes ahead of t
 never affects ingestion, and it never limits what you can read: any summary the slider skips
 is written when you open that node in the reader.
 
-## The four detents
+## The four modes
 
 A part of the session is *closed* once newer work follows it, or once the session has been
 idle for 30 minutes. The newest turn and the newest phase are *open* while the session runs.
 
-| Detent | Written ahead of time | Lag of the summaries | Rough cost |
+| Mode | Written ahead of time | Lag of the summaries | Rough cost |
 |---|---|---|---|
 | Micro management | Title and abstract of every turn and every phase, and of the session, including the open ones, refreshed as they grow | seconds | ≈ 3 calls per turn |
 | Attentive | A title for every closed turn; title and abstract for every closed phase | about one turn | ≈ 1 call per turn |
@@ -28,7 +28,7 @@ prompts that change the topic.
 
 ## Design rules
 
-- **The reader is the demand signal.** Whatever the detent, opening a node that has no summary
+- **The reader is the demand signal.** Whatever the mode, opening a node that has no summary
   yet asks the engine for one. The slider only decides how much is ready before you look.
 - **Short text is never summarized.** A one-line prompt or a single tool call is already as
   short as a title, so it is shown as it is, without a model call.
@@ -43,7 +43,7 @@ prompts that change the topic.
   (balanced). Your own choice lives in the gitignored `.yolo-twice/local.json` and can be
   changed live from the UI or with `/yolo-twice:yolo-twice mode <micro|attentive|balanced|yolo>`.
 - **The model is configurable.** All summaries use the model set in `analyzers.model` in
-  `config.json` (default: haiku), whatever the detent.
+  `config.json` (default: haiku), whatever the mode.
 
 ## Catch me up
 
