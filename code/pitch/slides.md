@@ -10,13 +10,14 @@ transition: fade
 mdc: true
 ---
 
-# yolo-twice
+<img src="./assets/cover-yolo.jpg" class="cover-bg" alt="A zombie developer with a laptop in a moonlit graveyard, behind stone letters spelling YOLO" />
 
-## Transparent agentic development superpowers
-
-See what your coding agent did, at the zoom level you choose, while it is still running.
-
-<div class="pt-8 text-sm opacity-70">BaselHack 2026 · Matthias Cullmann · Roland Brand · Jan Babin · Thomas Schöller</div>
+<div class="cover-band">
+  <h1>yolo-twice</h1>
+  <p class="cover-tag">Transparent agentic development superpowers</p>
+  <p class="cover-sub">See what your coding agent did, at the zoom level you choose, while it is still running.</p>
+  <p class="cover-team">BaselHack 2026 · Matthias Cullmann · Roland Brand · Jan Babin · Thomas Schöller</p>
+</div>
 
 <!--
 0:00–0:15. Hello, we are yolo-twice. One sentence: zoomable, live insight into long Claude Code sessions.
