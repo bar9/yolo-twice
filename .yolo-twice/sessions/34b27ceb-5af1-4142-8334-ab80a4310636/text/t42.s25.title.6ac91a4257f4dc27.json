@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T16:47:33.984Z",
+  "granularity": "title",
+  "hash": "6ac91a4257f4dc27",
+  "node": "t42.s25",
+  "text": "Language tags for code blocks: caption row or corner, fading on hover",
+  "version": "2"
+}
