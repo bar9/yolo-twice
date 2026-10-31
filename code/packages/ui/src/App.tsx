@@ -624,6 +624,10 @@ export function App() {
     },
     hover: setHover,
     open: (id, open) => zoomApi.current?.open(id, open),
+    reveal: (ev) => {
+      const part = scope?.owner.get(ev);
+      if (part) zoomApi.current?.reveal(part, ev);
+    },
     tab: (t) => setReader(t === "results" ? "results" : "outline"),
     revealMap: (id) => graphApi.current?.reveal(id),
   });

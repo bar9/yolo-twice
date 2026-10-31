@@ -7,7 +7,8 @@
  *
  * Scripts live with the project in .yolo-twice/demos/<name>.json and play with ?demo=<name>.
  * A page that embeds the UI (the pitch deck) steps it with postMessage instead:
- *   in   { yt: "demo", name, step }     load the script (once) and show that step
+ *   in   { yt: "demo", name, step }     load the project's script (once) and show that step
+ *        { yt: "demo", script, step }   the same with a script the page keeps itself
  *   out  { yt: "ready" }                the UI is up and listening
  *        { yt: "step", step, steps }    a step was shown
  *        { yt: "nav", dir }             PageDown / PageUp pressed inside the frame: the deck decides
@@ -21,6 +22,8 @@ export type Command =
   | { point: string | null; on?: Target }
   | { open: string }
   | { close: string }
+  /** Bring one event's passage to the middle of the text (its id from events.ndjson), opening its part. */
+  | { reveal: string }
   /** Type into the search box, a character at a time. */
   | { type: string }
   /** A key of the keymap, named as keys.ts names it: "n", "Shift+n", "c", "3", "ArrowDown". */
@@ -34,16 +37,18 @@ export interface Step {
   do?: Command[];
   /** Shown in the demo bar. */
   caption?: string;
-  /** Go on by itself after this many ms; on the last step, start over (a booth loop). */
+  /** Go on by itself after this many ms; a clicker can still step sooner. */
   wait?: number;
 }
 
 export interface Demo {
   title?: string;
   steps: Step[];
+  /** After the last step, start over (a booth loop); otherwise the demo stays on its last step. */
+  loop?: boolean;
 }
 
-const COMMANDS = ["point", "open", "close", "type", "key", "tab", "wait"];
+const COMMANDS = ["point", "open", "close", "reveal", "type", "key", "tab", "wait"];
 
 /** A demo from untrusted JSON: throws with a message that names the bad step. */
 export function parseDemo(raw: unknown): Demo {
@@ -57,7 +62,7 @@ export function parseDemo(raw: unknown): Demo {
       if (!k) throw new Error(`step ${i + 1}: unknown command ${JSON.stringify(c)}`);
     }
   });
-  return { title: typeof d.title === "string" ? d.title : undefined, steps: d.steps };
+  return { title: typeof d.title === "string" ? d.title : undefined, steps: d.steps, loop: d.loop === true };
 }
 
 /** The complete view a step names: whatever its URL leaves out is reset, not kept from before. */

@@ -14,11 +14,15 @@ export interface DemoHost {
   settle(): void;
   hover(id: string | undefined): void;
   open(id: string, open: boolean): void;
+  reveal(event: string): void;
   tab(t: "story" | "results"): void;
   revealMap(id: string): void;
 }
 
 export type DemoState = ReturnType<typeof useDemo>;
+
+/** A script in play: its name, and what it came from (a name, or the JSON a deck sent), to tell a new one apart. */
+type Loaded = { name: string; source: string; script: Demo };
 
 const framed = typeof window !== "undefined" && window.parent !== window;
 const asked = new URLSearchParams(location.search);
@@ -64,7 +68,7 @@ function inView(el: Element): boolean {
 export function useDemo(host: DemoHost) {
   const h = useRef(host);
   h.current = host;
-  const [demo, setDemo] = useState<{ name: string; script: Demo } | undefined>();
+  const [demo, setDemo] = useState<Loaded | undefined>();
   const [step, setStep] = useState(0);
   const [point, setPoint] = useState<{ id: string; on?: Target } | undefined>();
   const [error, setError] = useState<string | undefined>();
@@ -96,6 +100,7 @@ export function useDemo(host: DemoHost) {
         }
       } else if ("open" in c) h.current.open(c.open, true);
       else if ("close" in c) h.current.open(c.close, false);
+      else if ("reveal" in c) h.current.reveal(c.reveal);
       else if ("type" in c) {
         for (let i = 1; i <= c.type.length && alive(); i++) {
           h.current.setView({ q: c.type.slice(0, i) });
@@ -108,7 +113,7 @@ export function useDemo(host: DemoHost) {
     return alive();
   };
 
-  const go = useCallback((n: number, loaded?: { name: string; script: Demo }) => {
+  const go = useCallback((n: number, loaded?: Loaded) => {
     const d = loaded ?? current.current.demo;
     if (!d) return;
     const i = clampStep(n, d.script.steps.length);
@@ -122,18 +127,21 @@ export function useDemo(host: DemoHost) {
     h.current.setView(() => stepView(s.view, h.current.project), { push: false });
     if (framed) parent.postMessage({ yt: "step", step: i, steps: d.script.steps.length }, "*");
     void perform(s.do ?? [], alive).then(async (ok) => {
-      if (!ok || !s.wait) return;
+      const last = i === d.script.steps.length - 1;
+      if (!ok || !s.wait || (last && !d.script.loop)) return;
       await sleep(s.wait);
-      if (alive()) go(i + 1 < d.script.steps.length ? i + 1 : 0, d);
+      if (alive()) go(last ? 0 : i + 1, d);
     });
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  /** Plays the project's script `name`, or a script the embedding page sent along (a deck keeps its own). */
   const start = useCallback(
-    async (name: string, at: number) => {
+    async (name: string, at: number, inline?: unknown) => {
       try {
         let d = current.current.demo;
-        if (d?.name !== name) {
-          d = { name, script: parseDemo(await api.demo(name)) };
+        const source = inline === undefined ? name : JSON.stringify(inline);
+        if (d?.source !== source) {
+          d = { name, source, script: parseDemo(inline === undefined ? await api.demo(name) : inline) };
           setDemo(d);
           setError(undefined);
         }
@@ -168,9 +176,9 @@ export function useDemo(host: DemoHost) {
   useEffect(() => {
     if (!framed) return;
     const onMessage = (e: MessageEvent) => {
-      const m = e.data as { yt?: string; name?: string; step?: number } | null;
-      if (m?.yt !== "demo" || typeof m.name !== "string" || !trustedOrigin(e.origin)) return;
-      void start(m.name, m.step ?? 0);
+      const m = e.data as { yt?: string; name?: string; script?: unknown; step?: number } | null;
+      if (m?.yt !== "demo" || (typeof m.name !== "string" && m.script === undefined) || !trustedOrigin(e.origin)) return;
+      void start(m.name ?? "from the deck", m.step ?? 0, m.script);
     };
     addEventListener("message", onMessage);
     parent.postMessage({ yt: "ready" }, "*");
