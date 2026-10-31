@@ -16,7 +16,7 @@ mdc: true
 
 See what your coding agent did, at the zoom level you choose, while it is still running.
 
-<div class="pt-8 text-sm opacity-70">BaselHack 2026 · Matthias Cullmann · Roland Brand · Jan Babin · +1</div>
+<div class="pt-8 text-sm opacity-70">BaselHack 2026 · Matthias Cullmann · Roland Brand · Jan Babin · Thomas Schöller</div>
 
 <!--
 0:00–0:15. Hello, we are yolo-twice. One sentence: zoomable, live insight into long Claude Code sessions.
@@ -188,7 +188,7 @@ Then, inside Claude Code:
 
 <div class="pt-8">
 
-**Matthias Cullmann · Roland Brand · Jan Babin · +1**
+**Matthias Cullmann · Roland Brand · Jan Babin · Thomas Schöller**
 
 MIT · [github.com/bar9/yolo-twice](https://github.com/bar9/yolo-twice) · [bar9.github.io/yolo-twice](https://bar9.github.io/yolo-twice/)
 

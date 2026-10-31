@@ -28,7 +28,7 @@ export default defineConfig({
     ],
     socialLinks: [{ icon: "github", link: "https://github.com/bar9/yolo-twice" }],
     footer: {
-      message: "MIT licensed. Built at BaselHack 2026 by Matthias Cullmann, Roland Brand, Jan Babin and friends.",
+      message: "MIT licensed. Built at BaselHack 2026 by Matthias Cullmann, Roland Brand, Jan Babin and Thomas Schöller.",
     },
   },
 });
