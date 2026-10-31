@@ -57,6 +57,12 @@ describe("engine", () => {
     expect((await get("k=t:Bash")).tools[0]).toBe("Bash");
     expect((await get("k=u&to=2026-10-31T08:01:00.000Z")).hits.map((h) => h.id)).toEqual(["u1"]);
     expect((await get("q=")).hits).toEqual([]);
+    // addressability: a project is reachable by its short key
+    const projects = (await (await fetch(`${base}/api/projects`)).json()) as { key: string; root: string }[];
+    expect(projects[0]!.key).toBe(projects[0]!.root.split("/").pop());
+    const byKey = (await (await fetch(`${base}/api/sessions?project=${projects[0]!.key}`)).json()) as { sessions: unknown[] };
+    expect(byKey.sessions.length).toBe(1);
+    expect((await fetch(`${base}/api/sessions?project=nope`)).status).toBe(404);
     const cfg = (await (await fetch(`${base}/api/config`, { method: "PUT", headers: { "content-type": "application/json" }, body: JSON.stringify({ project, attention: "yolo" }) })).json()) as { attention: string };
     expect(cfg.attention).toBe("yolo");
     expect(((await (await fetch(`${base}/api/config?${q}`)).json()) as { attention: string }).attention).toBe("yolo");

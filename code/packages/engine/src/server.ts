@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 import { Hono } from "hono";
 import { streamSSE } from "hono/streaming";
 import { serve, type ServerType } from "@hono/node-server";
-import { Attention, findProjectRoot, projectSlug } from "@yolo-twice/core";
+import { sha256, Attention, findProjectRoot, projectSlug } from "@yolo-twice/core";
 import { ProjectRuntime, type ProjectOptions } from "./project.js";
 import { readProjects, VERSION, writeProjects } from "./state.js";
 
@@ -53,7 +53,19 @@ export class Engine {
     return rt;
   }
 
+  /** Shortest URL key for a project: its folder name, or `name~abcd` when two projects share a name. */
+  projectKey(root: string): string {
+    const name = path.basename(root);
+    const clash = [...this.projects.keys()].some((r) => r !== root && path.basename(r) === name);
+    return clash ? `${name}~${sha256(root).slice(0, 4)}` : name;
+  }
+
   private resolve(project: string | undefined): ProjectRuntime | undefined {
+    if (project && !project.startsWith("/") && !/^[A-Za-z]:[\\/]/.test(project)) {
+      // a URL key: `name` or `name~hash`
+      for (const root of this.projects.keys()) if (this.projectKey(root) === project || path.basename(root) === project) return this.projects.get(root);
+      return undefined;
+    }
     if (project) return this.projects.get(path.resolve(project)) ?? this.projects.get(findProjectRoot(project));
     const root = this.lastRegistered ?? [...this.projects.keys()].at(-1);
     return root ? this.projects.get(root) : undefined;
@@ -67,7 +79,7 @@ export class Engine {
 
   private routes(): void {
     const app = this.app;
-    const info = (rt: ProjectRuntime) => ({ root: rt.root, slug: projectSlug(rt.root), name: rt.name, sessions: rt.store.listSessions().length });
+    const info = (rt: ProjectRuntime) => ({ root: rt.root, key: this.projectKey(rt.root), slug: projectSlug(rt.root), name: rt.name, sessions: rt.store.listSessions().length });
     const need = (project: string | undefined) => {
       const rt = this.resolve(project);
       if (!rt) throw new NotFound("project not registered");

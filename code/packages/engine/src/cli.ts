@@ -54,8 +54,22 @@ async function register(p: number): Promise<{ root: string; sessions: number }> 
 
 async function currentUrl(p: number, root: string): Promise<string> {
   const res = await fetch(`http://127.0.0.1:${p}/api/sessions?project=${encodeURIComponent(root)}`);
-  const j = (await res.json()) as { current?: string };
-  return `http://127.0.0.1:${p}/?project=${encodeURIComponent(root)}${j.current ? `&session=${j.current}` : ""}`;
+  const j = (await res.json()) as { current?: string; sessions?: { id: string }[] };
+  // addressable, short: /<project key>/<session id prefix>
+  const projects = (await (await fetch(`http://127.0.0.1:${p}/api/projects`)).json()) as { root: string; key: string }[];
+  const key = projects.find((x) => x.root === root)?.key ?? path.basename(root);
+  const ids = (j.sessions ?? []).map((s) => s.id);
+  const sid = j.current ? shortId(j.current, ids) : "";
+  return `http://127.0.0.1:${p}/${encodeURIComponent(key)}${sid ? `/${sid}` : ""}`;
+}
+
+/** Shortest prefix of `id` (at least 6 chars) that no other id shares. */
+function shortId(id: string, ids: string[]): string {
+  for (let n = 6; n < id.length; n++) {
+    const pre = id.slice(0, n);
+    if (!ids.some((o) => o !== id && o.startsWith(pre))) return pre;
+  }
+  return id;
 }
 
 function openBrowser(url: string): void {
