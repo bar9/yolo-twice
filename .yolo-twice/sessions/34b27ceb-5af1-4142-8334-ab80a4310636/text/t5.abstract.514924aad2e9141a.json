@@ -1,0 +1,9 @@
+{
+  "analyzer": "structural",
+  "created": "2026-10-31T10:25:53.137Z",
+  "granularity": "abstract",
+  "hash": "514924aad2e9141a",
+  "node": "t5",
+  "text": "[user.prompt] scaffold now [assistant.thinking] [assistant.text] I'll scaffold a working skeleton rather than empty folders: contracts and core first, then engine, analyzers, UI, plugin and site in parallel. First, the toolchain. [tool Bash] {\"command\":\"node --version; npm --version; pnpm --version…",
+  "version": "1"
+}

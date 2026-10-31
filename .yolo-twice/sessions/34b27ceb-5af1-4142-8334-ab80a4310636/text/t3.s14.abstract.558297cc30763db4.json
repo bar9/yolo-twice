@@ -1,0 +1,9 @@
+{
+  "analyzer": "structural",
+  "created": "2026-10-31T10:25:40.764Z",
+  "granularity": "abstract",
+  "hash": "558297cc30763db4",
+  "node": "t3.s14",
+  "text": "[tool Bash] {\"command\":\"python3 -I - <<'EOF'\\np='documentation/design.md'\\ns=open(p).read()\\n\\n# 1. Replace zoom levels + flow graph subsections\\nstart=s.index('### Abstraction levels (the zoom)')\\nend=s.index('## 5. `.yolo-twice` layout and idempotency')\\nnew='''### Semantic zoom: two axes\\n\\nZoom…",
+  "version": "1"
+}

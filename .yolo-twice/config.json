@@ -3,7 +3,7 @@
     "model": "haiku",
     "semantic": true
   },
-  "attention": "balanced",
+  "attention": "micro",
   "redaction": {
     "extra_rules": [],
     "max_text_chars": 8000

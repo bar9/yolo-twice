@@ -1,0 +1,9 @@
+{
+  "analyzer": "structural",
+  "created": "2026-10-31T10:25:37.602Z",
+  "granularity": "abstract",
+  "hash": "3c4dab0fedf2cddf",
+  "node": "t3",
+  "text": "[user.prompt] - zoom levels: highest level should allow zooming out or summarizing too ie for long text paragraphs - use https://pele.run/ for rendering of mermaid in the website and presentation - use the curent github repo and gh CLI as needed - mention other projects and compare briefly ompare y…",
+  "version": "1"
+}
