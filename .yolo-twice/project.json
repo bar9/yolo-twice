@@ -3,11 +3,11 @@
   "sessions": [
     {
       "agent": "claude-code",
-      "events": 537,
+      "events": 814,
       "id": "34b27ceb-5af1-4142-8334-ab80a4310636",
       "label": "Yolo-twice insights tool for Claude Code",
       "ts_first": "2026-10-31T08:19:31.745Z",
-      "ts_last": "2026-10-31T09:50:20.988Z"
+      "ts_last": "2026-10-31T10:24:12.180Z"
     }
   ],
   "version": 1
