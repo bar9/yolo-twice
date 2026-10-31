@@ -73,6 +73,8 @@ export function App() {
   const [error, setError] = useState<string | undefined>();
   const [hover, setHover] = useState<string | undefined>();
   const [card, setCard] = useState<HoverInfo | undefined>();
+  // what the hooks say Claude is doing, per session
+  const [activity, setActivity] = useState<Record<string, { activity: "working" | "waiting" | "idle"; ts: string }>>({});
   const [reader, setReader] = useState<"outline" | "results">("outline");
   const [overrides, setOverrides] = useState<Record<string, Granularity>>({});
   // while filtering, parts without matches fold away by default; the filter bar toggles it
@@ -160,6 +162,9 @@ export function App() {
         break;
       case "autocommit":
         setAutoCommit(ev.data);
+        break;
+      case "activity":
+        setActivity((a) => ({ ...a, [ev.data.session_id]: ev.data }));
         break;
     }
   });
@@ -287,15 +292,17 @@ export function App() {
   };
   const onGraphView = useCallback((id: string) => syncReaderToMap.current(id), []);
 
-  // following a session that is being written: its last event is recent and the stream is up
-  const [now, setNow] = useState(() => Date.now());
-  useEffect(() => {
-    if (!view.follow) return;
-    const t = setInterval(() => setNow(Date.now()), 10_000);
-    return () => clearInterval(t);
-  }, [view.follow]);
-  const lastAt = structure?.span.ts_last;
-  const working = view.follow && live === "live" && lastAt && now - Date.parse(lastAt) < 180_000 ? lastAt : undefined;
+  // what Claude is doing, as Claude Code's hooks tell it: working through a turn, or waiting for you.
+  // An interrupt (Esc) ends the turn without a Stop hook; the transcript records it, so that counts too.
+  // No hooks, no claim.
+  const interruptedAt = useMemo(() => {
+    let last: Event | undefined;
+    for (const e of events?.values() ?? []) last = e;
+    return last?.kind === "user.prompt" && last.text?.startsWith("[Request interrupted") ? last.ts : undefined;
+  }, [events]);
+  const told = sessionId ? activity[sessionId] : undefined;
+  const claude = live === "live" && told && told.activity !== "idle" && !(interruptedAt && interruptedAt > told.ts) ? told.activity : undefined;
+  const working = view.follow && claude && structure ? { state: claude, lastEvent: structure.span.ts_last } : undefined;
   const onGraphMove = useCallback((down: boolean, atTail: boolean) => (down ? atTail && scrollTail() : scrollLock()), [scrollLock, scrollTail]);
 
   /* ---------- project scope (no session in focus) ---------- */
@@ -618,7 +625,7 @@ export function App() {
   );
   const graphPane = (
     <section className="pane right" data-tour="map">
-      <Graph flow={flow} selected={sel} follow={view.follow} hover={hover} dim={dim} hits={hits} onFocus={graphFocus} onHover={hoverAt} onUserMove={onGraphMove} onView={onGraphView} api={graphApi} working={!!working} head={graphHead} />
+      <Graph flow={flow} selected={sel} follow={view.follow} hover={hover} dim={dim} hits={hits} onFocus={graphFocus} onHover={hoverAt} onUserMove={onGraphMove} onView={onGraphView} api={graphApi} working={working?.state === "working"} head={graphHead} />
     </section>
   );
 

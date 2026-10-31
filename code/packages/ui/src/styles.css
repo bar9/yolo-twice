@@ -693,3 +693,6 @@ a.link:hover { text-decoration-color: currentColor; }
   .zoom .node.fresh, .flow .base-node.is-fresh, .working { animation: none; }
   .working .dots i, .flow .base-node.is-selected.is-working { animation: none; }
 }
+/* waiting for you: the dots hold still */
+.working.waiting .dots i { animation: none; opacity: .55; background: var(--ink-3); }
+.working.waiting { color: var(--ink); }

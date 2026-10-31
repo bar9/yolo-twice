@@ -99,6 +99,17 @@
           }
         ]
       }
+    ],
+    "Notification": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/bin/yolo-twice-hook",
+            "timeout": 5
+          }
+        ]
+      }
     ]
   }
 }

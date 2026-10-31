@@ -7,7 +7,9 @@ export type StreamEvent =
   | { type: "structure"; data: { session: string } }
   | { type: "semantic"; data: { session: string; node: string; granularity: string; interim?: boolean } }
   | { type: "config"; data: { attention: string } }
-  | { type: "autocommit"; data: AutoCommit };
+  | { type: "autocommit"; data: AutoCommit }
+  /** What Claude is doing in a session, from Claude Code's hooks (sent again on every connect). */
+  | { type: "activity"; data: { session_id: string; activity: "working" | "waiting" | "idle"; ts: string } };
 
 /** EventSource on /api/stream with reconnect backoff. `onEvent` is kept in a ref so it never re-subscribes. */
 export function useStream(onEvent: (e: StreamEvent) => void): "connecting" | "live" | "offline" {
@@ -42,7 +44,7 @@ export function useStream(onEvent: (e: StreamEvent) => void): "connecting" | "li
         checkBuild(ev);
       });
       es.addEventListener("build", checkBuild);
-      for (const type of ["hook", "ingest", "structure", "semantic", "config", "autocommit"] as const) {
+      for (const type of ["hook", "ingest", "structure", "semantic", "config", "autocommit", "activity"] as const) {
         es.addEventListener(type, (ev) => {
           try {
             handler.current({ type, data: JSON.parse((ev as MessageEvent).data) } as StreamEvent);

@@ -6,6 +6,7 @@ import { Hono } from "hono";
 import { streamSSE } from "hono/streaming";
 import { serve, type ServerType } from "@hono/node-server";
 import { sha256, Attention, findProjectRoot, projectSlug } from "@yolo-twice/core";
+import { activityFrom, type Activity, type HookPayload } from "./activity.js";
 import { ProjectRuntime, type ProjectOptions } from "./project.js";
 import { readProjects, VERSION, writeProjects } from "./state.js";
 
@@ -28,6 +29,8 @@ export class Engine {
   readonly projects = new Map<string, ProjectRuntime>();
   readonly started = new Date().toISOString();
   private clients = new Set<Client>();
+  /** Per project, per session: what the hooks last said Claude is doing (sent to every page that connects). */
+  private activity = new Map<string, Map<string, { session_id: string; activity: Activity; ts: string }>>();
   private server: ServerType | undefined;
   private lastRegistered: string | undefined;
   private uiWatcher: fs.FSWatcher | undefined;
@@ -249,6 +252,7 @@ export class Engine {
         };
         this.clients.add(client);
         client.send("hello", { project: rt.root, version: VERSION, build: this.build() });
+        for (const a of this.activity.get(rt.root)?.values() ?? []) client.send("activity", a);
         const ping = setInterval(() => client.send("ping", {}), 25_000);
         stream.onAbort(() => done());
         await finished;
@@ -258,11 +262,18 @@ export class Engine {
     });
 
     app.post("/hook", async (c) => {
-      const body = (await c.req.json().catch(() => ({}))) as { session_id?: string; cwd?: string; hook_event_name?: string; transcript_path?: string };
+      const body = (await c.req.json().catch(() => ({}))) as HookPayload & { session_id?: string; cwd?: string; transcript_path?: string };
       const cwd = body.cwd ?? (body.transcript_path ? undefined : undefined);
       if (cwd) {
         const rt = this.register(cwd);
         this.broadcast(rt.root, "hook", { hook_event_name: body.hook_event_name, session_id: body.session_id });
+        const activity = activityFrom(body);
+        if (activity && body.session_id) {
+          const a = { session_id: body.session_id, activity, ts: new Date().toISOString() };
+          if (!this.activity.has(rt.root)) this.activity.set(rt.root, new Map());
+          this.activity.get(rt.root)!.set(body.session_id, a);
+          this.broadcast(rt.root, "activity", a);
+        }
         rt.schedule(`hook:${body.hook_event_name}`, body.session_id);
       }
       return c.json({});

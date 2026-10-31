@@ -47,8 +47,8 @@ export const Zoom = memo(function Zoom(props: {
   onOverrides: (o: Record<string, Granularity>) => void;
   /** For the keyboard: open or close a part, step its own detail. */
   api?: React.Ref<ZoomApi>;
-  /** Following a session that is being written: the time of its last event (a quiet "working" row at the end). */
-  working?: string;
+  /** Following a session Claude's hooks say is active: working (dots animate) or waiting for you; with the time of its last event. */
+  working?: { state: "working" | "waiting"; lastEvent: string };
 }) {
   // expansion state keyed by node id survives structure refetches
   const [open, setOpen] = useState<Record<string, boolean>>({ [props.root.id]: true });
@@ -407,13 +407,13 @@ export const Zoom = memo(function Zoom(props: {
         </p>
       )}
       {render(props.root, 0)}
-      {props.working && <Working since={props.working} />}
+      {props.working && <Working state={props.working.state} since={props.working.lastEvent} />}
     </div>
   );
 });
 
-/** The tail of a live session: Claude is still at it, more will come in below. */
-function Working({ since }: { since: string }) {
+/** The tail of a live session: Claude is at it and more will come in below, or it waits for you (a permission, a question). */
+function Working({ state, since }: { state: "working" | "waiting"; since: string }) {
   const [, tick] = useState(0);
   useEffect(() => {
     const t = setInterval(() => tick((n) => n + 1), 1000);
@@ -421,13 +421,13 @@ function Working({ since }: { since: string }) {
   }, []);
   const s = Math.max(0, Math.round((Date.now() - Date.parse(since)) / 1000));
   return (
-    <div className="working" role="status">
+    <div className={`working ${state}`} role="status">
       <span className="dots" aria-hidden>
         <i />
         <i />
         <i />
       </span>
-      Claude is working
+      {state === "working" ? "Claude is working" : "Claude is waiting for you"}
       <span className="num text-ink-3" aria-hidden>
         · last event {s < 60 ? `${s}s` : `${Math.floor(s / 60)}m ${s % 60}s`} ago
       </span>
