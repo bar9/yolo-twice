@@ -1,5 +1,5 @@
 ---
-description: Open the yolo-twice insights UI for this project (starts the engine if needed). Use `stop`, `status`, `mode <micro|attentive|balanced|yolo>`, or `resume [session]` to rebuild a committed session for `claude --resume`.
+description: Open the yolo-twice insights UI for this project (starts the engine if needed). Use `stop`, `status`, `mode <micro|attentive|balanced|yolo>`, or `resume [session]` to continue a committed session as a fork.
 argument-hint: "[stop|status|mode <detent>|resume [session]]"
 allowed-tools: Bash(*/bin/yolo-twice *)
 ---

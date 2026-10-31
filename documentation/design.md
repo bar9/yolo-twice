@@ -226,9 +226,15 @@ Rules that make stop, resume and re-run safe:
    reuses a healthy engine instead of starting a second one.
 6. Resume from the repo: `yolo-twice resume [session]` rebuilds a Claude Code transcript from
    the committed `events.ndjson` (main conversation only, tool call and result pairs kept,
-   parent chain re-linked, redacted text as stored) into `~/.claude/projects/<slug>/` and runs
-   `claude --resume <id>`. This is what makes the committed folder more than an archive.
-7. Redaction runs before anything is written: API keys, tokens, JWTs, private keys, env
+   parent chain re-linked) into the gitignored `cache/resume/`, expands `$PROJECT` and `~`
+   to the resumer's own paths, and runs `claude --resume <file> --fork-session`. The fork gets
+   a new session id, so a committed session never gets a second writer and resuming a
+   teammate's session cannot cause merge conflicts. Nothing is written into `~/.claude`.
+7. Paths are portable and anonymous: the project root is written as `$PROJECT`, the home
+   folder as `~`, Claude folder names derived from them as `<project-slug>` and `-~-`, other
+   machines' homes as `~`, and the login name as `<user>`. This holds for every string of an
+   event, including tool inputs and `data`. Switch it off with `redaction.paths: false`.
+8. Redaction runs before anything is written: API keys, tokens, JWTs, private keys, env
    values and configurable patterns are replaced with `[redacted:<rule>]`; tool results above a
    size limit keep head and tail plus a hash. The original stays in `~/.claude` untouched.
 

@@ -98,11 +98,13 @@ flowchart TB
 ```
 
 Raw transcripts stay in `~/.claude`. Only redacted events and derived data are written here.
+Paths are written portably: the project root as `$PROJECT`, your home folder as `~`, your
+login name as `<user>`. Nobody's username or folder layout ends up in the repo.
 
 Because the redacted events are complete, a teammate who clones the repo can continue a
 session that never ran on their machine: `yolo-twice resume` rebuilds the Claude Code
-transcript from `events.ndjson` into `~/.claude/projects/<project>/` and runs
-`claude --resume <id>`. An existing transcript is never overwritten without `--force`.
+transcript from `events.ndjson` with paths expanded to their own machine and continues it
+with `claude --resume <file> --fork-session`, as a new session of their own.
 
 ## Acknowledgments
 

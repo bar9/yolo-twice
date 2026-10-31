@@ -173,10 +173,10 @@ async function main(): Promise<void> {
       const root = findProjectRoot(cwd);
       const store = new Store(root);
       const session = args[1] && !args[1].startsWith("--") ? args[1] : undefined;
-      const r = prepareResume(store, root, session, has("force"));
-      const where = r.wrote ? `rebuilt ${r.records} records into ${r.transcript}` : `transcript already present at ${r.transcript}`;
+      const r = prepareResume(store, root, session);
+      const where = `rebuilt ${r.records} records of session ${r.session.slice(0, 8)} into ${path.relative(root, r.transcript)}; resuming forks a new session`;
       if (has("print") || process.env.CLAUDE_PLUGIN_ROOT || !process.stdin.isTTY) {
-        console.log(`${where}\nRun in a terminal inside ${root}:\n  ${r.command.join(" ")}`);
+        console.log(`${where}\nRun in a terminal inside ${root}:\n  ${r.command.map((a) => (/\s/.test(a) ? JSON.stringify(a) : a)).join(" ")}`);
         break;
       }
       console.error(where);
@@ -202,7 +202,7 @@ async function main(): Promise<void> {
   status [--cwd <dir>] [--json]                  engine and project state
   index [--cwd <dir>]                            one-shot ingest + derive, no daemon
   mode <micro|attentive|balanced|yolo>           set the attention detent
-  resume [session] [--cwd <dir>] [--force] [--print]  rebuild a Claude Code transcript from .yolo-twice and run claude --resume
+  resume [session] [--cwd <dir>] [--print]       rebuild a session from .yolo-twice and continue it as a fork (claude --resume <file> --fork-session)
   hook                                           forward a Claude Code hook JSON from stdin`);
   }
 }

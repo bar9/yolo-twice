@@ -1,10 +1,14 @@
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
-import { claudeProjectDir, type Event, type Store } from "@yolo-twice/core";
+import { expandPaths, mapStrings, type Event, type Store } from "@yolo-twice/core";
 
 /**
  * Rebuild a Claude Code transcript (JSONL) from the redacted events committed in .yolo-twice,
- * so a teammate can `claude --resume <id>` a session that never ran on their machine.
+ * so a teammate can resume a session that never ran on their machine.
+ *
+ * Paths were stored portably ($PROJECT, ~); they are expanded to the resumer's own absolute
+ * paths here, because Claude's file tools need absolute paths.
  *
  * Only the main conversation is rebuilt (subagent transcripts are not needed to resume).
  * Thinking blocks without text are dropped, every tool_use keeps its tool_result, and the
@@ -30,7 +34,8 @@ function safeJson(text: string): unknown {
   }
 }
 
-export function reconstructTranscript(sessionId: string, events: Event[], cwd: string, version = "yolo-twice"): Reconstructed {
+export function reconstructTranscript(sessionId: string, events: Event[], cwd: string, version = "yolo-twice", home = os.homedir()): Reconstructed {
+  const expand = (t: string) => expandPaths(t, { root: cwd, home });
   const main = events.filter((e) => e.agent_id == null);
   // group block events back into their original records, in arrival order
   const order: string[] = [];
@@ -77,28 +82,28 @@ export function reconstructTranscript(sessionId: string, events: Event[], cwd: s
       switch (e.kind) {
         case "user.prompt":
           type = "user";
-          blocks.push({ type: "text", text: e.text });
+          blocks.push({ type: "text", text: expand(e.text) });
           break;
         case "compaction":
           type = "user";
           compaction = true;
-          blocks.push({ type: "text", text: e.text });
+          blocks.push({ type: "text", text: expand(e.text) });
           break;
         case "tool.result":
           type = "user";
-          blocks.push({ type: "tool_result", tool_use_id: e.tool?.call_id ?? "", content: e.text, ...(e.data?.is_error ? { is_error: true } : {}) });
+          blocks.push({ type: "tool_result", tool_use_id: e.tool?.call_id ?? "", content: expand(e.text), ...(e.data?.is_error ? { is_error: true } : {}) });
           break;
         case "assistant.text":
           type = "assistant";
-          blocks.push({ type: "text", text: e.text });
+          blocks.push({ type: "text", text: expand(e.text) });
           break;
         case "tool.call":
           type = "assistant";
-          blocks.push({ type: "tool_use", id: e.tool?.call_id ?? "", name: e.tool?.name ?? "", input: safeJson(e.text) });
+          blocks.push({ type: "tool_use", id: e.tool?.call_id ?? "", name: e.tool?.name ?? "", input: mapStrings(safeJson(e.text), expand) });
           break;
         case "assistant.thinking":
           type = type ?? "assistant";
-          if (e.text) blocks.push({ type: "thinking", thinking: e.text });
+          if (e.text) blocks.push({ type: "thinking", thinking: expand(e.text) });
           break;
         default:
           break; // system, cost, meta, user.command, subagent.*: not part of the API conversation
@@ -136,28 +141,27 @@ export function reconstructTranscript(sessionId: string, events: Event[], cwd: s
 export interface ResumeResult {
   session: string;
   transcript: string;
-  wrote: boolean;
   records: number;
   command: string[];
 }
 
-/** Materialize the transcript for Claude Code and return the resume command. Idempotent unless `force`. */
-export function prepareResume(store: Store, projectRoot: string, session?: string, force = false): ResumeResult {
+/**
+ * Rebuild the transcript into the gitignored cache and return the command that continues it.
+ * `--fork-session` gives the continuation a new session id: the committed session never gets a
+ * second writer, so resuming a teammate's session cannot cause merge conflicts in .yolo-twice.
+ * Nothing is written to ~/.claude: Claude Code resumes straight from the transcript path.
+ */
+export function prepareResume(store: Store, projectRoot: string, session?: string, home = os.homedir()): ResumeResult {
   const index = store.readProjectIndex();
-  const id = session ?? index?.sessions.at(-1)?.id ?? store.listSessions().at(-1);
-  if (!id) throw new Error("no session in .yolo-twice to resume");
+  const ids = store.listSessions();
+  const id = session ? (ids.find((s) => s === session) ?? ids.find((s) => s.startsWith(session))) : (index?.sessions.at(-1)?.id ?? ids.at(-1));
+  if (!id) throw new Error(session ? `no session ${session} in .yolo-twice` : "no session in .yolo-twice to resume");
   const events = store.readEvents(id);
   if (events.length === 0) throw new Error(`session ${id} has no events in .yolo-twice`);
-  const dir = claudeProjectDir(projectRoot);
+  const dir = path.join(store.cacheDir(), "resume");
   const transcript = path.join(dir, `${id}.jsonl`);
-  let wrote = false;
-  let records = 0;
-  if (!fs.existsSync(transcript) || force) {
-    const rebuilt = reconstructTranscript(id, events, projectRoot);
-    fs.mkdirSync(dir, { recursive: true });
-    fs.writeFileSync(transcript, rebuilt.lines.join("\n") + "\n", { mode: 0o600 });
-    wrote = true;
-    records = rebuilt.records;
-  }
-  return { session: id, transcript, wrote, records, command: ["claude", "--resume", id] };
+  const rebuilt = reconstructTranscript(id, events, projectRoot, "yolo-twice", home);
+  fs.mkdirSync(dir, { recursive: true });
+  fs.writeFileSync(transcript, rebuilt.lines.join("\n") + "\n", { mode: 0o600 });
+  return { session: id, transcript, records: rebuilt.records, command: ["claude", "--resume", transcript, "--fork-session"] };
 }

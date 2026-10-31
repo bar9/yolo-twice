@@ -44,22 +44,32 @@ describe("resume", () => {
     }
   });
 
-  test("prepareResume writes under the Claude project dir once and never overwrites silently", () => {
+  test("prepareResume writes to the gitignored cache, expands paths for the resumer, and forks", () => {
     const fx = tempFixture("rp");
-    const home = path.join(fx.projectRoot, "home");
+    const claudeHome = path.join(fx.projectRoot, "claude-home");
     const prev = process.env.CLAUDE_CONFIG_DIR;
-    process.env.CLAUDE_CONFIG_DIR = home;
+    process.env.CLAUDE_CONFIG_DIR = claudeHome;
     try {
       const store = new Store(fx.projectRoot);
       ingestProject({ cwd: FIXTURE_CWD, store, originDir: fx.originDir });
-      const r1 = prepareResume(store, fx.projectRoot);
-      expect(r1.session).toBe(FIXTURE_SESSION);
-      expect(r1.wrote).toBe(true);
-      expect(r1.transcript.startsWith(path.join(home, "projects"))).toBe(true);
-      expect(r1.command).toEqual(["claude", "--resume", FIXTURE_SESSION]);
-      const r2 = prepareResume(store, fx.projectRoot);
-      expect(r2.wrote).toBe(false);
-      expect(prepareResume(store, fx.projectRoot, undefined, true).wrote).toBe(true);
+      // stored portably
+      expect(fs.readFileSync(store.eventsFile(FIXTURE_SESSION), "utf8")).toContain("$PROJECT/src/routes/auth.ts");
+      // a teammate resumes in their own clone and home
+      const r = prepareResume(store, "/home/bob/clone", FIXTURE_SESSION.slice(0, 8), "/home/bob");
+      expect(r.session).toBe(FIXTURE_SESSION);
+      expect(r.transcript).toBe(path.join(store.cacheDir(), "resume", `${FIXTURE_SESSION}.jsonl`));
+      expect(r.command).toEqual(["claude", "--resume", r.transcript, "--fork-session"]);
+      const text = fs.readFileSync(r.transcript, "utf8");
+      expect(text).toContain("/home/bob/clone/src/routes/auth.ts");
+      expect(text).not.toContain("$PROJECT");
+      // tool inputs are objects with absolute paths again
+      const read = text.split("\n").filter(Boolean).map((l) => JSON.parse(l)).flatMap((rec) => rec.message?.content ?? []).find((b: { type: string; name?: string }) => b.type === "tool_use" && b.name === "Read");
+      expect(read.input.file_path).toBe("/home/bob/clone/src/routes/auth.ts");
+      // nothing was written into Claude's own folder
+      expect(fs.existsSync(path.join(claudeHome, "projects"))).toBe(false);
+      // rebuilding is idempotent
+      const again = prepareResume(store, "/home/bob/clone", FIXTURE_SESSION, "/home/bob");
+      expect(fs.readFileSync(again.transcript, "utf8")).toBe(text);
     } finally {
       if (prev === undefined) delete process.env.CLAUDE_CONFIG_DIR; else process.env.CLAUDE_CONFIG_DIR = prev;
       fx.cleanup();

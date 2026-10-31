@@ -49,7 +49,7 @@ yolo-twice stop                                                stop the daemon
 yolo-twice status [--cwd <dir>] [--json]                       engine and project state
 yolo-twice index [--cwd <dir>]                                 one-shot ingest + derive, no daemon
 yolo-twice mode <micro|attentive|balanced|yolo> [--cwd <dir>]  set the attention detent
-yolo-twice resume [session] [--cwd <dir>] [--force] [--print]  rebuild the Claude Code transcript of a committed session under ~/.claude/projects/<slug>/ and run `claude --resume <id>` (--print only prints the command; existing transcripts are never overwritten without --force)
+yolo-twice resume [session] [--cwd <dir>] [--print]  rebuild a committed session from .yolo-twice into .yolo-twice/cache/resume/<id>.jsonl, with $PROJECT and ~ expanded to this machine's paths, and run `claude --resume <that file> --fork-session` (a new session id, so the committed session never gets a second writer)
 yolo-twice hook                                                read a Claude Code hook JSON from stdin and forward it (used by the plugin)
 ```
 
