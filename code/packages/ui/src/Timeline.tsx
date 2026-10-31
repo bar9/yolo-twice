@@ -3,6 +3,7 @@ import { X } from "lucide-react";
 import { fmtDuration, fmtTime, walk, type StructureNode } from "./api";
 import { KIND, nodeKind } from "./kinds";
 import { useCtrlWheel } from "./wheelZoom";
+import { clock, crossesDay, dayLabel, timeMarks, weekday } from "./timeAxis";
 import type { HoverInfo } from "./Graph";
 
 export interface Bar {
@@ -60,6 +61,8 @@ export const Timeline = memo(function Timeline(props: {
 }) {
   const svg = useRef<SVGSVGElement>(null);
   const [drag, setDrag] = useState<{ a: number; b: number } | undefined>();
+  // where the pointer is on the tape (0..W): a line and a readout right under the tape, without waiting
+  const [cursor, setCursor] = useState<number | undefined>();
   const dragged = useRef(false); // a real drag suppresses the click that follows it
   const W = 1000;
   const LANE = 30;
@@ -88,7 +91,11 @@ export const Timeline = memo(function Timeline(props: {
     dragged.current = false;
     setDrag({ a: px, b: px });
   };
-  const onMove = (e: React.MouseEvent) => drag && setDrag({ ...drag, b: toX(e) });
+  const onMove = (e: React.MouseEvent) => {
+    const px = toX(e);
+    setCursor(px);
+    if (drag) setDrag({ ...drag, b: px });
+  };
   const onUp = (e?: React.MouseEvent) => {
     if (!drag) return;
     const [a, b] = [Math.min(drag.a, drag.b), Math.max(drag.a, drag.b)];
@@ -109,6 +116,17 @@ export const Timeline = memo(function Timeline(props: {
   const peak = Math.max(1, ...props.wave);
   const bw = W / Math.max(props.wave.length, 1);
   const wx = (s: number) => x(props.start + s * 1000);
+  const marks = timeMarks(props.start, props.end);
+  const days = crossesDay(props.start, props.end);
+  const when = (t: number, seconds = false) => (days ? `${weekday(t)} ${clock(t, seconds)}` : clock(t, seconds));
+  // the readout under the pointer: its time, and how busy that slice of the tape was
+  const readout = (() => {
+    if (cursor === undefined || drag) return undefined;
+    const t = props.start + (cursor / W) * span;
+    const i = Math.min(props.wave.length - 1, Math.floor(cursor / bw));
+    const n = props.wave[i] ?? 0;
+    return { left: (cursor / W) * 100, text: `${when(t, span < 6 * 3_600_000)} · ${n ? `${n} event${n === 1 ? "" : "s"}` : "quiet"}` };
+  })();
 
   return (
     <div className="timeline" data-tour="timeline">
@@ -124,7 +142,7 @@ export const Timeline = memo(function Timeline(props: {
         onMouseDown={onDown}
         onMouseMove={onMove}
         onMouseUp={onUp}
-        onMouseLeave={() => (drag && onUp(), props.onHover(undefined))}
+        onMouseLeave={() => (drag && onUp(), setCursor(undefined), props.onHover(undefined))}
         onClickCapture={(e) => {
           if (dragged.current) {
             dragged.current = false;
@@ -136,17 +154,17 @@ export const Timeline = memo(function Timeline(props: {
         {props.wave.map((n, i) => {
           if (!n) return null;
           const h = Math.sqrt(n / peak) * (WAVE - 2);
-          const from = props.start + (i / props.wave.length) * span;
-          const to = props.start + ((i + 1) / props.wave.length) * span;
           // the full slice height is the hover target, so even a short bar is easy to point at
           return (
-            <g key={i} className="tl-wave-slot">
-              <title>{`${n} event${n === 1 ? "" : "s"}, ${fmtTime(new Date(from).toISOString())} to ${fmtTime(new Date(to).toISOString())}`}</title>
+            <g key={i} className={`tl-wave-slot ${cursor !== undefined && Math.floor(cursor / bw) === i ? "on" : ""}`}>
               <rect x={i * bw} y={LANE} width={bw} height={WAVE + 4} fill="transparent" />
               <rect x={i * bw + bw * 0.15} y={H - 2 - h} width={bw * 0.7} height={h} className="tl-wave" />
             </g>
           );
         })}
+        {marks.map((m) => (
+          <line key={m.t} x1={x(m.t)} x2={x(m.t)} y1={m.day ? 0 : LANE} y2={H} className={m.day ? "tl-day" : "tl-mark"} />
+        ))}
         {props.window && <rect x={wx(props.window[0])} y={0} width={wx(props.window[1]) - wx(props.window[0])} height={H} className="tl-window" />}
         {groups.map((g) => (
           <line key={g.id} x1={g.x - 1} x2={g.x - 1} y1={2} y2={H - 2} className="tl-group" />
@@ -185,6 +203,7 @@ export const Timeline = memo(function Timeline(props: {
         {drag && <rect x={Math.min(drag.a, drag.b)} y={0} width={Math.abs(drag.b - drag.a)} height={H} className="tl-brush" />}
       </svg>
       {/* the playhead sits over the tape, not in it: the stretched SVG would bend a marker, and clip it at the edges */}
+      {readout && <span className="tl-cursor" style={{ left: `${readout.left}%` }} aria-hidden />}
       {props.playhead !== undefined && props.playhead >= props.start && (
         <span className="tl-head" style={{ left: `clamp(1px, ${(x(props.playhead) / W) * 100}%, calc(100% - 1px))` }} aria-hidden>
           <span className="tl-head-mark" />
@@ -192,9 +211,25 @@ export const Timeline = memo(function Timeline(props: {
       )}
       </div>
       <div className="tl-axis">
+        {/* time marks under the tape; day borders carry the date. They make way for the edges and the readout */}
+        {marks.map((m) => {
+          const left = (x(m.t) / W) * 100;
+          if (left < 9 || left > 88 || (readout && Math.abs(left - readout.left) < 9)) return null;
+          return (
+            <span key={m.t} className={`tl-mark-label ${m.day ? "day" : ""}`} style={{ left: `${left}%` }}>
+              {m.day ? dayLabel(m.t) : clock(m.t)}
+            </span>
+          );
+        })}
+        {readout && (
+          <span className="tl-readout" style={{ left: `clamp(70px, ${readout.left}%, calc(100% - 70px))` }}>
+            {readout.text}
+          </span>
+        )}
         <span>
+          {days ? `${weekday(props.start)} ` : ""}
           {fmtTime(new Date(props.start).toISOString())}
-          <span className="tl-legend" title="Grey bars: how many events (prompts, answers, tool calls) happened in each slice of time. Hover a bar for its count.">
+          <span className="tl-legend" title="Grey bars: how many events (prompts, answers, tool calls) happened in each slice of time. Point at the tape for the count.">
             <i aria-hidden />
             activity
           </span>
@@ -208,6 +243,7 @@ export const Timeline = memo(function Timeline(props: {
           </span>
         )}
         <span>
+          {days ? `${weekday(props.end)} ` : ""}
           {fmtTime(new Date(props.end).toISOString())}, {fmtDuration(props.end - props.start)}
         </span>
       </div>

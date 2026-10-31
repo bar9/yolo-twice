@@ -764,7 +764,16 @@ a.link:hover { text-decoration-color: currentColor; }
 /* the activity bars: a legend on the axis, and a hover target per slice */
 .tl-legend { display: inline-flex; align-items: center; gap: 5px; margin-left: 12px; color: var(--ink-3); cursor: help; }
 .tl-legend i { display: inline-block; width: 4px; height: 9px; border-radius: 1px; background: var(--ink-3); opacity: .6; }
-.tl-wave-slot:hover .tl-wave { opacity: .9; }
+.tl-wave-slot:hover .tl-wave, .tl-wave-slot.on .tl-wave { opacity: .9; }
+/* time marks: light ticks on the activity lane; a day border runs through the whole tape */
+.tl-mark { stroke: var(--rule-strong); stroke-width: 1; vector-effect: non-scaling-stroke; opacity: .7; pointer-events: none; }
+.tl-day { stroke: var(--ink-3); stroke-width: 1.5; vector-effect: non-scaling-stroke; pointer-events: none; }
+.tl-axis { position: relative; }
+.tl-mark-label { position: absolute; top: 0; transform: translateX(-50%); color: var(--ink-3); white-space: nowrap; pointer-events: none; }
+.tl-mark-label.day { color: var(--ink); font-weight: 600; }
+/* the pointer: a thin line on the tape and its readout right below */
+.tl-cursor { position: absolute; top: 0; bottom: 0; width: 1px; margin-left: -.5px; background: var(--ink); opacity: .55; pointer-events: none; }
+.tl-readout { position: absolute; top: -1px; transform: translateX(-50%); padding: 0 6px; border-radius: 4px; background: var(--ink); color: var(--sheet); white-space: nowrap; pointer-events: none; z-index: 2; }
 
 /* stepping through matches: ↑ ↓ next to the count, and the current match marked in the text */
 .match-step { display: inline-flex; gap: 2px; }
