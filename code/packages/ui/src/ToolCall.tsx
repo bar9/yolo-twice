@@ -21,7 +21,10 @@ for (const [name, lang] of Object.entries({ bash, css, diff, javascript, json, m
 /** Highlighting a huge blob would stall the page; past this it stays plain. */
 const MAX_HIGHLIGHT = 60_000;
 
-/** A code block in one language, with an optional line-number gutter and a caption. */
+/** Short names for the language tag, the way people write them in a code fence. */
+const LANG_TAG: Record<Lang, string> = { bash: "bash", python: "python", typescript: "ts", javascript: "js", json: "json", css: "css", xml: "xml", diff: "diff", markdown: "md", yaml: "yaml", plaintext: "" };
+
+/** A code block in one language, with an optional line-number gutter and a caption; the language is a small tag in the corner. */
 export function Code({ text, lang, start, caption }: { text: string; lang: Lang; start?: number; caption?: string }) {
   const html = useMemo(() => {
     if (lang === "plaintext" || text.length > MAX_HIGHLIGHT) return undefined;
@@ -34,7 +37,14 @@ export function Code({ text, lang, start, caption }: { text: string; lang: Lang;
   const lines = start !== undefined ? text.split("\n").length : 0;
   return (
     <figure className={`code ${lang === "plaintext" && start === undefined ? "wrap" : ""}`}>
-      {caption && <figcaption>{caption}</figcaption>}
+      {caption ? (
+        <figcaption>
+          <span className="truncate">{caption}</span>
+          {LANG_TAG[lang] && <span className="lang">{LANG_TAG[lang]}</span>}
+        </figcaption>
+      ) : (
+        LANG_TAG[lang] && <span className="lang corner">{LANG_TAG[lang]}</span>
+      )}
       <div className="code-body">
         {start !== undefined && (
           <pre className="gutter" aria-hidden>
