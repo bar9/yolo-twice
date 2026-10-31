@@ -1,0 +1,9 @@
+{
+  "analyzer": "structural",
+  "created": "2026-10-31T15:08:48.060Z",
+  "granularity": "abstract",
+  "hash": "7f994025793a36ad",
+  "node": "t36.s12",
+  "text": "[assistant.text] The Appearance setting fits the settings panel now. The label \"Appearance\" sits on its own line, and System, Light and Dark split the full width below it in three equal parts, matching the Attention slider beneath. I measured it in a browser: the switch now ends inside the panel in…",
+  "version": "2"
+}
