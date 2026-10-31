@@ -17,6 +17,9 @@ flowchart TD
     t10["add a command to resume the claude session from the project…"]
     t11["bwzf661ek toolu_01Y5jWTYT8tUJzNERWaMrD1F /tmp/claude-1000/-…"]
     t12["add a contributing.md that describes the local dev flow fro…"]
+    t13>"/model opus"]
+    t14["why do we need bun and node? can we do with only one?"]
+    t15["commit"]
   end
   s_34b27ceb_5af1_4142_8334_ab80a4310636 --> t1
   t1 --> t2
@@ -33,6 +36,9 @@ flowchart TD
   t9 --> t10
   t10 --> t11
   t11 --> t12
+  t12 --> t13
+  t13 --> t14
+  t14 --> t15
   classDef session fill:#1f2937,color:#fff,stroke:#111;
   classDef phase fill:#e5e7eb,stroke:#9ca3af;
   classDef turn fill:#dbeafe,stroke:#60a5fa;
@@ -58,3 +64,6 @@ flowchart TD
   class t10 turn;
   class t11 turn;
   class t12 turn;
+  class t13 turn;
+  class t14 turn;
+  class t15 turn;
