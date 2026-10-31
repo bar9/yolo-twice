@@ -5,31 +5,31 @@
       "view": "34b27c?z=t",
       "caption": "The session that built yolo-twice, committed with the code: one line per chapter.",
       "do": [{ "point": "p1" }],
-      "wait": 3000
+      "wait": 4500
     },
     {
       "view": "34b27c?k=u",
       "caption": "We had the same worry. Search our own prompts for it.",
       "do": [{ "type": "tilde" }, { "key": "n" }, { "point": "t15.s1" }],
-      "wait": 3000
+      "wait": 4000
     },
     {
       "view": "34b27c/t15?z=f&x=t15.s4",
       "caption": "Claude measured the leak first, then chose $PROJECT and ~ for every path.",
       "do": [{ "point": "t15.s4" }, { "open": "t15.s4" }, { "wait": 2000 }, { "point": "t15.s12" }, { "open": "t15.s12" }],
-      "wait": 4000
+      "wait": 3500
     },
     {
       "view": "34b27c/t17?z=f&x=t17.s71",
       "caption": "It built the fix and checked it: one scan alarm was only its own search pattern.",
       "do": [{ "point": "t17.s71" }, { "open": "t17.s71" }, { "wait": 2500 }, { "point": "t17.s76" }, { "open": "t17.s76" }],
-      "wait": 4000
+      "wait": 3500
     },
     {
       "view": "34b27c/t19?z=f&x=t19.s22",
       "caption": "And before committing 37 files: secret hits 0, home paths 0.",
       "do": [{ "point": "t19.s22" }, { "reveal": "bd3363c5-f0a1-4bc1-b54b-047d894f56b2" }],
-      "wait": 4500
+      "wait": 5000
     },
     {
       "view": "34b27c/t17?v=m",

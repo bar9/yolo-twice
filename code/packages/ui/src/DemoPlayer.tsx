@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ChevronLeft, ChevronRight, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Pause, Play, RotateCcw, X } from "lucide-react";
 import { api } from "./api";
 import { clampStep, parseDemo, stepView, trustedOrigin, type Command, type Demo, type Target } from "./demo";
 import { bindingFor, type KeyActions } from "./keys";
@@ -28,6 +28,9 @@ const framed = typeof window !== "undefined" && window.parent !== window;
 const asked = new URLSearchParams(location.search);
 const SAVED = "yt.demo";
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+/** The pace inside a step, slow enough to talk over: the views settle first, then one action every GAP ms. */
+const SETTLE = 900;
+const GAP = 900;
 
 /** The step survives the reloads the UI does by itself (a rebuilt UI, a restarted engine). */
 function remembered(): { name: string; step: number } | undefined {
@@ -72,12 +75,16 @@ export function useDemo(host: DemoHost) {
   const [step, setStep] = useState(0);
   const [point, setPoint] = useState<{ id: string; on?: Target } | undefined>();
   const [error, setError] = useState<string | undefined>();
+  // steps with a wait go on by themselves until the presenter steps by hand; inside a deck, the deck steps
+  const [playing, setPlaying] = useState(!framed);
+  const playingRef = useRef(playing);
+  playingRef.current = playing;
   const current = useRef({ demo, step });
   current.current = { demo, step };
   const token = useRef(0);
 
   const perform = async (cmds: Command[], alive: () => boolean) => {
-    await sleep(700); // the views catch up first: data, layout, the selection's own scroll
+    await sleep(SETTLE); // the views catch up first: data, layout, the selection's own scroll
     for (const c of cmds) {
       if (!alive()) return false;
       if ("wait" in c) await sleep(c.wait);
@@ -108,7 +115,7 @@ export function useDemo(host: DemoHost) {
         }
       } else if ("key" in c) bindingFor(c.key)?.run(h.current.keys, c.key);
       else if ("tab" in c) h.current.tab(c.tab);
-      await sleep(550);
+      await sleep(GAP);
     }
     return alive();
   };
@@ -130,7 +137,7 @@ export function useDemo(host: DemoHost) {
       const last = i === d.script.steps.length - 1;
       if (!ok || !s.wait || (last && !d.script.loop)) return;
       await sleep(s.wait);
-      if (alive()) go(last ? 0 : i + 1, d);
+      if (alive() && playingRef.current) go(last ? 0 : i + 1, d);
     });
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -153,6 +160,24 @@ export function useDemo(host: DemoHost) {
     [go],
   );
 
+  /** The presenter steps by hand (arrows, clicker): from then on the timer waits for them. */
+  const stepTo = useCallback(
+    (n: number) => {
+      setPlaying(false);
+      go(n);
+    },
+    [go],
+  );
+  /** Play on from the next step, or from the start after the last one. */
+  const play = useCallback(() => {
+    const { demo: d, step: at } = current.current;
+    if (!d) return;
+    setPlaying(true);
+    playingRef.current = true;
+    go(at >= d.script.steps.length - 1 ? 0 : at + 1);
+  }, [go]);
+  const pause = useCallback(() => setPlaying(false), []);
+
   const stop = useCallback(() => {
     token.current++;
     setDemo(undefined);
@@ -161,15 +186,20 @@ export function useDemo(host: DemoHost) {
     remember(undefined);
   }, []);
 
-  // ?demo=<name>[&step=n], or the demo this tab was playing before a reload; once the project is known
+  // ?demo=<name>[&step=n] starts over; without it, a reload (the UI reloads itself after a rebuild) resumes
+  // the demo this tab was playing, paused on its step. Once the project is known.
   const begun = useRef(false);
   useEffect(() => {
     if (begun.current || !host.project || framed) return;
     begun.current = true;
     const name = asked.get("demo");
     const kept = remembered();
-    if (name) void start(name, Number(asked.get("step") ?? (kept?.name === name ? kept.step + 1 : 1)) - 1);
-    else if (kept) void start(kept.name, kept.step);
+    if (name) void start(name, Number(asked.get("step") ?? 1) - 1);
+    else if (kept) {
+      setPlaying(false);
+      playingRef.current = false;
+      void start(kept.name, kept.step);
+    }
   }, [host.project, start]);
 
   // the embedding page steps the demo; it hears when the UI is ready and when a step was shown
@@ -194,14 +224,14 @@ export function useDemo(host: DemoHost) {
       e.preventDefault();
       e.stopPropagation();
       if (framed) parent.postMessage({ yt: "nav", dir }, "*");
-      else go(current.current.step + dir);
+      else stepTo(current.current.step + dir);
     };
     addEventListener("keydown", onKey, true);
     return () => removeEventListener("keydown", onKey, true);
-  }, [demo, go]);
+  }, [demo, stepTo]);
 
   const steps = demo?.script.steps ?? [];
-  return { active: !!demo, framed, title: demo?.script.title, step, steps: steps.length, caption: steps[step]?.caption, point, error, go, stop };
+  return { active: !!demo, framed, title: demo?.script.title, step, steps: steps.length, caption: steps[step]?.caption, timed: steps.some((s) => s.wait), playing, point, error, stepTo, play, pause, stop };
 }
 
 /** The presenter's strip: where you are in the demo, the caption, and the way through it. Hidden inside a deck. */
@@ -219,15 +249,24 @@ export function DemoBar({ demo }: { demo: DemoState }) {
   return (
     <div className="demo-bar" role="toolbar" aria-label="Demo">
       <span className="demo-title">{demo.title ?? "Demo"}</span>
-      <button className="demo-btn" onClick={() => demo.go(demo.step - 1)} disabled={demo.step === 0} aria-label="Previous step" title="Previous step (Page Up)">
+      <button className="demo-btn" onClick={() => demo.stepTo(demo.step - 1)} disabled={demo.step === 0} aria-label="Previous step" title="Previous step (Page Up)">
         <ChevronLeft size={16} />
       </button>
       <span className="num demo-count">
         {demo.step + 1} / {demo.steps}
       </span>
-      <button className="demo-btn" onClick={() => demo.go(demo.step + 1)} disabled={demo.step === demo.steps - 1} aria-label="Next step" title="Next step (Page Down)">
+      <button className="demo-btn" onClick={() => demo.stepTo(demo.step + 1)} disabled={demo.step === demo.steps - 1} aria-label="Next step" title="Next step (Page Down)">
         <ChevronRight size={16} />
       </button>
+      {demo.step === demo.steps - 1 ? (
+        <button className="demo-btn" onClick={demo.play} aria-label="Play again" title="Play again from the start">
+          <RotateCcw size={15} />
+        </button>
+      ) : demo.timed ? (
+        <button className="demo-btn" onClick={demo.playing ? demo.pause : demo.play} aria-label={demo.playing ? "Pause" : "Play"} title={demo.playing ? "Pause: step by hand (Page Down)" : "Play on by itself"}>
+          {demo.playing ? <Pause size={15} /> : <Play size={15} />}
+        </button>
+      ) : null}
       {demo.caption && <p className="demo-caption">{demo.caption}</p>}
       <button className="demo-btn" onClick={demo.stop} aria-label="End the demo" title="End the demo">
         <X size={16} />
