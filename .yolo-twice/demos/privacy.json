@@ -8,10 +8,10 @@
       "wait": 3000
     },
     {
-      "view": "34b27c?k=u",
+      "view": "34b27c/p1?k=u",
       "caption": "We asked first. One word finds it.",
       "do": [{ "type": "disclosure", "ms": 150 }, { "wait": 2000 }, { "key": "n" }, { "point": "t15.s1" }],
-      "wait": 4000
+      "wait": 3500
     },
     {
       "view": "34b27c/t15?z=f&x=t15.s4",
