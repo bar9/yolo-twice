@@ -688,6 +688,12 @@ a.link:hover { text-decoration-color: currentColor; }
 .demo-btn { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; color: var(--ink-2); flex: none; }
 .demo-btn:hover:not(:disabled) { background: var(--sheet-2); color: var(--ink); }
 .demo-btn:disabled { opacity: .35; }
+.demo-curtain {
+  position: fixed; inset: 0; z-index: 80; display: grid; place-items: center; background: var(--paper);
+  transition: opacity .35s ease-out, visibility 0s linear 0s;
+}
+.demo-curtain p { margin: 0; font-family: "Nunito", var(--font-sans, sans-serif); font-weight: 900; font-size: clamp(28px, 4vw, 56px); color: var(--ink); }
+.demo-curtain.off { opacity: 0; visibility: hidden; pointer-events: none; transition: opacity .35s ease-out, visibility 0s linear .35s; }
 .demo-pointer {
   position: fixed; z-index: 60; left: 0; top: 0; width: 26px; height: 26px; margin: -13px 0 0 -13px; border-radius: 50%;
   pointer-events: none; opacity: 0; border: 2.5px solid var(--rec); background: var(--rec-soft);

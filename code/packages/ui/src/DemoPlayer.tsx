@@ -17,6 +17,8 @@ export interface DemoHost {
   reveal(event: string): void;
   tab(t: "story" | "results"): void;
   revealMap(id: string): void;
+  /** Whether the data a view needs is there: the session (by id prefix) with its events, or the project. */
+  ready(session: string | undefined): boolean;
 }
 
 export type DemoState = ReturnType<typeof useDemo>;
@@ -96,8 +98,15 @@ export function useDemo(host: DemoHost) {
   current.current = { demo, step };
   const token = useRef(0);
 
-  const perform = async (cmds: Command[], alive: () => boolean) => {
-    await sleep(SETTLE); // the views catch up first: data, layout, the selection's own scroll
+  // opened from a link (a deck handing over): a title card covers the app until step 1 is on screen
+  const [curtain, setCurtain] = useState(!framed && asked.has("demo"));
+
+  const perform = async (cmds: Command[], alive: () => boolean, session: string | undefined) => {
+    // the step's data first (a long session takes a moment), then the views settle: layout, the selection's scroll
+    for (let i = 0; i < 100 && alive() && !h.current.ready(session); i++) await sleep(100);
+    await sleep(SETTLE / 2);
+    setCurtain(false);
+    await sleep(SETTLE / 2);
     for (const c of cmds) {
       if (!alive()) return false;
       if ("wait" in c) await sleep(c.wait);
@@ -146,7 +155,7 @@ export function useDemo(host: DemoHost) {
     h.current.settle();
     h.current.setView(() => stepView(s.view, h.current.project), { push: false });
     if (framed) parent.postMessage({ yt: "step", step: i, steps: d.script.steps.length, caption: s.caption }, "*");
-    void perform(s.do ?? [], alive).then(async (ok) => {
+    void perform(s.do ?? [], alive, stepView(s.view, h.current.project).session).then(async (ok) => {
       const last = i === d.script.steps.length - 1;
       if (!ok || !s.wait || (last && !d.script.loop)) return;
       await sleep(s.wait);
@@ -168,6 +177,7 @@ export function useDemo(host: DemoHost) {
         go(at, d);
       } catch (e) {
         setError(`The demo "${name}" did not load: ${String(e)}`);
+        setCurtain(false);
       }
     },
     [go],
@@ -206,6 +216,7 @@ export function useDemo(host: DemoHost) {
   const stop = useCallback(() => {
     token.current++;
     setDemo(undefined);
+    setCurtain(false);
     setPoint(undefined);
     h.current.hover(undefined);
     remember(undefined);
@@ -261,7 +272,7 @@ export function useDemo(host: DemoHost) {
   }, [demo, forward, backward]);
 
   const steps = demo?.script.steps ?? [];
-  return { active: !!demo, framed, presenting, title: demo?.script.title, step, steps: steps.length, caption: steps[step]?.caption, timed: steps.some((s) => s.wait), playing, point, error, stepTo, forward, backward, hasNext: !!nextUrl, hasPrev: !!prevUrl, play, pause, stop };
+  return { active: !!demo, framed, presenting, title: demo?.script.title, step, steps: steps.length, caption: steps[step]?.caption, curtain, timed: steps.some((s) => s.wait), playing, point, error, stepTo, forward, backward, hasNext: !!nextUrl, hasPrev: !!prevUrl, play, pause, stop };
 }
 
 /** The presenter's strip: where you are in the demo, the caption, and the way through it. Hidden inside a deck. */
@@ -344,4 +355,13 @@ export function DemoPointer({ at }: { at?: { id: string; on?: Target } }) {
     return () => cancelAnimationFrame(frame);
   }, [at]);
   return <div ref={ref} className="demo-pointer" aria-hidden />;
+}
+
+/** The title card a linked tour opens behind, so the app's loading is not part of the show. */
+export function DemoCurtain({ demo }: { demo: DemoState }) {
+  return (
+    <div className={`demo-curtain ${demo.curtain ? "" : "off"}`} aria-hidden={!demo.curtain}>
+      {demo.title && <p>{demo.title}</p>}
+    </div>
+  );
 }

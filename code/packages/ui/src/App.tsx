@@ -16,7 +16,7 @@ import { Help, type HelpTab } from "./Help";
 import { TourInvite } from "./TourInvite";
 import { useKeyboard } from "./useKeyboard";
 import type { KeyActions } from "./keys";
-import { DemoBar, DemoPointer, useDemo } from "./DemoPlayer";
+import { DemoBar, DemoCurtain, DemoPointer, useDemo } from "./DemoPlayer";
 import { useCtrlWheel } from "./wheelZoom";
 import { matchOrder, stepIn } from "./nav";
 import { useStream } from "./useStream";
@@ -630,6 +630,7 @@ export function App() {
     },
     tab: (t) => setReader(t === "results" ? "results" : "outline"),
     revealMap: (id) => graphApi.current?.reveal(id),
+    ready: (session) => (session ? !!(sessionId?.startsWith(session) && structure?.id === sessionNode(sessionId) && events && scope) : !!index),
   });
   const hoverAt = useCallback((h: HoverInfo | undefined) => (setHover(h?.id), setCard(h)), []);
   const setDetail = useCallback((z: Granularity) => setView({ z }), [setView]);
@@ -779,6 +780,7 @@ export function App() {
       {!touring && !demo.active && !demo.framed && <TourInvite onStart={() => setTouring(true)} />}
       <DemoBar demo={demo} />
       <DemoPointer at={demo.point} />
+      <DemoCurtain demo={demo} />
       {card && <HoverCard info={card} tree={tree} sessions={sessions} hits={hits} />}
       <Sheet open={digest !== undefined} onOpenChange={(o) => !o && setDigest(undefined)}>
         <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
