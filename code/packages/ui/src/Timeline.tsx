@@ -118,14 +118,15 @@ export const Timeline = memo(function Timeline(props: {
   const wx = (s: number) => x(props.start + s * 1000);
   const marks = timeMarks(props.start, props.end);
   const days = crossesDay(props.start, props.end);
-  const when = (t: number, seconds = false) => (days ? `${weekday(t)} ${clock(t, seconds)}` : clock(t, seconds));
+  // the readout names the date whenever the tape spans more than one day
+  const whenFull = (t: number, seconds = false) => (days ? `${dayLabel(t)} · ${clock(t, seconds)}` : clock(t, seconds));
   // the readout under the pointer: its time, and how busy that slice of the tape was
   const readout = (() => {
     if (cursor === undefined || drag) return undefined;
     const t = props.start + (cursor / W) * span;
     const i = Math.min(props.wave.length - 1, Math.floor(cursor / bw));
     const n = props.wave[i] ?? 0;
-    return { left: (cursor / W) * 100, text: `${when(t, span < 6 * 3_600_000)} · ${n ? `${n} event${n === 1 ? "" : "s"}` : "quiet"}` };
+    return { left: (cursor / W) * 100, text: `${whenFull(t, span < 6 * 3_600_000)} · ${n ? `${n} event${n === 1 ? "" : "s"}` : "quiet"}` };
   })();
 
   return (

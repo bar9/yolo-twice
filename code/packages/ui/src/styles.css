@@ -767,7 +767,7 @@ a.link:hover { text-decoration-color: currentColor; }
 .tl-wave-slot:hover .tl-wave, .tl-wave-slot.on .tl-wave { opacity: .9; }
 /* time marks: light ticks on the activity lane; a day border runs through the whole tape */
 .tl-mark { stroke: var(--rule-strong); stroke-width: 1; vector-effect: non-scaling-stroke; opacity: .7; pointer-events: none; }
-.tl-day { stroke: var(--ink-3); stroke-width: 1.5; vector-effect: non-scaling-stroke; pointer-events: none; }
+.tl-day { stroke: var(--ink-3); stroke-width: 1; stroke-dasharray: 3 3; opacity: .55; vector-effect: non-scaling-stroke; pointer-events: none; }
 .tl-axis { position: relative; }
 .tl-mark-label { position: absolute; top: 0; transform: translateX(-50%); color: var(--ink-3); white-space: nowrap; pointer-events: none; }
 .tl-mark-label.day { color: var(--ink); font-weight: 600; }
