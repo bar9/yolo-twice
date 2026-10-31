@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T14:42:23.706Z",
+  "granularity": "abstract",
+  "hash": "d33827c56fae7e5a",
+  "node": "t5.s53",
+  "text": "Added the `@yolo-twice/pele-markdown` markdown-it plugin (`renderMermaid`, 2 bun tests pass), a VitePress site where all four mermaid diagrams render to inline pele SVG with no `pele-error`, and a 9-slide Slidev deck built via `bun node_modules/@slidev/cli/bin/slidev.mjs` because Slidev 53 fails on Node 20.12. Wrote `.github/workflows/pages.yml`, but `gh api -X POST repos/bar9/yolo-twice/pages` returned 404 because `culmat` has write rather than admin, so the repo owner must enable Pages before the deploy can succeed. Nothing was committed; the only README change is a Website and pitch-deck link line under the title.",
+  "version": "2"
+}

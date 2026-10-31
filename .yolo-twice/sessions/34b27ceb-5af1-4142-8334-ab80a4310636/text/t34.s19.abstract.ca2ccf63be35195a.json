@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T14:43:04.858Z",
+  "granularity": "abstract",
+  "hash": "ca2ccf63be35195a",
+  "node": "t34.s19",
+  "text": "The graph's legend is removed, and its bar now holds an up button that names the level above and zooms out one level, the same as Esc (in turn view it jumps to that phase), plus a label stating what the boxes are, such as \"34 turns in 3 phases\" or \"60 steps\". The zoom controls (− 100% +, readable size, whole graph) moved from the floating canvas panel into the bar, since the always-visible filter chips now act as the legend, and the bar matches the text pane header's height so the panes line up. All 63 unit tests and 30 linked-view browser checks pass; committed as 9d27716 and not pushed.",
+  "version": "2"
+}

@@ -1,0 +1,9 @@
+{
+  "analyzer": "structural",
+  "created": "2026-10-31T14:42:24.475Z",
+  "granularity": "abstract",
+  "hash": "0a2d7ac42d933632",
+  "node": "t7",
+  "text": "[user.prompt] add a command to resume the claude session from the project local .yolo-twice folder [assistant.thinking] [assistant.text] I'll add a `resume` command: it rebuilds a Claude Code transcript from the committed `events.ndjson`, places it where Claude Code looks for this project, and laun…",
+  "version": "2"
+}

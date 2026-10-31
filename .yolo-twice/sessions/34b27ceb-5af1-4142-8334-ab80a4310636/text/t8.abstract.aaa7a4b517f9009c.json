@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T14:42:32.802Z",
+  "granularity": "abstract",
+  "hash": "aaa7a4b517f9009c",
+  "node": "t8",
+  "text": "Added CONTRIBUTING.md covering prerequisites, clone-to-running steps for the engine, UI and plugin, per-package inner loops, and environment variables, and linked it from README. Building from a clean checkout exposed that the root `build` skipped the engine, because its package is named `yolo-twice` rather than `@yolo-twice/*`, and that parallel `tsc -b` runs raced on core; the root build now runs `tsc -b packages/engine packages/pele-markdown` and then the UI, with `build:site` and `build:pitch` split out. A fresh clone now installs, builds, passes 22 tests and typechecks, the engine runs under plain Node and serves the UI, and the scratch-index recipe was corrected to use `YOLO_TWICE_ORIGIN_DIR` after the first draft would have written into the repo's own `.yolo-twice/`.",
+  "version": "2"
+}

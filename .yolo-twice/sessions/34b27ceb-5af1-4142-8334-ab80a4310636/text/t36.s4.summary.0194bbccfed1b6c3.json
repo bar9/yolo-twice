@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T14:46:58.969Z",
+  "granularity": "summary",
+  "hash": "0194bbccfed1b6c3",
+  "node": "t36.s4",
+  "text": "Rewrote the Appearance row in code/packages/ui/src/Header.tsx from a label-beside-control flex row into a stacked block: label above, a full-width three-column grid for the `.seg` radiogroup, and centred buttons. Typecheck passed (exit 0) and the @yolo-twice/ui build succeeded. A Playwright script opened the Settings popover at 1440×900 and measured it: the popover's right edge is at 1286px and the segmented control's right edge at 1269px, so the control fits inside the popover with about 17px to spare.",
+  "version": "2"
+}

@@ -1,0 +1,9 @@
+{
+  "analyzer": "structural",
+  "created": "2026-10-31T14:42:24.034Z",
+  "granularity": "abstract",
+  "hash": "cdcfde4803f93a06",
+  "node": "t5.s52",
+  "text": "[tool Agent] {\"description\":\"Build the web UI package\",\"subagent_type\":\"fork\",\"prompt\":\"You are track B of the yolo-twice scaffold: build the web UI in `code/packages/ui/**`. You own only that directory. Track A is building the engine (`code/packages/engine`) and track C the site/pitch; do not touc…",
+  "version": "2"
+}

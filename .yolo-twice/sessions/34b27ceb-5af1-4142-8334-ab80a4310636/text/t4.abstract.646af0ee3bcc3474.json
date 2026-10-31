@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T14:42:22.703Z",
+  "granularity": "abstract",
+  "hash": "646af0ee3bcc3474",
+  "node": "t4",
+  "text": "Replaced the `<copyright holders>` placeholder and the 2025 year in license.txt with \"Copyright © 2026 Matthias Cullmann, Roland Brand, Jan Babin and the yolo-twice contributors\", taking the names from the bar9/yolo-twice collaborators (culmat, bar9, jan-ba) and their GitHub profiles. The fourth team member is not a collaborator yet, so the \"contributors\" clause covers them until their name is known. The change is uncommitted and sits alongside existing README.md and documentation/design.md edits.",
+  "version": "2"
+}

@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T14:42:25.271Z",
+  "granularity": "abstract",
+  "hash": "47818004a6816b49",
+  "node": "t5",
+  "text": "Built the yolo-twice monorepo under code/ with three parallel tracks: core (Claude Code JSONL ingest, redaction, .yolo-twice store) and analyzers (structure tree, mermaid graph, search, semantic cache), committed as a988456 with 16 passing bun tests; an engine daemon and CLI on 127.0.0.1:9656 with 20 passing tests, a Claude Code plugin whose `/yolo-twice:yolo-twice` command works (the quoted `allowed-tools` form silently aborts, the glob form works), a Vite/React UI verified in headless Chromium against a mock, and a pele-markdown plugin with a VitePress site and Slidev deck (Slidev 53 needs bun because Node 20 fails). Engine, plugin, UI, site and workflow files remain uncommitted, and GitHub Pages could not be enabled because culmat lacks admin rights on bar9/yolo-twice (API returns 404).",
+  "version": "2"
+}

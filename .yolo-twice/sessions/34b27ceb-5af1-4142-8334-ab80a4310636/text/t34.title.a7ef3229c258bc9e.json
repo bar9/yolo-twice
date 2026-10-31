@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T14:43:51.866Z",
+  "granularity": "title",
+  "hash": "a7ef3229c258bc9e",
+  "node": "t34",
+  "text": "Graph bar: up-button and item counts, zoom moved in, legend dropped",
+  "version": "2"
+}

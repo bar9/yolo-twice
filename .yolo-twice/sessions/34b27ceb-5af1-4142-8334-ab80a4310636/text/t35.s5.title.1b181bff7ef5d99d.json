@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T14:44:05.610Z",
+  "granularity": "title",
+  "hash": "1b181bff7ef5d99d",
+  "node": "t35.s5",
+  "text": "Dark-mode palette overrides for paper, ink and per-kind accent colors",
+  "version": "2"
+}

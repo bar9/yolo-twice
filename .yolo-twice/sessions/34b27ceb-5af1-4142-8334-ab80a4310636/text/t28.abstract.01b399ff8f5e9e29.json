@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T14:42:32.320Z",
+  "granularity": "abstract",
+  "hash": "01b399ff8f5e9e29",
+  "node": "t28",
+  "text": "Revamped the yolo-twice web UI in code/packages/ui (committed b266f1e, not pushed) using shadcn/ui on Tailwind and Radix, Lucide icons, and bundled Instrument Sans, Newsreader and JetBrains Mono fonts, after the user asked for a less cramped look and better graph and text views. The layout became a single header row with Read, Split and Map views (the choice is stored as `v=` in the URL), the timeline became a tape with an activity waveform and orange playhead, the reader gained kind icons and inline code, and the graph became a pan-and-zoom canvas that never scales text above 1:1. Checks: 57 unit tests and typecheck pass, the linked-views suite passes 30/30 after updating two chip names, and the follow suite passes after adapting it to the new canvas. The shadcn CLI installed a stray npm package named `cn`, which was removed. The shared-browser screenshots timed out, so visuals were checked with headless Chromium instead.",
+  "version": "2"
+}

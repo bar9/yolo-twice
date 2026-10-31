@@ -1,0 +1,9 @@
+{
+  "analyzer": "structural",
+  "created": "2026-10-31T14:42:31.951Z",
+  "granularity": "abstract",
+  "hash": "b4c41f99cf7157b3",
+  "node": "t30",
+  "text": "[user.prompt] buttons sync to +7- but not the other way round [assistant.thinking] [assistant.text] The −/+ on a part changes only that part, so the page switch never shows it. I'll make it two-way: - The −/+ on the top part (the focus itself) is the page level, so it moves the switch. - When other…",
+  "version": "2"
+}

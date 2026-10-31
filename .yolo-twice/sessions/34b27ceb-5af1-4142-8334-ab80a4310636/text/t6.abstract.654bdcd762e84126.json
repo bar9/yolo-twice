@@ -1,0 +1,9 @@
+{
+  "analyzer": "structural",
+  "created": "2026-10-31T14:42:26.200Z",
+  "granularity": "abstract",
+  "hash": "654bdcd762e84126",
+  "node": "t6",
+  "text": "[user.prompt] I still see many unstaged changes [tool Bash] {\"command\":\"git status --short | head -40\",\"description\":\"Show current working tree status\"} [tool.result] ?? .claude-plugin/ ?? .github/ ?? .yolo-twice/ ?? code/packages/engine/ ?? code/packages/pele-markdown/ ?? code/packages/ui/ ?? code…",
+  "version": "2"
+}

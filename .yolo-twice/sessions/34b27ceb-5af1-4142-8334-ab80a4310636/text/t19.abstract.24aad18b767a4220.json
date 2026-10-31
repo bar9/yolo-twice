@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T14:42:32.170Z",
+  "granularity": "abstract",
+  "hash": "24aad18b767a4220",
+  "node": "t19",
+  "text": "Copied ~/Downloads/Yolo-20261031T110356Z-1-001/Yolo/1793441711665.jpg into code/pitch/assets/cover-yolo.jpg and made it the full-bleed background of slide 1 in slides.md, with the title, tagline and team names in a dark gradient band in style.css. A Playwright check of the built deck, served under the Pages base path, showed the image loading at 1408px wide with no page errors, and the tagline was darkened for contrast before commit 5d9a138 was pushed. The .yolo-twice/ session refresh went into d4530a2 after a secret scan found no hits, and the Pages deploy succeeded with the cover image served at HTTP 200 on the live deck.",
+  "version": "2"
+}

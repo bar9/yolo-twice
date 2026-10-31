@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T14:42:39.075Z",
+  "granularity": "abstract",
+  "hash": "8a71f378d509cdd2",
+  "node": "t33",
+  "text": "Follow mode now scrolls the text and graph panes the same way: scrolling up or moving up in the graph locks following, reaching the bottom resumes it, and a floating \"↓ N new\" pill shows while locked. A loop that scrolled the panes back to the newest node on unlock was fixed in Zoom.tsx and Graph.tsx, and the browser suite passes 11/11 (commit 7d2753d). Tool calls now render per tool (Bash heredocs highlighted as Python, Read/Write/Edit by file extension, Edit as a diff) via new ToolCall.tsx and toolview.ts, with 6 new unit tests; bundle grew about 25 kB gzipped (93ff424). Search auto-opens up to 30 matching steps at Raw with words highlighted, and search words now split on non-letters so `q=input&k=u` finds the prompt (dbdab43); the graph legend items toggle the same `k=` filters as the chips (63e914f).",
+  "version": "2"
+}

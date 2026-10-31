@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T14:42:44.894Z",
+  "granularity": "abstract",
+  "hash": "d06f466de4eb3e9c",
+  "node": "t3",
+  "text": "Replaced the fixed five-level zoom in documentation/design.md with two independent axes: structural L-1 to L4 (project, session, phases, turns, steps, raw) and text granularity (title, abstract, summary, full), so the top level can also zoom out. Adopted pele (MIT, Obsidian's synchronous mermaid renderer) for the VitePress site, Slidev deck and UI flow graph, added a graph.mmd output, and renamed readme.md to README.md with a one-command install (`claude plugin install yolo-twice --marketplace bar9/yolo-twice`) and a credits table for Claudescope, claude-code-history-viewer, cc_transcript_viewer, claude-code-transcripts, ccusage and pele. Nothing is committed, the install command does not work yet, and license.txt still has template copyright placeholders.",
+  "version": "2"
+}

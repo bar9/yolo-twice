@@ -1,0 +1,9 @@
+{
+  "analyzer": "structural",
+  "created": "2026-10-31T14:42:32.489Z",
+  "granularity": "abstract",
+  "hash": "f637105a07c9dd69",
+  "node": "t14",
+  "text": "[user.prompt] <ide_opened_file>The user opened the file $PROJECT/.yolo-twice/project.json in the IDE. This may or may not be related to the current task.</ide_opened_file> - add a \"follow\" mode that automatically scrolls to the latest incoming events, like gh action console or \"tail -f\" [assistant.…",
+  "version": "2"
+}
