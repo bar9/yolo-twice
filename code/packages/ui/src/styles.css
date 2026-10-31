@@ -675,7 +675,8 @@ a.link:hover { text-decoration-color: currentColor; }
 @media (prefers-reduced-motion: reduce) { .tour-invite { animation: none; } }
 
 /* ---------- live: new parts fade in, a working row and a soft pulse at the tail ---------- */
-@keyframes enter { from { opacity: 0; transform: translateY(6px); } }
+/* a fade only: the follow slide already moves the page, a second motion would read as flicker */
+@keyframes enter { from { opacity: 0; } }
 .zoom .node.fresh { animation: enter .4s ease-out; }
 .flow .base-node.is-fresh { animation: enter .4s ease-out; }
 .working { display: flex; align-items: center; gap: 10px; margin: 16px 0 0 6px; font-size: 13px; color: var(--ink-2); animation: enter .4s ease-out; }

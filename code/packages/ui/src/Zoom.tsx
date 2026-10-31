@@ -182,7 +182,7 @@ export const Zoom = memo(function Zoom(props: {
     // otherwise center the selection
     const first = !same && lastTailed.current === undefined;
     const t = setTimeout(() => {
-      if (props.follow) tail(first ? "auto" : "smooth");
+      if (props.follow) tail(first ? "jump" : "glide");
       else document.getElementById(`node-${props.selected}`)?.scrollIntoView({ block: "center", behavior: "smooth" });
     }, 50);
     return () => clearTimeout(t);
@@ -190,29 +190,51 @@ export const Zoom = memo(function Zoom(props: {
 
   // while following, the end of the newest part (and the working row under it) sits a quarter above the
   // bottom of the pane, and stays there as content grows (a summary arrives, a tool result lands)
+  //
+  // New content must move the page once, not twice: the scroll is corrected in the same frame as the
+  // layout change (a ResizeObserver runs before paint), so nothing is ever drawn pushed down; then the
+  // text is shifted back by what the scroll moved and slides into place (FLIP), one calm movement up.
   const lastTailed = useRef<string | undefined>(undefined);
-  const tail = (behavior: ScrollBehavior) => {
-    const pane = zoomRef.current?.closest<HTMLElement>(".pane-body");
+  const tail = (mode: "jump" | "glide") => {
+    const zoom = zoomRef.current;
+    const pane = zoom?.closest<HTMLElement>(".pane-body");
     const node = props.selected ? document.getElementById(`node-${props.selected}`) : null;
-    if (!pane || !node) return;
+    if (!zoom || !pane || !node) return;
     lastTailed.current = props.selected;
-    const end = Math.max(node.getBoundingClientRect().bottom, zoomRef.current?.querySelector(".working")?.getBoundingClientRect().bottom ?? 0);
+    // measured where things will rest: without the slide still under way
+    const sliding = new DOMMatrixReadOnly(getComputedStyle(zoom).transform === "none" ? undefined : getComputedStyle(zoom).transform).m42;
+    const end = Math.max(node.getBoundingClientRect().bottom, zoom.querySelector(".working")?.getBoundingClientRect().bottom ?? 0) - sliding;
     const delta = end - (pane.getBoundingClientRect().top + pane.clientHeight * 0.75);
-    // glide over small steps; a jump of more than a screen (a burst of events) lands at once
-    if (Math.abs(delta) > 2) pane.scrollTo({ top: pane.scrollTop + delta, behavior: Math.abs(delta) > pane.clientHeight ? "auto" : behavior });
+    if (Math.abs(delta) <= 2) return;
+    const before = pane.scrollTop;
+    pane.scrollTop = before + delta;
+    const moved = pane.scrollTop - before;
+    // a burst (more than a screen) lands at once; so does everything for people who prefer less motion
+    if (mode === "jump" || Math.abs(moved) > pane.clientHeight || matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      zoom.style.transition = zoom.style.transform = "";
+      return;
+    }
+    zoom.style.transition = "none";
+    zoom.style.transform = `translateY(${sliding + moved}px)`;
+    void zoom.offsetHeight; // commit the start position before the transition
+    zoom.style.transition = "transform .38s cubic-bezier(.4, 0, .2, 1)";
+    zoom.style.transform = "translateY(0)";
   };
   const tailRef = useRef(tail);
   tailRef.current = tail;
   useEffect(() => {
     const el = zoomRef.current;
     if (!props.follow || !el || typeof ResizeObserver === "undefined") return;
-    let frame = 0;
-    const ro = new ResizeObserver(() => {
-      cancelAnimationFrame(frame);
-      frame = requestAnimationFrame(() => tailRef.current("smooth"));
-    });
+    const ro = new ResizeObserver(() => tailRef.current("glide"));
     ro.observe(el);
-    return () => (cancelAnimationFrame(frame), ro.disconnect());
+    const done = () => void (el.style.transition = el.style.transform = "");
+    const ended = (e: TransitionEvent) => e.target === el && e.propertyName === "transform" && done();
+    el.addEventListener("transitionend", ended);
+    return () => {
+      ro.disconnect();
+      el.removeEventListener("transitionend", ended);
+      done();
+    };
   }, [props.follow]);
   useEffect(() => {
     if (!props.follow) lastTailed.current = undefined;
