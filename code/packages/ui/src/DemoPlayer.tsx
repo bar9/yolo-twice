@@ -26,7 +26,7 @@ type Loaded = { name: string; source: string; script: Demo };
 
 const framed = typeof window !== "undefined" && window.parent !== window;
 const asked = new URLSearchParams(location.search);
-// presenting: no timer; the clicker and ← → step like slides; past the last step it hands back to the deck at `back`
+// presenting: no timer; past the last step the demo hands back to the deck at `back`
 const presenting = asked.has("present");
 const back = (() => {
   const b = asked.get("back");
@@ -235,8 +235,10 @@ export function useDemo(host: DemoHost) {
   useEffect(() => {
     if (!demo) return;
     const onKey = (e: KeyboardEvent) => {
-      const next = e.key === "PageDown" || (presenting && e.key === "ArrowRight");
-      const prev = e.key === "PageUp" || (presenting && e.key === "ArrowLeft");
+      // ← → belong to the app, unless the demo bar has the focus
+      const onBar = !!(document.activeElement as HTMLElement | null)?.closest(".demo-bar");
+      const next = e.key === "PageDown" || (onBar && e.key === "ArrowRight");
+      const prev = e.key === "PageUp" || (onBar && e.key === "ArrowLeft");
       const dir = next ? 1 : prev ? -1 : 0;
       if (!dir || e.ctrlKey || e.metaKey || e.altKey) return;
       e.preventDefault();
@@ -255,6 +257,12 @@ export function useDemo(host: DemoHost) {
 
 /** The presenter's strip: where you are in the demo, the caption, and the way through it. Hidden inside a deck. */
 export function DemoBar({ demo }: { demo: DemoState }) {
+  // the bar takes the focus when a demo starts, so ← → step it; a click into the app gives them back
+  const bar = useRef<HTMLDivElement>(null);
+  const started = demo.active && !demo.framed;
+  useEffect(() => {
+    if (started) bar.current?.focus();
+  }, [started]);
   if (demo.framed || (!demo.active && !demo.error)) return null;
   if (!demo.active)
     return (
@@ -266,15 +274,15 @@ export function DemoBar({ demo }: { demo: DemoState }) {
       </div>
     );
   return (
-    <div className="demo-bar" role="toolbar" aria-label="Demo">
+    <div ref={bar} tabIndex={-1} className="demo-bar" role="toolbar" aria-label="Demo: ← → step while this bar has focus">
       <span className="demo-title">{demo.title ?? "Demo"}</span>
-      <button className="demo-btn" onClick={() => demo.stepTo(demo.step - 1)} disabled={demo.step === 0} aria-label="Previous step" title={demo.presenting ? "Previous step (← or Page Up)" : "Previous step (Page Up)"}>
+      <button className="demo-btn" onClick={() => demo.stepTo(demo.step - 1)} disabled={demo.step === 0} aria-label="Previous step" title="Previous step (← here, or Page Up)">
         <ChevronLeft size={16} />
       </button>
       <span className="num demo-count">
         {demo.step + 1} / {demo.steps}
       </span>
-      <button className="demo-btn" onClick={demo.forward} disabled={demo.step === demo.steps - 1 && !demo.handsBack} aria-label="Next step" title={demo.presenting ? "Next step (→ or Page Down)" : "Next step (Page Down)"}>
+      <button className="demo-btn" onClick={demo.forward} disabled={demo.step === demo.steps - 1 && !demo.handsBack} aria-label="Next step" title="Next step (→ here, or Page Down)">
         <ChevronRight size={16} />
       </button>
       {demo.step === demo.steps - 1 ? (

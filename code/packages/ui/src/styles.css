@@ -680,6 +680,8 @@ a.link:hover { text-decoration-color: currentColor; }
   display: flex; align-items: center; gap: 6px; padding: 6px 8px 6px 14px; border-radius: 999px;
   background: var(--sheet); border: 1px solid var(--rule); box-shadow: 0 12px 34px rgb(7 10 42 / .2); font-size: 13px;
 }
+.demo-bar:focus-within { outline: 2px solid var(--rec); outline-offset: 2px; }
+.demo-bar:focus { outline-style: solid; }
 .demo-title { font-weight: 600; color: var(--ink); white-space: nowrap; margin-right: 4px; }
 .demo-count { color: var(--ink-2); min-width: 3.2em; text-align: center; }
 .demo-caption { margin: 0 6px; color: var(--ink-2); line-height: 1.35; min-width: 0; }
