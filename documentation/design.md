@@ -184,10 +184,10 @@ The engine emits the graph as mermaid text in `sessions/<id>/graph.mmd`, one fil
 structural level requested. Nodes are L2 turns by default, expandable to L3. Edges: `parent`
 (sequence), `tool.call` to `tool.result`, `subagent.start` to its transcript, and branch
 edges where one parent has several children (a rewind). Zooming out merges turns into phase
-nodes, like map tiles. The UI renders the text with [pele](https://pele.run/) (MIT, from the
-Obsidian team), the same renderer the site and the deck use, and attaches click handlers to
-the SVG node ids to zoom. Mermaid text is readable, diffable and committable, and renders on
-GitHub as-is. If interactivity outgrows SVG, `@xyflow/react` is the fallback.
+nodes, like map tiles. The site and the deck render the text with [pele](https://pele.run/) (MIT,
+from the Obsidian team). Mermaid text is readable, diffable and committable, and renders on
+GitHub as-is. The UI's map outgrew SVG and draws the same structure with `@xyflow/react` (React
+Flow) node blocks, so boxes can show stats, fold filtered runs and take clicks and hover.
 
 ## 5. `.yolo-twice` layout and idempotency
 
@@ -324,13 +324,16 @@ Look and layout: the session is treated as a recording. The timeline is a tape: 
 parts of the focus, a waveform of activity underneath, search hits as marker ticks and an
 orange playhead on the selection (or the live tail while following). The reader tells the story
 in a serif (Newsreader), with inline code in a monospace and the interface in a sans (Instrument
-Sans); steps hang off a thread from their parent's icon. The graph is a canvas with drag to pan,
+Sans); steps hang off a thread from their parent's icon. The map draws the parts as React Flow
+node blocks, laid out with dagre, on a canvas with drag to pan,
 Ctrl or Command and scroll to zoom, and text never scaled above 1:1. One icon and one colour per
 event kind (lucide icons) is used everywhere: reader, tape, graph, filters and legend. Reader
 and graph sit side by side with a draggable divider, or one of them takes the whole width
 (Read, Map). Components are shadcn/ui on Tailwind and Radix; fonts are bundled, so the UI works
 offline. Appearance (System, Light, Dark) is a per-viewer setting kept in the browser,
-applied before the first paint.
+applied before the first paint. The palette, the OT mark, the favicon and the Nunito wordmark
+come from the website (`code/site`): cream paper, navy ink and the brand orange in light mode,
+the wordmark's deep navy in dark mode.
 
 - **Focus narrows.** The focus is a node: the project, a session, a phase, a turn or a step.
   The reader is rooted at it, the graph is redrawn one level below it (semantic zoom, no pixel
@@ -379,7 +382,7 @@ Example: `http://127.0.0.1:9656/yolo-twice/34b27c/t2?k=t,e&x=t2.s4`
 Four axes, one key family each, so the keymap can grow without reshuffling: ← → move the
 scope (the breadcrumb runs left to right), ↑ ↓ the selection (the reader runs top to bottom),
 − + the detail, letters and digits the filters and views. One table (`ui/src/keys.ts`) drives
-both the handling and the cheat sheet (`?`, also in the settings), so they cannot drift apart.
+both the handling and the Keyboard tab of Help (`?`), so they cannot drift apart.
 Keys work while focus is not in a text field, menu or dialog; Ctrl, ⌘ and Alt combinations stay
 with the browser; the graph canvas keeps its own arrows and − + 0 while it has focus.
 
@@ -391,10 +394,24 @@ with the browser; the graph canvas keeps its own arrows and − + 0 while it has
 | / then Enter, n, ⇧ N | search and jump to the first match, next and previous match |
 | 1 to 8, h, x | kind filters in chip order, hide or show filtered, clear search, filters and window |
 | − +, `,` `.` | detail of the whole page, detail of the selected part only |
-| v, f, p, c, ? | cycle Read, Split, Map; follow; pin; catch me up; cheat sheet |
+| v, f, p, c, ? | cycle Read, Split, Map; follow; pin; catch me up; Help on its Keyboard tab |
 
 When nothing matches, the filter bar offers "← Search the phase" (or turn, session, project);
 widening lands on the first match.
+
+### Help and tour
+
+The UI explains itself. Help (the ? button in the header, or the `?` key) has three tabs, the
+most used first: Guide (a seven-point manual and the tour), Keyboard (generated from the keymap)
+and About (give feedback through GitHub issues, contribute through pull requests, then the
+version, license, website and source). The version is the commit the UI was built from, stamped
+by Vite at build time and linked on GitHub; "with local changes" marks a build from a dirty tree.
+
+The guided tour (react-joyride) has one stop per part of the screen, in the order a newcomer meets
+them; stops whose target is not on screen are left out, and a unit test keeps every stop tied to a
+`data-tour` hook in the UI. → or Enter goes on, ← back, Esc ends it, and the page's own keys pause
+meanwhile. It is offered once, under the Help button, on a viewer's first visit, and loaded only
+when it starts.
 
 Filtering and search run in the browser over the loaded session events, so linking is
 instant. At the project root the same filters go to the engine and search every session.

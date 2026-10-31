@@ -49,8 +49,9 @@ Inside any Claude Code session (plugin commands are namespaced, so the command i
 /yolo-twice:yolo-twice resume [id]      rebuild a committed session's transcript and print the claude --resume command
 ```
 
-In the UI, press `?` for the keyboard shortcuts: ← → move between levels, ↑ ↓ through parts,
-− + change the detail, `/` searches.
+New to the UI? Help (the ? button in the header) has a short guide and a one-minute guided tour.
+Press `?` for the keyboard shortcuts: ← → move between levels, ↑ ↓ through parts, − + change the
+detail, `/` searches.
 
 The same commands work from a terminal via the engine CLI, for example `yolo-twice status` or
 `yolo-twice index` for a one-shot index without the daemon.
@@ -133,14 +134,17 @@ each of them. If one of them fits your need better, use it.
 
 The web UI is built on [shadcn/ui](https://ui.shadcn.com/) with [Radix](https://www.radix-ui.com/)
 and [Tailwind CSS](https://tailwindcss.com/), icons from [Lucide](https://lucide.dev/), split
-panes from [react-resizable-panels](https://github.com/bvaughn/react-resizable-panels), and the
-typefaces [Instrument Sans](https://github.com/Instrument/instrument-sans),
+panes from [react-resizable-panels](https://github.com/bvaughn/react-resizable-panels), the map
+from [React Flow](https://reactflow.dev/) laid out by [dagre](https://github.com/dagrejs/dagre),
+the guided tour from [React Joyride](https://react-joyride.com/), and the typefaces
+[Instrument Sans](https://github.com/Instrument/instrument-sans),
+[Nunito](https://github.com/googlefonts/nunito),
 [Newsreader](https://github.com/productiontype/Newsreader) and
 [JetBrains Mono](https://www.jetbrains.com/lp/mono/), all under open licenses and bundled through
 [Fontsource](https://fontsource.org/).
 
-Mermaid is the only diagram format we use, on GitHub, on the website, in the pitch deck and in
-the UI, so the same text renders everywhere.
+Mermaid is the diagram format we use on GitHub, on the website and in the pitch deck, so the same
+text renders everywhere; the UI's interactive map draws the same structure with React Flow.
 
 ## Contributing
 
