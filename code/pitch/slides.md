@@ -148,7 +148,7 @@ layout: full
 <HandOver ui="http://localhost:9656/yolo-twice" script="privacy" />
 
 <!--
-The deck hands over to the real product (.yolo-twice/demos/privacy.json). Page Down steps; after step 6 it comes back to the next slide. Needs the engine: /yolo-twice:yolo-twice.
+The deck hands over to the real product (.yolo-twice/demos/privacy.json). Page Down steps; after step 6 it comes back to the next slide, and Page Up from step 1 returns to the slide before. Needs the engine: /yolo-twice:yolo-twice.
 1. Yes. 24 hours of AI work, in the repo.
 2. [Page Down] We asked first. One word finds it: "disclosure", our own prompt.
 3. [Page Down] The agent counted every leak. Then masked them: $PROJECT, ~.

@@ -26,16 +26,19 @@ type Loaded = { name: string; source: string; script: Demo };
 
 const framed = typeof window !== "undefined" && window.parent !== window;
 const asked = new URLSearchParams(location.search);
-// presenting: no timer; past the last step the demo hands back to the deck at `back`
+// presenting: no timer; the deck that handed over says where to return: `next` past the last step,
+// `prev` back from the first
 const presenting = asked.has("present");
-const back = (() => {
-  const b = asked.get("back");
+const returnTo = (param: string) => {
+  const b = asked.get(param);
   try {
     return b && trustedOrigin(new URL(b).origin) ? b : undefined;
   } catch {
     return undefined;
   }
-})();
+};
+const nextUrl = returnTo("next");
+const prevUrl = returnTo("prev");
 const SAVED = "yt.demo";
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 /** The pace inside a step, slow enough to talk over: the views settle first, then one action every GAP ms. */
@@ -178,11 +181,17 @@ export function useDemo(host: DemoHost) {
     },
     [go],
   );
-  /** One step on; past the last one, back to the deck that handed over (if any). */
+  /** One step on; past the last one, on to the deck that handed over (if any). */
   const forward = useCallback(() => {
     const { demo: d, step: at } = current.current;
-    if (back && d && at >= d.script.steps.length - 1) location.href = back;
+    if (nextUrl && d && at >= d.script.steps.length - 1) location.href = nextUrl;
     else stepTo(at + 1);
+  }, [stepTo]);
+  /** One step back; before the first one, back to the deck's slide before the demo (if any). */
+  const backward = useCallback(() => {
+    const at = current.current.step;
+    if (prevUrl && at <= 0) location.href = prevUrl;
+    else stepTo(at - 1);
   }, [stepTo]);
   /** Play on from the next step, or from the start after the last one. */
   const play = useCallback(() => {
@@ -245,14 +254,14 @@ export function useDemo(host: DemoHost) {
       e.stopPropagation();
       if (framed) parent.postMessage({ yt: "nav", dir }, "*");
       else if (dir > 0) forward();
-      else stepTo(current.current.step - 1);
+      else backward();
     };
     addEventListener("keydown", onKey, true);
     return () => removeEventListener("keydown", onKey, true);
-  }, [demo, stepTo, forward]);
+  }, [demo, forward, backward]);
 
   const steps = demo?.script.steps ?? [];
-  return { active: !!demo, framed, presenting, title: demo?.script.title, step, steps: steps.length, caption: steps[step]?.caption, timed: steps.some((s) => s.wait), playing, point, error, stepTo, forward, handsBack: !!back, play, pause, stop };
+  return { active: !!demo, framed, presenting, title: demo?.script.title, step, steps: steps.length, caption: steps[step]?.caption, timed: steps.some((s) => s.wait), playing, point, error, stepTo, forward, backward, hasNext: !!nextUrl, hasPrev: !!prevUrl, play, pause, stop };
 }
 
 /** The presenter's strip: where you are in the demo, the caption, and the way through it. Hidden inside a deck. */
@@ -276,13 +285,13 @@ export function DemoBar({ demo }: { demo: DemoState }) {
   return (
     <div ref={bar} tabIndex={-1} className="demo-bar" role="toolbar" aria-label="Demo: ← → step while this bar has focus">
       <span className="demo-title">{demo.title ?? "Demo"}</span>
-      <button className="demo-btn" onClick={() => demo.stepTo(demo.step - 1)} disabled={demo.step === 0} aria-label="Previous step" title="Previous step (← here, or Page Up)">
+      <button className="demo-btn" onClick={demo.backward} disabled={demo.step === 0 && !demo.hasPrev} aria-label="Previous step" title="Previous step (← here, or Page Up)">
         <ChevronLeft size={16} />
       </button>
       <span className="num demo-count">
         {demo.step + 1} / {demo.steps}
       </span>
-      <button className="demo-btn" onClick={demo.forward} disabled={demo.step === demo.steps - 1 && !demo.handsBack} aria-label="Next step" title="Next step (→ here, or Page Down)">
+      <button className="demo-btn" onClick={demo.forward} disabled={demo.step === demo.steps - 1 && !demo.hasNext} aria-label="Next step" title="Next step (→ here, or Page Down)">
         <ChevronRight size={16} />
       </button>
       {demo.step === demo.steps - 1 ? (
