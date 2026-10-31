@@ -1,0 +1,9 @@
+{
+  "analyzer": "structural",
+  "created": "2026-10-31T15:18:35.853Z",
+  "granularity": "summary",
+  "hash": "c117bb306c829d4e",
+  "node": "t33",
+  "text": "[user.prompt] following mode auto scroll improvements - text and graph view musst be consistent - be smart: when I scroll all the way down, enable autoscrolling - when I sroll up disable auto scrolling ( scroll lock ) and eable \"xy new\" button [assistant.thinking] [assistant.text] Plan for follow mode: - **Same rules in both panes:** moving up, by wheel, keys, the scrollbar or dragging the graph, locks the view. Reaching the newest content at the bottom, in either pane, turns following back on, like a terminal. - **Programmatic scrolls don't count:** only scrolling right after your own input changes the follow state, never the panes' own scrolling. - **A floating \"↓ N new\" button** appears at the bottom of each pane while locked (\"↓ Latest\" when nothing new has arrived yet). Clicking it j…",
+  "version": "2"
+}
