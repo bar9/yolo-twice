@@ -696,4 +696,5 @@ a.link:hover { text-decoration-color: currentColor; }
 }
 /* waiting for you: the dots hold still */
 .working.waiting .dots i { animation: none; opacity: .55; background: var(--ink-3); }
+.working.quiet .dots i { animation: none; opacity: .55; }
 .working.waiting { color: var(--ink); }

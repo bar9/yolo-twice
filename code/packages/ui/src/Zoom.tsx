@@ -443,7 +443,8 @@ function Working({ state, since }: { state: "working" | "waiting"; since: string
   }, []);
   const s = Math.max(0, Math.round((Date.now() - Date.parse(since)) / 1000));
   return (
-    <div className={`working ${state}`} role="status">
+    // the dots move while there is fresh news (the first minute after the last event), then hold still
+    <div className={`working ${state} ${s >= 60 ? "quiet" : ""}`} role="status">
       <span className="dots" aria-hidden>
         <i />
         <i />
