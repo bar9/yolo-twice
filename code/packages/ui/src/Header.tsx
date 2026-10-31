@@ -172,11 +172,11 @@ export function Header(props: {
         </Tip>
         <PopoverContent align="end" className="w-80">
           <div className="space-y-3">
-            <div className="flex items-center justify-between gap-3 border-b pb-3">
-              <span className="text-[13px] font-semibold">Appearance</span>
-              <div className="seg" role="radiogroup" aria-label="Appearance">
+            <div className="space-y-2 border-b pb-3">
+              <span className="block text-[13px] font-semibold">Appearance</span>
+              <div className="seg fill" role="radiogroup" aria-label="Appearance">
                 {THEMES.map(({ c, label, Icon }) => (
-                  <button key={c} className={`inline-flex items-center gap-1.5 ${theme === c ? "on" : ""}`} onClick={() => setTheme(c)} role="radio" aria-checked={theme === c}>
+                  <button key={c} className={`inline-flex items-center justify-center gap-1.5 ${theme === c ? "on" : ""}`} onClick={() => setTheme(c)} role="radio" aria-checked={theme === c}>
                     <Icon className="size-3.5" aria-hidden />
                     {label}
                   </button>
