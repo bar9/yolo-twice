@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T13:07:10.697Z",
+  "granularity": "abstract",
+  "hash": "3125ac016fd4e18c",
+  "node": "t2",
+  "text": "Added a section 6 \"Attention slider\" to documentation/design.md (line 174) and renumbered the later sections, with a decisions-table row, `GET|PUT /api/config`, `POST /api/sessions/:id/semantic/request` and `GET /api/sessions/:id/digest` endpoints, and a slider test asserting byte-identical `sessions/` output across modes. The slider has four detents (micro, attentive, balanced default, yolo) and controls only semantic triggers and UI attention, never ingestion, because `claude -p` calls are the expensive layer and eager per-turn summaries of open phases are quadratic in tokens and compete with the user's subscription rate limit. Outcome: the design is updated and a copy was written to ~/.claude/plans/pasted-content-id-bba5-we-are-transient-nautilus.md; open items remain the GitHub org for the install line and whether to scaffold the monorepo now.",
+  "version": "2"
+}

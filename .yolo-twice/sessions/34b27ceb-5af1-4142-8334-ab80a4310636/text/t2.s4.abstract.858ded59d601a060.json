@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T13:07:13.106Z",
+  "granularity": "abstract",
+  "hash": "858ded59d601a060",
+  "node": "t2.s4",
+  "text": "Inserted a new section 6 \"Attention slider\" into documentation/design.md before \"Plugin and install\", defining four detents (micro, attentive, balanced as default, yolo) with their semantic triggers, zoom levels and UI behaviour, plus rules that keep ingestion always live and key closed-phase artifacts to identical input hashes. The same script renumbered sections 7–11 to 8–12, added an \"Update cadence\" row to the decisions table, listed the new /api/config, /semantic/request and /digest endpoints, and added a slider test asserting byte-identical sessions/ output with only cache/ differing. It also copied the file to ~/.claude/plans/pasted-content-id-bba5-we-are-transient-nautilus.md, and a grep confirmed the headings now run 1–12 in order.",
+  "version": "2"
+}

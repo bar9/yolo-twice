@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T13:07:12.704Z",
+  "granularity": "abstract",
+  "hash": "7d5aff19008e4c20",
+  "node": "t2.s3",
+  "text": "Argues that ingestion, normalization, redaction, and the structural/search index are cheap enough to stay realtime, while semantic summaries via `claude -p` cost seconds to minutes per call and get re-run on every turn of an open phase, which is quadratic in tokens and competes with the user's own Claude Code rate limit. Proposes a four-detent slider (Micro management, Attentive, Balanced as default, Yolo) that controls only semantic triggers, default zoom level, and UI push, with closed-phase summaries keyed by input hash so they are identical across modes and interim summaries going only to the gitignored cache. Specifies a live cost readout, project config with per-user override, and a `/yolo-twice mode` command with no restart; the design document update is in progress and nothing is implemented yet.",
+  "version": "2"
+}
