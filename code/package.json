@@ -8,11 +8,15 @@
     "pitch"
   ],
   "scripts": {
-    "build": "bun run --filter '@yolo-twice/*' build",
+    "build": "tsc -b packages/engine packages/pele-markdown && bun run --filter @yolo-twice/ui build",
+    "build:site": "bun run --filter @yolo-twice/site build",
+    "build:pitch": "bun run --filter @yolo-twice/pitch build",
     "test": "bun test",
-    "typecheck": "tsc -b packages/core packages/analyzers packages/engine",
+    "typecheck": "tsc -b packages/core packages/analyzers packages/engine packages/pele-markdown && bun run --filter @yolo-twice/ui typecheck",
     "cli": "bun run packages/engine/src/cli.ts",
-    "dev:ui": "bun run --filter @yolo-twice/ui dev"
+    "engine": "bun run packages/engine/src/cli.ts start --foreground",
+    "dev:ui": "bun run --filter @yolo-twice/ui dev",
+    "mock": "bun run --filter @yolo-twice/ui mock"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
