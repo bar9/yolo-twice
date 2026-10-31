@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T18:47:38.072Z",
+  "granularity": "title",
+  "hash": "653123bc0db3cde8",
+  "node": "t1",
+  "text": "Plan yolo-twice as hook-driven Node monorepo with redacted .yolo-twice state",
+  "version": "2"
+}

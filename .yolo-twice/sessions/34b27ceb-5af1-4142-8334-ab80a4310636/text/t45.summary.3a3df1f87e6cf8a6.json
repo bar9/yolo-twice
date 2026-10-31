@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T18:48:10.709Z",
+  "granularity": "summary",
+  "hash": "3a3df1f87e6cf8a6",
+  "node": "t45",
+  "text": "The engine's data was current (last event 10 s before the check), but its activity stream still reported \"working\", so a lost Stop hook is the likely cause. The engine did not log hooks, so this could not be confirmed. Changes: `packages/ui/src/App.tsx` drops the working claim after 10 minutes with no event or hook, and `packages/engine/src/server.ts` logs lifecycle hooks to `~/.yolo-twice/engine.log`. A fake-clock Playwright check showed the row at 9 minutes and gone at 11. One type error was fixed, 72 unit tests pass, and the build succeeds. A \"row returns on a new hook\" check failed and was dropped as a suspected test artifact, unverified. Committed as a83086d and the engine restarted. Open: confirm a `hook Stop` line appears for this session; if not, the Stop hook is not reaching the engine.",
+  "version": "2"
+}

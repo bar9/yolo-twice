@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T18:47:29.287Z",
+  "granularity": "summary",
+  "hash": "3671311c6c754161",
+  "node": "t47.s23",
+  "text": "Dots now cycle colour (brand orange, purple, blue) and brightness on a 1.8-second loop instead of changing size, so they animate under reduced motion, which had switched them off entirely. Under reduced motion, the newest map box's ring pulses in colour rather than growing. Timing is unchanged: pulsing for the first minute after the last event, then holding still; \"waiting for you\" stays still; the row disappears after 10 minutes without news and only appears in follow mode. Checked live in the browser's following tab. Committed as c2935ee, not pushed.",
+  "version": "2"
+}

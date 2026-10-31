@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T18:47:52.483Z",
+  "granularity": "title",
+  "hash": "dff4cc61e054c219",
+  "node": "t47.s13",
+  "text": "Working dots cycle colours in styles.css; reduced-motion keeps a colour-pulsing ring",
+  "version": "2"
+}

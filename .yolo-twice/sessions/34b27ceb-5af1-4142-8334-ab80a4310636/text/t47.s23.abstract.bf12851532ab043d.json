@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T18:47:48.000Z",
+  "granularity": "abstract",
+  "hash": "bf12851532ab043d",
+  "node": "t47.s23",
+  "text": "The working dots now pulse by colour (brand orange, purple, blue) and brightness over a 1.8-second cycle instead of growing and shrinking, so they run under reduced motion, which had switched them off entirely. Under reduced motion the newest map box's ring pulses in colour rather than size. Timing (first minute after the last event), the 10-minute silence cutoff and follow-mode-only display are unchanged; the change is committed as c2935ee, not pushed, and was checked live in the shared browser's following tab.",
+  "version": "2"
+}
