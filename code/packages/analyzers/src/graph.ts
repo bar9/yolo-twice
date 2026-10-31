@@ -94,3 +94,105 @@ export function toMermaid(session: StructureNode, options: GraphOptions = {}): s
   lines.push(...classes);
   return lines.join("\n") + "\n";
 }
+
+const CLASS_DEFS = [
+  "  classDef session fill:#1f2937,color:#fff,stroke:#111;",
+  "  classDef phase fill:#e5e7eb,stroke:#9ca3af;",
+  "  classDef turn fill:#dbeafe,stroke:#60a5fa;",
+  "  classDef branch fill:#fde68a,stroke:#d97706;",
+  "  classDef subagent fill:#ede9fe,stroke:#8b5cf6;",
+  "  classDef tool fill:#dcfce7,stroke:#22c55e;",
+  "  classDef error fill:#fee2e2,stroke:#ef4444;",
+  "  classDef text fill:#f3f4f6,stroke:#9ca3af;",
+  "  classDef prompt fill:#dbeafe,stroke:#60a5fa;",
+  "  classDef thinking fill:#f3f4f6,stroke:#d1d5db,stroke-dasharray: 3 3;",
+];
+
+function stepShape(step: StructureNode, max = 40): { shape: string; cls: string } {
+  const kind = step.meta?.step_kind ?? "step";
+  const label = esc(step.label, max);
+  if (kind === "tool" || kind === "tool-error") return { shape: `[/"${label}"/]`, cls: kind === "tool-error" ? "error" : "tool" };
+  if (kind === "subagent") return { shape: `[["${label}"]]`, cls: "subagent" };
+  if (kind === "prompt" || kind === "command") return { shape: `>"${label}"]`, cls: "prompt" };
+  return { shape: `("${label}")`, cls: kind === "thinking" ? "thinking" : "text" };
+}
+
+/** Steps of one node in sequence; subagent steps get their inner steps as a subgraph. */
+function stepsChain(parent: StructureNode, lines: string[], edges: string[], classes: string[], from: string | undefined, indent = "  "): string | undefined {
+  let prev = from;
+  for (const step of parent.children) {
+    const id = safeId(step.id);
+    const { shape, cls } = stepShape(step);
+    if (step.meta?.step_kind === "subagent" && step.children.length) {
+      lines.push(`${indent}subgraph ${id}_box ["${esc(step.label, 50)}"]`);
+      lines.push(`${indent}  direction TD`);
+      lines.push(`${indent}  ${id}${shape}`);
+      classes.push(`  class ${id} ${cls};`);
+      stepsChain(step, lines, edges, classes, id, indent + "  ");
+      lines.push(`${indent}end`);
+    } else {
+      lines.push(`${indent}${id}${shape}`);
+      classes.push(`  class ${id} ${cls};`);
+    }
+    if (prev) edges.push(`  ${prev} --> ${id}`);
+    prev = id;
+  }
+  return prev;
+}
+
+/**
+ * Mermaid for whatever node is in focus, one level of detail below it:
+ * a session shows its phases with their turns, a phase its turns (with subagents hanging off),
+ * a turn or a subagent step its steps. A leaf step renders its parent instead (pass the parent).
+ */
+export function focusMermaid(node: StructureNode, direction: "TD" | "LR" = "TD"): string {
+  if (node.kind === "session") return toMermaid(node, { level: 2, direction });
+  const lines: string[] = [`flowchart ${direction}`];
+  const edges: string[] = [];
+  const classes: string[] = [];
+  if (node.kind === "phase") {
+    let prev: string | undefined;
+    for (const turn of node.children) {
+      const tid = safeId(turn.id);
+      const shape = turn.meta?.step_kind === "command" ? `>"${esc(turn.label)}"]` : `["${esc(turn.label)}"]`;
+      lines.push(`  ${tid}${shape}`);
+      classes.push(`  class ${tid} ${turn.meta?.branch ? "branch" : "turn"};`);
+      if (prev) edges.push(turn.meta?.branch ? `  ${prev} -. rewind .-> ${tid}` : `  ${prev} --> ${tid}`);
+      prev = tid;
+      for (const step of turn.children) {
+        if (step.meta?.step_kind !== "subagent") continue;
+        const aid = safeId(step.id);
+        lines.push(`  ${aid}[["${esc(step.label, 40)}"]]`);
+        classes.push(`  class ${aid} subagent;`);
+        edges.push(`  ${tid} -.-> ${aid}`);
+      }
+    }
+  } else {
+    const rid = safeId(node.id);
+    lines.push(`  ${rid}(["${esc(node.label, 50)}"])`);
+    classes.push(`  class ${rid} ${node.kind === "turn" ? (node.meta?.branch ? "branch" : "turn") : "subagent"};`);
+    stepsChain(node, lines, edges, classes, rid);
+  }
+  return [...lines, ...edges, ...CLASS_DEFS, ...classes].join("\n") + "\n";
+}
+
+export interface ProjectSessionRef {
+  id: string;
+  label: string;
+}
+
+/** The project root: sessions in chronological order. Node ids are `s:<id>` like session nodes. */
+export function projectToMermaid(sessions: ProjectSessionRef[], direction: "TD" | "LR" = "TD"): string {
+  const lines: string[] = [`flowchart ${direction}`];
+  const edges: string[] = [];
+  const classes: string[] = [];
+  let prev: string | undefined;
+  for (const s of sessions) {
+    const id = safeId(`s:${s.id}`);
+    lines.push(`  ${id}(["${esc(s.label || s.id, 50)}"])`);
+    classes.push(`  class ${id} session;`);
+    if (prev) edges.push(`  ${prev} --> ${id}`);
+    prev = id;
+  }
+  return [...lines, ...edges, ...CLASS_DEFS, ...classes].join("\n") + "\n";
+}

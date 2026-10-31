@@ -9,6 +9,21 @@
       "bun": "./src/index.ts",
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
+    },
+    "./graph": {
+      "bun": "./src/graph.ts",
+      "types": "./dist/graph.d.ts",
+      "default": "./dist/graph.js"
+    },
+    "./search": {
+      "bun": "./src/search.ts",
+      "types": "./dist/search.d.ts",
+      "default": "./dist/search.js"
+    },
+    "./structure": {
+      "bun": "./src/structure.ts",
+      "types": "./dist/structure.d.ts",
+      "default": "./dist/structure.js"
     }
   },
   "files": [
