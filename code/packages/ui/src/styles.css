@@ -561,3 +561,7 @@ button.crumb:hover { background: var(--sheet-2); color: var(--ink); }
 .events.bare .event { box-shadow: none; background: transparent; }
 .events.bare .tool-call, .events.bare .tool-result { padding: 0; }
 .events.bare .tool-result::before { content: "Result"; display: block; margin-bottom: 4px; font-size: 11.5px; color: var(--ink-3); }
+
+/* links in the transcript */
+a.link { color: var(--k-you); text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--k-you) 40%, transparent); text-underline-offset: 2px; word-break: break-all; }
+a.link:hover { text-decoration-color: currentColor; }
