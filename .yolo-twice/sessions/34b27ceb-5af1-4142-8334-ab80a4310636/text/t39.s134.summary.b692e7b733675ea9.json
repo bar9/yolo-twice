@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T16:12:11.472Z",
+  "granularity": "summary",
+  "hash": "b692e7b733675ea9",
+  "node": "t39.s134",
+  "text": "Merged `main` into `ui/react-flow-graph`, then moved `main` up to the merge (f4df284, no rewrite). Graph changes: with \"Hide filtered\" on, unmatched runs fold into a dashed \"⋯ N filtered\" box that expands on click; hover brightens greyed boxes; ↑/↓ walk the graph in Map view and Esc returns keys to the page. React Flow's Space, Backspace and Shift handling was disabled because it swallowed Space. Follow mode now locks and resumes on a single wheel tick. URLs inside JSON strings are clickable. Tests: 68 unit tests pass, all browser suites pass, and a new fold/hover/keyboard check passes 10/10. Session-data auto-commits were split out. Nothing is pushed; `main` is 7 commits ahead of origin.",
+  "version": "2"
+}
