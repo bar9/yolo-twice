@@ -5,6 +5,8 @@ import { ancestors, api, fmtDuration, fmtTime, fmtTokens, walk, type Event, type
 import { DETAIL_LABEL, DETAIL_ORDER, eventKind, KIND, KindIcon, kindStyle, nodeKind, richText } from "./kinds";
 
 const ORDER = DETAIL_ORDER;
+/** How many matching steps a search opens at Raw; more would bury the page. */
+const AUTO_MAX = 30;
 
 /**
  * The reader: the focus as a story. Every node shows its label; an open node shows its text at the
@@ -24,6 +26,9 @@ export const Zoom = memo(function Zoom(props: {
   hits: Map<string, number>;
   /** Highlighted in the text. */
   query?: string;
+  /** A search or filter is active, and these events match it. */
+  active?: boolean;
+  matches?: Set<string>;
   onSelect: (id: string) => void;
   onFocus: (id: string) => void;
   onHover: (id: string | undefined) => void;
@@ -38,6 +43,75 @@ export const Zoom = memo(function Zoom(props: {
   const [override, setOverride] = useState<Record<string, Granularity>>({});
   useEffect(() => setOverride({}), [props.granularity]);
   useEffect(() => props.onOverrides(override), [override]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // search opens to the passage: the steps holding matches open at Raw, their parents open too;
+  // clearing the search closes exactly what it opened
+  const hitSteps = useMemo(() => {
+    if (!props.active) return [];
+    const out: string[] = [];
+    for (const n of walk(props.root)) if (n.kind === "step" && props.hits.get(n.id) && !n.children.some((c) => props.hits.get(c.id))) out.push(n.id);
+    return out;
+  }, [props.active, props.hits, props.root]);
+  const autoOpen = useRef<Set<string>>(new Set());
+  const autoRaw = useRef<Set<string>>(new Set());
+  const hitKey = hitSteps.slice(0, AUTO_MAX).join(",");
+  useEffect(() => {
+    const shown = hitKey ? hitKey.split(",") : [];
+    setOpen((o) => {
+      const n = { ...o };
+      for (const id of autoOpen.current) delete n[id];
+      const opened = new Set<string>();
+      for (const id of shown)
+        for (const a of [...ancestors(props.root, id), id])
+          if (!n[a]) {
+            n[a] = true;
+            opened.add(a);
+          }
+      autoOpen.current = opened;
+      return n;
+    });
+    setOverride((o) => {
+      const n = { ...o };
+      for (const id of autoRaw.current) delete n[id];
+      for (const id of shown) if (props.granularity !== "full") n[id] = "full";
+      autoRaw.current = new Set(shown);
+      return n;
+    });
+    if (!shown.length || props.follow) return;
+    const t = setTimeout(() => document.querySelector(".zoom .event.match")?.scrollIntoView({ block: "center", behavior: "smooth" }), 150);
+    return () => clearTimeout(t);
+  }, [hitKey]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // the words themselves, in prose and in highlighted code alike, without touching the DOM
+  const zoomRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const reg = (globalThis as { CSS?: { highlights?: Map<string, unknown> } }).CSS?.highlights;
+    const HighlightCtor = (globalThis as { Highlight?: new (...r: Range[]) => unknown }).Highlight;
+    if (!reg || !HighlightCtor) return;
+    const terms = (props.query ?? "").toLowerCase().split(/\s+/).filter((t) => t.length >= 2);
+    const root = zoomRef.current;
+    if (!terms.length || !root) return void reg.delete("yt-search");
+    const frame = requestAnimationFrame(() => {
+      const ranges: Range[] = [];
+      for (const box of root.querySelectorAll(".events")) {
+        const walker = document.createTreeWalker(box, NodeFilter.SHOW_TEXT);
+        for (let node = walker.nextNode(); node && ranges.length < 2000; node = walker.nextNode()) {
+          if (node.parentElement?.closest("mark, .gutter")) continue;
+          const text = node.textContent?.toLowerCase() ?? "";
+          for (const t of terms)
+            for (let i = text.indexOf(t); i >= 0; i = text.indexOf(t, i + t.length)) {
+              const r = document.createRange();
+              r.setStart(node, i);
+              r.setEnd(node, i + t.length);
+              ranges.push(r);
+            }
+        }
+      }
+      reg.set("yt-search", new HighlightCtor(...ranges));
+    });
+    return () => cancelAnimationFrame(frame);
+  });
+  useEffect(() => () => void (globalThis as { CSS?: { highlights?: Map<string, unknown> } }).CSS?.highlights?.delete("yt-search"), []);
   const [fetched, setFetched] = useState<Record<string, string>>({}); // `${node}.${gran}` -> text
   const [pending, setPending] = useState<Record<string, boolean>>({});
   // tool results name their call only by id; one lookup for the whole session
@@ -190,7 +264,7 @@ export const Zoom = memo(function Zoom(props: {
             {(g === "full" || showText || ownImages(node, props.events).length > 0 || isRoot) && (
             <div className="text-block">
               {g === "full" ? (
-                node.level >= 3 ? <Events node={node} events={props.events} calls={calls} query={props.query} /> : <p className="prose muted">The full text is in the steps below.</p>
+                node.level >= 3 ? <Events node={node} events={props.events} calls={calls} query={props.query} matches={props.matches} /> : <p className="prose muted">The full text is in the steps below.</p>
               ) : showText ? (
                 <p className={`prose ${text === undefined ? "muted" : ""}`}>{richText(text ?? structuralFallback(node, g), props.query)}</p>
               ) : null}
@@ -220,7 +294,16 @@ export const Zoom = memo(function Zoom(props: {
     );
   };
 
-  return <div className="zoom">{render(props.root, 0)}</div>;
+  return (
+    <div className="zoom" ref={zoomRef}>
+      {hitSteps.length > AUTO_MAX && (
+        <p className="search-note">
+          Opened the first {AUTO_MAX} of {hitSteps.length} matching steps. Narrow the search, or zoom into a part, to open the rest.
+        </p>
+      )}
+      {render(props.root, 0)}
+    </div>
+  );
 });
 
 /** Turns and phases say the time of day; steps say how far into their turn they happened. */
@@ -313,7 +396,7 @@ function Images({ session, refs }: { session: string; refs: ImageRef[] }) {
 const PROSE = new Set(["user.prompt", "assistant.text", "compaction"]);
 
 /** Raw events of a step (L3) in append order: words as prose, tool input and output as code. */
-function Events({ node, events, calls, query }: { node: StructureNode; events?: Map<string, Event>; calls: Map<string, Event>; query?: string }) {
+function Events({ node, events, calls, query, matches }: { node: StructureNode; events?: Map<string, Event>; calls: Map<string, Event>; query?: string; matches?: Set<string> }) {
   if (!events) return <p className="prose muted">Loading events…</p>;
   const ids = node.event_ids ?? [];
   return (
@@ -324,7 +407,7 @@ function Events({ node, events, calls, query }: { node: StructureNode; events?: 
         const k = eventKind(e);
         const text = e.text || (e.data?.hidden ? "Hidden by Claude Code" : "");
         return (
-          <div key={id} className={`event ${e.kind.replace(".", "-")}`} style={kindStyle(k)}>
+          <div key={id} className={`event ${e.kind.replace(".", "-")} ${matches?.has(id) ? "match" : ""}`} style={kindStyle(k)}>
             <div className="event-head">
               <span className="kind">
                 <KindIcon kind={k} size={13} />

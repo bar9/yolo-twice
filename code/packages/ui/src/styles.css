@@ -504,3 +504,8 @@ button.crumb:hover { background: var(--sheet-2); color: var(--ink); }
 .hljs-meta, .hljs-type, .hljs-class .hljs-title { color: var(--k-you); }
 .hljs-emphasis { font-style: italic; }
 .hljs-strong { font-weight: 600; }
+
+/* search: matching events and words */
+.event.match { box-shadow: 0 0 0 1px var(--rule), inset 3px 0 0 var(--mark); }
+::highlight(yt-search) { background-color: var(--mark-soft); color: inherit; }
+.search-note { margin: 0 0 16px; padding: 8px 12px; border-radius: 8px; background: var(--mark-soft); color: var(--ink); font-size: 13px; }

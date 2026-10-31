@@ -104,6 +104,8 @@ export function filterEvents(events: Event[], filter: EventFilter): string[] {
 export class SearchIndex {
   private ms = new MiniSearch<SearchDoc>({
     fields: ["text", "tool", "kind"],
+    // words are runs of letters and digits: `q=input&k=u`, `store.ts` and `a/b-c` split into their parts
+    tokenize: (text) => text.split(/[^\p{L}\p{N}_]+/u).filter(Boolean),
     storeFields: ["session", "kind", "tool", "agent", "error", "ts", "text", "order"],
     searchOptions: { prefix: true, fuzzy: 0.15, boost: { tool: 2 } },
   });

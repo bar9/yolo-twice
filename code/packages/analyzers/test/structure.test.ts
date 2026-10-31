@@ -88,6 +88,11 @@ describe("search", () => {
       expect(idx.search("salt").map((h) => h.id)).toContain("a7");
       expect(idx.search("WebSearch")[0]?.tool).toBe("WebSearch");
       expect(idx.search("changelog", { session: "nope" })).toEqual([]);
+      // words inside URLs and paths are words too
+      const url = { ...events.find((e) => e.kind === "user.prompt")!, id: "url1", text: "see http://x/y?q=needle&k=u and store.ts" };
+      idx.add([url]);
+      expect(idx.matchIds("needle").has("url1")).toBe(true);
+      expect(idx.matchIds("store").has("url1")).toBe(true);
     } finally {
       fx.cleanup();
     }
