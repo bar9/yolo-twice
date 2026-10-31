@@ -1,6 +1,6 @@
 import { memo, useEffect, useMemo, useRef, useState } from "react";
 import { ToolCallView, ToolResultView } from "./ToolCall";
-import { Bot, ChevronRight, Coins, Focus, Image, Minus, Plus, RotateCcw, Search, TriangleAlert, Undo2, Wrench } from "lucide-react";
+import { Bot, ChevronRight, Ellipsis, Coins, Focus, Image, Minus, Plus, RotateCcw, Search, TriangleAlert, Undo2, Wrench } from "lucide-react";
 import { ancestors, api, fmtDuration, fmtTime, fmtTokens, walk, type Event, type Granularity, type ImageRef, type StructureNode } from "./api";
 import { DETAIL_LABEL, DETAIL_ORDER, eventKind, KIND, KindIcon, kindStyle, nodeKind, richText } from "./kinds";
 
@@ -29,6 +29,8 @@ export const Zoom = memo(function Zoom(props: {
   /** A search or filter is active, and these events match it. */
   active?: boolean;
   matches?: Set<string>;
+  /** Fold runs of dimmed (non-matching) parts into one line each. */
+  collapseDim?: boolean;
   onSelect: (id: string) => void;
   onFocus: (id: string) => void;
   onHover: (id: string | undefined) => void;
@@ -153,7 +155,38 @@ export const Zoom = memo(function Zoom(props: {
     return () => clearTimeout(t);
   }, [props.selected, props.root, props.follow]);
 
-  const render = (node: StructureNode, depth: number, prev?: StructureNode, parent?: StructureNode) => {
+  // runs of non-matching parts fold into one line; a click opens that run, a new search folds again
+  const [openRuns, setOpenRuns] = useState<Set<string>>(new Set());
+  useEffect(() => setOpenRuns(new Set()), [props.query, props.matches]);
+  const keep = (id: string) => !!props.selected && (props.selected === id || props.selected.startsWith(`${id}.`));
+  const children = (node: StructureNode, depth: number) => {
+    const out: React.ReactNode[] = [];
+    let run: number[] = [];
+    const flush = () => {
+      if (!run.length) return;
+      const first = node.children[run[0]!]!;
+      if (openRuns.has(first.id) || run.length === 1 && !first.children.length) out.push(...run.map((i) => render(node.children[i]!, depth + 1, node.children[i - 1], node)));
+      else
+        out.push(
+          <button key={`run-${first.id}`} className="dim-run" onClick={() => setOpenRuns((s) => new Set(s).add(first.id))} title="Show these parts">
+            <Ellipsis size={14} aria-hidden />
+            {run.length} {run.length === 1 ? "part" : "parts"} without matches
+          </button>,
+        );
+      run = [];
+    };
+    node.children.forEach((c, i) => {
+      if (props.collapseDim && props.dim.has(c.id) && !keep(c.id)) run.push(i);
+      else {
+        flush();
+        out.push(render(c, depth + 1, i === 0 ? undefined : node.children[i - 1], node));
+      }
+    });
+    flush();
+    return out;
+  };
+
+  const render = (node: StructureNode, depth: number, prev?: StructureNode, parent?: StructureNode): React.ReactNode => {
     const isRoot = depth === 0;
     const isOpen = open[node.id] ?? isRoot;
     const g = override[node.id] ?? props.granularity;
@@ -287,7 +320,7 @@ export const Zoom = memo(function Zoom(props: {
               </div>
             </div>
             )}
-            {node.children.map((c, i) => render(c, depth + 1, i === 0 ? undefined : node.children[i - 1], node))}
+            {children(node, depth)}
           </div>
         )}
       </div>

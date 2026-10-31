@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { ChevronDown, Search, X } from "lucide-react";
+import { ChevronDown, FoldVertical, Search, UnfoldVertical, X } from "lucide-react";
 import type { FilterCode } from "@yolo-twice/analyzers/search";
 import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Kbd } from "@/components/ui/kbd";
@@ -30,6 +30,9 @@ export function FilterBar(props: {
   scopeLabel: string;
   onQuery: (q: string) => void;
   onCodes: (k: FilterCode[]) => void;
+  /** Whether parts without matches are folded away in the text. */
+  folded: boolean;
+  onFolded: (folded: boolean) => void;
 }) {
   const input = useRef<HTMLInputElement>(null);
   const [draft, setDraft] = useState(props.q);
@@ -127,6 +130,14 @@ export function FilterBar(props: {
       <span className={`match-count ${active && props.matches === 0 ? "none" : ""}`} aria-live="polite">
         {!active ? "" : props.matches === 0 ? `Nothing matches in ${props.scopeLabel}` : `${props.matches} match${props.matches === 1 ? "" : "es"} in ${props.scopeLabel}`}
       </span>
+      {active && props.matches > 0 && (
+        <Tip label={props.folded ? "Parts without matches are folded into one line each. Show them all." : "Fold parts without matches into one line each."}>
+          <button className={`chip ${props.folded ? "on" : ""}`} onClick={() => props.onFolded(!props.folded)} aria-pressed={props.folded}>
+            {props.folded ? <FoldVertical aria-hidden /> : <UnfoldVertical aria-hidden />}
+            {props.folded ? "Rest hidden" : "Hide the rest"}
+          </button>
+        </Tip>
+      )}
       {active && (
         <button className="chip" onClick={() => (setDraft(""), send(""), props.onCodes([]))}>
           <X aria-hidden />

@@ -67,6 +67,8 @@ export function App() {
   const [card, setCard] = useState<HoverInfo | undefined>();
   const [reader, setReader] = useState<"outline" | "results">("outline");
   const [overrides, setOverrides] = useState<Record<string, Granularity>>({});
+  // while filtering, parts without matches fold away by default; the filter bar toggles it
+  const [foldRest, setFoldRest] = useState(true);
   const [projectHits, setProjectHits] = useState<SearchHit[]>([]);
   const [projectTools, setProjectTools] = useState<string[]>([]);
   const narrow = useNarrow();
@@ -456,7 +458,7 @@ export function App() {
           !scope ? (
             <p className="empty">Loading the session…</p>
           ) : reader === "outline" ? (
-            <Zoom session={sessionId} root={scope.focus} granularity={view.z} events={events} follow={view.follow} selected={sel} hover={hover} dim={dim} hits={hits} query={dq} active={scope.active} matches={scope.matches} onSelect={select} onFocus={focusOn} onHover={setHover} onGranularity={setDetail} onOverrides={setOverrides} />
+            <Zoom session={sessionId} root={scope.focus} granularity={view.z} events={events} follow={view.follow} selected={sel} hover={hover} dim={dim} hits={hits} query={dq} active={scope.active} matches={scope.matches} collapseDim={foldRest && scope.active && scope.matches.size > 0} onSelect={select} onFocus={focusOn} onHover={setHover} onGranularity={setDetail} onOverrides={setOverrides} />
           ) : (
             <Results ids={resultIds} events={events} owner={scope.owner} selected={sel} query={view.q} onSelect={select} />
           )
@@ -519,7 +521,7 @@ export function App() {
           Lost contact with the engine: {error}. Run /yolo-twice:yolo-twice to start it again.
         </div>
       )}
-      <FilterBar q={view.q} k={view.k} tools={tools} matches={matchCount} scopeLabel={scopeLabel} onQuery={(q) => setView({ q })} onCodes={(k: FilterCode[]) => setView({ k })} />
+      <FilterBar q={view.q} k={view.k} tools={tools} matches={matchCount} scopeLabel={scopeLabel} onQuery={(q) => setView({ q })} onCodes={(k: FilterCode[]) => setView({ k })} folded={foldRest} onFolded={setFoldRest} />
       {bars.length > 0 && (
         <Timeline
           bars={bars}
