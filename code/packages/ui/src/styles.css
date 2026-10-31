@@ -1,6 +1,9 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+/* shadcn components follow the chosen theme, not only the system */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
 /*
  * yolo-twice: a flight recorder for long agent sessions.
  * Chrome in Instrument Sans, the story in Newsreader, code in JetBrains Mono.
@@ -57,8 +60,33 @@
   --ring: color-mix(in srgb, var(--k-you) 55%, transparent);
 }
 
+/* dark: chosen in the settings (data-theme on <html>), or the system's choice before the page script runs */
+:root { color-scheme: light; }
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --paper: #12151b;
+  --sheet: #181c24;
+  --sheet-2: #20252f;
+  --ink: #e7eaf0;
+  --ink-2: #a2aaba;
+  --ink-3: #6f7889;
+  --rule: #2a303b;
+  --rule-strong: #3a4250;
+  --rec: #ff7a2e;
+  --mark: #f2c94c;
+  --k-you: #7d9cf0;
+  --k-text: #a2aaba;
+  --k-think: #6f7889;
+  --k-tool: #3fbf9f;
+  --k-error: #f06a6a;
+  --k-agent: #a58cf2;
+  --k-rewind: #e47aa4;
+  --k-system: #c2ad86;
+  --primary-foreground: #12151b;
+}
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme]) {
+    color-scheme: dark;
     --paper: #12151b;
     --sheet: #181c24;
     --sheet-2: #20252f;

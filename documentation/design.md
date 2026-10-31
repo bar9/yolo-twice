@@ -314,7 +314,8 @@ Ctrl or Command and scroll to zoom, and text never scaled above 1:1. One icon an
 event kind (lucide icons) is used everywhere: reader, tape, graph, filters and legend. Reader
 and graph sit side by side with a draggable divider, or one of them takes the whole width
 (Read, Map). Components are shadcn/ui on Tailwind and Radix; fonts are bundled, so the UI works
-offline.
+offline. Appearance (System, Light, Dark) is a per-viewer setting kept in the browser,
+applied before the first paint.
 
 - **Focus narrows.** The focus is a node: the project, a session, a phase, a turn or a step.
   The reader is rooted at it, the graph is redrawn one level below it (semantic zoom, no pixel

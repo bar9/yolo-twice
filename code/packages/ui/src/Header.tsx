@@ -1,4 +1,4 @@
-import { BookOpen, BookOpenText, ChevronRight, Columns2, GitCommitHorizontal, ListRestart, Network, Pin, PinOff, Radio, SlidersHorizontal } from "lucide-react";
+import { Monitor, Moon, Sun, BookOpen, BookOpenText, ChevronRight, Columns2, GitCommitHorizontal, ListRestart, Network, Pin, PinOff, Radio, SlidersHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Slider } from "@/components/ui/slider";
@@ -7,6 +7,13 @@ import { ATTENTION, ATTENTION_LABEL, fmtDuration, fmtTime, type Attention, type 
 import { KIND } from "./kinds";
 import type { Layout } from "./state";
 import { Tip } from "./Tip";
+import { useTheme, type ThemeChoice } from "./theme";
+
+const THEMES: { c: ThemeChoice; label: string; Icon: typeof Sun }[] = [
+  { c: "system", label: "System", Icon: Monitor },
+  { c: "light", label: "Light", Icon: Sun },
+  { c: "dark", label: "Dark", Icon: Moon },
+];
 
 /** Rough cost table per detent: summarization calls per turn, and how far the view lags the session. */
 const COST: Record<Attention, { callsPerTurn: number; lag: string }> = {
@@ -59,6 +66,7 @@ export function Header(props: {
   onAutoCommit: (enabled: boolean) => void;
   onCatchMeUp: () => void;
 }) {
+  const [theme, setTheme] = useTheme();
   const attention = props.config?.attention ?? "balanced";
   const idx = ATTENTION.indexOf(attention);
   const turns = props.structure ? props.structure.children.reduce((n, p) => n + p.children.length, 0) : 0;
@@ -154,7 +162,7 @@ export function Header(props: {
       </ToggleGroup>
 
       <Popover>
-        <Tip label="Summaries and auto-commit">
+        <Tip label="Appearance, summaries and auto-commit">
           <PopoverTrigger asChild>
             <Button variant="outline" size="icon-sm" aria-label="Settings" className="relative">
               <SlidersHorizontal />
@@ -164,6 +172,17 @@ export function Header(props: {
         </Tip>
         <PopoverContent align="end" className="w-80">
           <div className="space-y-3">
+            <div className="flex items-center justify-between gap-3 border-b pb-3">
+              <span className="text-[13px] font-semibold">Appearance</span>
+              <div className="seg" role="radiogroup" aria-label="Appearance">
+                {THEMES.map(({ c, label, Icon }) => (
+                  <button key={c} className={`inline-flex items-center gap-1.5 ${theme === c ? "on" : ""}`} onClick={() => setTheme(c)} role="radio" aria-checked={theme === c}>
+                    <Icon className="size-3.5" aria-hidden />
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
             <div>
               <div className="flex items-baseline justify-between">
                 <span className="text-[13px] font-semibold">Attention</span>
