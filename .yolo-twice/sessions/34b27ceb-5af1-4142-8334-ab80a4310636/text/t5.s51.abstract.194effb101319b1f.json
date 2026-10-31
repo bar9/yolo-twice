@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T16:18:14.802Z",
+  "granularity": "abstract",
+  "hash": "194effb101319b1f",
+  "node": "t5.s51",
+  "text": "Built the `code/packages/engine` daemon and CLI (Hono server, chokidar watcher, debounced `ingestProject`, semantic queue, SSE stream, `/hook` endpoint) plus the `code/plugin` Claude Code plugin with nine command hooks, `bin/yolo-twice` and `bin/yolo-twice-hook` wrappers, `commands/yolo-twice.md`, and a root `.claude-plugin/marketplace.json`. `bun test` passes 20/20 and typecheck is green, `claude plugin validate` passes for the plugin and marketplace, and `index` ingested this repo's session (301 events) into `.yolo-twice/`. The verified command is `/yolo-twice:yolo-twice`, since bare `/yolo-twice` is not recognized, and the quoted `allowed-tools` form silently aborted the command, so the glob `Bash(*/bin/yolo-twice *)` was used instead. Nothing is committed, the package is not on npm so installs outside the repo fall through to a 404 `npx`, and the test run registered the repo as a local marketplace and installed the plugin into the user's Claude config.",
+  "version": "2"
+}
