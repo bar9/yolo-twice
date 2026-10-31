@@ -8,9 +8,9 @@ import { FIXTURE_CWD, FIXTURE_SESSION, tempFixture } from "../../../fixtures/hel
 
 describe("URL state", () => {
   test("round trips every field and omits defaults", () => {
-    const s: ViewState = { project: "yolo-twice", session: "34b27c", pinned: true, focus: "t1.s5", window: [120, 480], sel: "t2.s3", q: "salt & pepper", k: ["u", "t:Bash", "e"], z: "summary", follow: true };
+    const s: ViewState = { project: "yolo-twice", session: "34b27c", pinned: true, focus: "t1.s5", window: [120, 480], sel: "t2.s3", q: "salt & pepper", k: ["u", "t:Bash", "e"], z: "summary", follow: true, layout: "map" };
     const url = toUrl(s);
-    expect(url).toBe("/yolo-twice/34b27c/t1.s5?t=120-480&x=t2.s3&q=salt%20%26%20pepper&k=u,t:Bash,e&z=s&f");
+    expect(url).toBe("/yolo-twice/34b27c/t1.s5?t=120-480&x=t2.s3&q=salt%20%26%20pepper&k=u,t:Bash,e&z=s&f&v=m");
     const [path, search] = url.split("?");
     expect(parseUrl(path!, `?${search}`)).toEqual(s);
     expect(toUrl(EMPTY)).toBe("/");

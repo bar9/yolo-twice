@@ -1,19 +1,55 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { focusMermaid, projectToMermaid } from "@yolo-twice/analyzers/graph";
 import { SearchIndex, type FilterCode } from "@yolo-twice/analyzers/search";
-import { api, setProject, storage, store, type Attention, type AutoCommit, type Config, type Event, type Granularity, type ProjectIndex, type SearchHit, type StructureNode } from "./api";
+import { useDefaultLayout } from "react-resizable-panels";
+import { BookOpenText, Clock, Coins, ListTree, Network, TriangleAlert, Wrench } from "lucide-react";
+import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { api, fmtDuration, fmtTime, fmtTokens, setProject, storage, store, type Attention, type AutoCommit, type Config, type Event, type Granularity, type ProjectIndex, type SearchHit, type StructureNode } from "./api";
 import { Header } from "./Header";
 import { FilterBar } from "./FilterBar";
 import { Timeline, type Bar, type Tick } from "./Timeline";
-import { Graph } from "./Graph";
+import { Graph, Legend, type HoverInfo } from "./Graph";
 import { Results, Zoom } from "./Zoom";
 import { useStream } from "./useStream";
-import { resolveId, shortId, useViewState, type SetView, type ViewState } from "./state";
+import { resolveId, shortId, useViewState, type Layout, type SetView, type ViewState } from "./state";
 import { computeScope, followTarget, indexTree, walk } from "./scope";
+import { KIND, KindIcon, kindStyle, nodeKind, richText, type Kind } from "./kinds";
 
 type Index = ProjectIndex & { current?: string };
-const GRANS: Granularity[] = ["title", "abstract", "summary", "full"];
 const sessionNode = (id: string) => `s:${id}`;
+const LEGEND_ORDER: Kind[] = ["you", "command", "text", "think", "tool", "error", "agent", "rewind", "compaction"];
+const WAVE_BUCKETS = 160;
+
+/** Per-viewer pane sizes; storage can be unavailable (private mode, previews), then sizes just reset. */
+const safeStorage = {
+  getItem: (k: string) => {
+    try {
+      return localStorage.getItem(k);
+    } catch {
+      return null;
+    }
+  },
+  setItem: (k: string, v: string) => {
+    try {
+      localStorage.setItem(k, v);
+    } catch {
+      /* not persisted */
+    }
+  },
+};
+
+function useNarrow(): boolean {
+  const q = "(max-width: 860px)";
+  const [narrow, setNarrow] = useState(() => typeof matchMedia !== "undefined" && matchMedia(q).matches);
+  useEffect(() => {
+    const m = matchMedia(q);
+    const on = () => setNarrow(m.matches);
+    m.addEventListener("change", on);
+    return () => m.removeEventListener("change", on);
+  }, []);
+  return narrow;
+}
 
 /**
  * Coordinated views. The URL is the single source of truth (see state.ts); every view is a
@@ -29,9 +65,12 @@ export function App() {
   const [digest, setDigest] = useState<string | undefined>();
   const [error, setError] = useState<string | undefined>();
   const [hover, setHover] = useState<string | undefined>();
+  const [card, setCard] = useState<HoverInfo | undefined>();
   const [reader, setReader] = useState<"outline" | "results">("outline");
   const [projectHits, setProjectHits] = useState<SearchHit[]>([]);
   const [projectTools, setProjectTools] = useState<string[]>([]);
+  const narrow = useNarrow();
+  const panes = useDefaultLayout({ id: "yt.panes", storage: safeStorage });
 
   setProject(view.project);
   const ids = useMemo(() => (index?.sessions ?? []).map((s) => s.id), [index]);
@@ -195,6 +234,7 @@ export function App() {
 
   const focusOn = useCallback(
     (id: string) => {
+      setCard(undefined);
       if (id.startsWith("s:")) {
         const sid = id.slice(2);
         if (sid === sessionId) return act({ focus: undefined, window: undefined });
@@ -226,9 +266,10 @@ export function App() {
   // keyboard: Esc goes up one level, Enter focuses the selection
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (/input|textarea|select/i.test((e.target as HTMLElement).tagName)) return;
+      if (/input|textarea|select/i.test((e.target as HTMLElement).tagName) || (e.target as HTMLElement).isContentEditable) return;
+      if (document.querySelector("[role=dialog], [role=menu]")) return;
       if (e.key === "Escape") up();
-      if (e.key === "Enter" && sel) focusOn(sel);
+      if (e.key === "Enter" && sel && !(e.target as HTMLElement).closest("button")) focusOn(sel);
       if (e.key === "f" && !e.ctrlKey && !e.metaKey && !e.altKey) setView((s) => ({ follow: !s.follow }), { push: false });
       if (e.key === "End") setView({ follow: true }, { push: false });
     };
@@ -255,12 +296,12 @@ export function App() {
 
   const catchMeUp = async () => {
     if (!sessionId) return;
-    setDigest("…");
+    setDigest("");
     try {
       const d = await api.digest(sessionId, storage<string | undefined>(`yt.seen.${sessionId}`, undefined));
       setDigest(d.text || "Nothing new since you last looked.");
     } catch (e) {
-      setDigest(`Digest unavailable: ${String(e)}`);
+      setDigest(`The digest is unavailable: ${String(e)}`);
     }
   };
 
@@ -277,8 +318,9 @@ export function App() {
   let hits = new Map<string, number>();
   let matchCount = 0;
   let tools: string[] = projectTools;
-  let scopeLabel = "project";
+  let scopeLabel = "the project";
   let projectWindow: [number, number] | undefined;
+  let legend: Kind[] = [];
 
   if (scope && events) {
     tlStart = Date.parse(scope.focus.span.ts_first);
@@ -297,6 +339,8 @@ export function App() {
     });
     mermaid = focusMermaid(scope.graphRoot);
     graphIds = [...walk(scope.graphRoot)].map((n) => n.id);
+    const present = new Set(graphIds.map((id) => tree?.byId.get(id)).filter(Boolean).map((n) => nodeKind(n!)));
+    legend = LEGEND_ORDER.filter((k) => present.has(k));
     dim = scope.dim;
     hits = scope.hits;
     matchCount = scope.matches.size;
@@ -319,11 +363,77 @@ export function App() {
     matchCount = visibleHits.length;
   }
 
+  // how busy the agent was across the tape: events per time bucket
+  const wave = useMemo(() => {
+    const out = new Array<number>(WAVE_BUCKETS).fill(0);
+    if (!scope || !events || tlEnd <= tlStart) return out;
+    const span = tlEnd - tlStart;
+    for (const n of walk(scope.focus))
+      for (const id of n.event_ids ?? []) {
+        const e = events.get(id);
+        if (!e) continue;
+        const i = Math.floor(((Date.parse(e.ts) - tlStart) / span) * WAVE_BUCKETS);
+        if (i >= 0 && i < WAVE_BUCKETS) out[i]!++;
+        else if (i === WAVE_BUCKETS) out[WAVE_BUCKETS - 1]!++;
+      }
+    return out;
+  }, [scope, events, tlStart, tlEnd]);
+
+  const selectedNode = sel && tree ? tree.byId.get(sel) : undefined;
+  const playhead = view.follow ? tlEnd : selectedNode ? Date.parse(selectedNode.span.ts_first) : sel?.startsWith("s:") ? Date.parse(sessions.find((s) => sessionNode(s.id) === sel)?.ts_first ?? "") : undefined;
+
   const resultIds = useMemo(() => (scope && events ? [...events.keys()].filter((id) => scope.matches.has(id)) : []), [scope, events]);
   const path = scope ? scope.path.slice(1).map((n) => ({ id: n.id, label: n.label })) : [];
   const timelineWindow = scope ? scope.window : projectWindow;
+  const layout: Layout = narrow && view.layout === "split" ? "read" : view.layout;
+  const hoverAt = (h: HoverInfo | undefined) => (setHover(h?.id), setCard(h));
 
   /* ---------- render ---------- */
+
+  const readerPane = (
+    <section className="pane left" onWheel={(e) => e.deltaY < 0 && view.follow && setView({ follow: false }, { push: false })}>
+      <div className="pane-head">
+        <div className="seg" role="tablist" aria-label="Reader">
+          <button className={reader === "outline" ? "on" : ""} onClick={() => setReader("outline")} role="tab" aria-selected={reader === "outline"}>
+            {sessionId ? "Story" : "Sessions"}
+          </button>
+          <button className={reader === "results" ? "on" : ""} onClick={() => setReader("results")} role="tab" aria-selected={reader === "results"}>
+            Results <span className="num text-ink-3">{matchCount}</span>
+          </button>
+        </div>
+        {sessionId && reader === "outline" && <LengthSwitch value={view.z} onChange={(z) => setView({ z })} />}
+      </div>
+      <div className={`pane-body ${layout === "read" ? "reading" : ""}`}>
+        {sessionId ? (
+          !scope ? (
+            <p className="empty">Loading the session…</p>
+          ) : reader === "outline" ? (
+            <Zoom session={sessionId} root={scope.focus} granularity={view.z} events={events} follow={view.follow} selected={sel} hover={hover} dim={dim} hits={hits} query={view.q} onSelect={select} onFocus={focusOn} onHover={setHover} />
+          ) : (
+            <Results ids={resultIds} events={events} owner={scope.owner} selected={sel} query={view.q} onSelect={select} />
+          )
+        ) : reader === "outline" ? (
+          <SessionList index={index} selected={sel} hover={hover} hits={hits} dim={dim} onOpen={focusOn} onHover={setHover} />
+        ) : (
+          <ProjectResults hits={projectHits} sessions={sessions} query={view.q} onOpen={(sid) => focusOn(sessionNode(sid))} />
+        )}
+      </div>
+    </section>
+  );
+
+  const graphTitle = scope ? (scope.graphRoot.kind === "session" ? "The session" : scope.graphRoot.label) : "All sessions";
+  const graphPane = (
+    <section className="pane right">
+      <div className="pane-head">
+        <span className="pane-title">
+          <Network size={15} aria-hidden />
+          <span>{graphTitle}</span>
+        </span>
+        <Legend kinds={legend} />
+      </div>
+      <Graph mermaid={mermaid} ids={graphIds} selected={sel} follow={view.follow} hover={hover} dim={dim} hits={hits} onFocus={focusOn} onHover={hoverAt} />
+    </section>
+  );
 
   return (
     <div className="app">
@@ -338,6 +448,8 @@ export function App() {
         follow={view.follow}
         unseen={unseen}
         onFollow={(follow) => setView({ follow }, { push: false })}
+        layout={view.layout}
+        onLayout={(l) => setView({ layout: l }, { push: false })}
         onPin={(pinned) => setView({ pinned })}
         onReset={reset}
         live={live}
@@ -348,14 +460,10 @@ export function App() {
         onAutoCommit={toggleAutoCommit}
         onCatchMeUp={catchMeUp}
       />
-      {error && <div className="banner error">{error}</div>}
-      {digest !== undefined && (
-        <div className="drawer">
-          <div className="drawer-head">
-            <strong>Catch me up</strong>
-            <button onClick={() => setDigest(undefined)}>close</button>
-          </div>
-          <p>{digest}</p>
+      {error && (
+        <div className="banner error" role="alert">
+          <TriangleAlert size={15} aria-hidden />
+          Lost contact with the engine: {error}. Run /yolo-twice:yolo-twice to start it again.
         </div>
       )}
       <FilterBar q={view.q} k={view.k} tools={tools} matches={matchCount} scopeLabel={scopeLabel} onQuery={(q) => setView({ q })} onCodes={(k: FilterCode[]) => setView({ k })} />
@@ -363,61 +471,116 @@ export function App() {
         <Timeline
           bars={bars}
           ticks={ticks}
+          wave={wave}
           start={tlStart}
           end={tlEnd}
           window={timelineWindow}
+          playhead={Number.isFinite(playhead) ? playhead : undefined}
           selected={sel}
           hover={hover}
           dim={dim}
           hits={hits}
           onFocus={focusOn}
           onWindow={(w) => act({ window: w })}
-          onHover={setHover}
+          onHover={hoverAt}
         />
       )}
       <div className="panes">
-        <section className="pane left" onWheel={(e) => e.deltaY < 0 && view.follow && setView({ follow: false }, { push: false })}>
-          <div className="pane-head">
-            <div className="seg">
-              <button className={reader === "outline" ? "on" : ""} onClick={() => setReader("outline")}>
-                outline
-              </button>
-              <button className={reader === "results" ? "on" : ""} onClick={() => setReader("results")}>
-                results ({matchCount})
-              </button>
-            </div>
-            {sessionId && reader === "outline" && (
-              <div className="seg" title="default text length">
-                {GRANS.map((g) => (
-                  <button key={g} className={g === view.z ? "on" : ""} onClick={() => setView({ z: g })}>
-                    {g}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-          {sessionId ? (
-            !scope ? (
-              <p className="muted pad">Loading structure…</p>
-            ) : reader === "outline" ? (
-              <Zoom session={sessionId} root={scope.focus} granularity={view.z} events={events} follow={view.follow} selected={sel} hover={hover} dim={dim} hits={hits} onSelect={select} onFocus={focusOn} onHover={setHover} />
-            ) : (
-              <Results ids={resultIds} events={events} owner={scope.owner} selected={sel} query={view.q} onSelect={select} />
-            )
-          ) : reader === "outline" ? (
-            <SessionList index={index} selected={sel} hover={hover} hits={hits} dim={dim} onOpen={focusOn} onHover={setHover} />
-          ) : (
-            <ProjectResults hits={projectHits} sessions={sessions} onOpen={(sid) => focusOn(sessionNode(sid))} />
-          )}
-        </section>
-        <section className="pane right">
-          <div className="pane-head">
-            <span>graph of {scope ? (scope.graphRoot.kind === "session" ? "the session" : `${scope.graphRoot.kind} ${scope.graphRoot.label.slice(0, 40)}`) : "the project"}</span>
-            <span className="muted">click zooms in · Esc zooms out</span>
-          </div>
-          <Graph mermaid={mermaid} ids={graphIds} selected={sel} follow={view.follow} hover={hover} dim={dim} hits={hits} onFocus={focusOn} onHover={setHover} />
-        </section>
+        {layout === "split" ? (
+          <ResizablePanelGroup orientation="horizontal" defaultLayout={panes.defaultLayout} onLayoutChanged={panes.onLayoutChanged}>
+            <ResizablePanel id="reader" defaultSize="56" minSize="28">
+              {readerPane}
+            </ResizablePanel>
+            <ResizableHandle withHandle />
+            <ResizablePanel id="map" defaultSize="44" minSize="24">
+              {graphPane}
+            </ResizablePanel>
+          </ResizablePanelGroup>
+        ) : layout === "read" ? (
+          <div className="flex-1 min-w-0">{readerPane}</div>
+        ) : (
+          <div className="flex-1 min-w-0">{graphPane}</div>
+        )}
       </div>
+      {card && <HoverCard info={card} tree={tree} sessions={sessions} hits={hits} />}
+      <Sheet open={digest !== undefined} onOpenChange={(o) => !o && setDigest(undefined)}>
+        <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle className="flex items-center gap-2">
+              <BookOpenText className="size-4" />
+              Catch me up
+            </SheetTitle>
+            <SheetDescription>What happened in {sessionMeta?.label || "this session"} since you last looked.</SheetDescription>
+          </SheetHeader>
+          <div className="px-4 pb-6">{digest ? <p className="digest">{richText(digest)}</p> : <p className="digest text-ink-3">Reading the new events…</p>}</div>
+        </SheetContent>
+      </Sheet>
+    </div>
+  );
+}
+
+const LENGTHS: { g: Granularity; label: string; title: string }[] = [
+  { g: "title", label: "Titles", title: "One line per part" },
+  { g: "abstract", label: "Abstracts", title: "A few sentences per part" },
+  { g: "summary", label: "Summaries", title: "A paragraph per part" },
+  { g: "full", label: "Full", title: "Everything that was said and done" },
+];
+
+/** Default text length for every open part; each part can still be made shorter or longer on its own. */
+function LengthSwitch({ value, onChange }: { value: Granularity; onChange: (g: Granularity) => void }) {
+  return (
+    <div className="seg" role="radiogroup" aria-label="Text length">
+      {LENGTHS.map((l) => (
+        <button key={l.g} className={l.g === value ? "on" : ""} onClick={() => onChange(l.g)} title={l.title} role="radio" aria-checked={l.g === value}>
+          {l.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+/** What a block or node is, under the pointer: label, kind, when, how much, and the abstract when there is one. */
+function HoverCard({ info, tree, sessions, hits }: { info: HoverInfo; tree?: ReturnType<typeof indexTree>; sessions: ProjectIndex["sessions"]; hits: Map<string, number> }) {
+  const node = tree?.byId.get(info.id);
+  const session = info.id.startsWith("s:") ? sessions.find((s) => `s:${s.id}` === info.id) : undefined;
+  if (!node && !session) return null;
+  const kind: Kind = node ? nodeKind(node) : "session";
+  const start = node ? node.span.ts_first : session!.ts_first;
+  const end = node ? node.span.ts_last : session!.ts_last;
+  const n = hits.get(info.id);
+  const left = Math.min(info.x + 14, innerWidth - 360);
+  const top = info.y + 16 + 160 > innerHeight ? info.y - 150 : info.y + 16;
+  const abstract = node?.text?.abstract;
+  return (
+    <div className="hovercard" style={{ left, top, ...kindStyle(kind) }}>
+      <strong className="flex items-start gap-2">
+        <span className="mt-0.5" style={{ color: KIND[kind].color }}>
+          <KindIcon kind={kind} />
+        </span>
+        <span>{node ? node.label : session!.label || session!.id}</span>
+      </strong>
+      {abstract && <p className="mb-2 font-serif text-[14.5px] leading-snug text-ink-2 line-clamp-4">{abstract}</p>}
+      <div className="facts">
+        <span>
+          <Clock size={12} aria-hidden />
+          {fmtTime(start)}, {fmtDuration(Date.parse(end) - Date.parse(start))}
+        </span>
+        {node && node.stats.tool_calls > 0 && (
+          <span>
+            <Wrench size={12} aria-hidden />
+            {node.stats.tool_calls} tool calls
+          </span>
+        )}
+        {node && node.stats.input_tokens + node.stats.output_tokens > 0 && (
+          <span>
+            <Coins size={12} aria-hidden />
+            {fmtTokens(node.stats.input_tokens + node.stats.output_tokens)} tokens
+          </span>
+        )}
+        {session && <span>{session.events} events</span>}
+        {n ? <span className="text-ink">{n} matches</span> : null}
+      </div>
+      <div className="hint">Click to zoom in</div>
     </div>
   );
 }
@@ -433,35 +596,52 @@ function SessionList(props: {
   onHover: (id: string | undefined) => void;
 }) {
   const { index } = props;
-  if (!index) return <p className="muted pad">Loading project…</p>;
-  if (index.sessions.length === 0) return <p className="muted pad">No sessions indexed yet. Run a Claude Code session in this project, or `yolo-twice index`.</p>;
+  if (!index) return <p className="empty">Loading the project…</p>;
+  if (index.sessions.length === 0)
+    return (
+      <div className="empty">
+        <ListTree size={22} />
+        No sessions recorded yet. Start a Claude Code session in this project, or run yolo-twice index.
+      </div>
+    );
+  const day = (iso: string) => new Date(iso).toLocaleDateString([], { weekday: "short", day: "numeric", month: "short" });
+  const clock = (iso: string) => new Date(iso).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   return (
-    <div className="pad">
-      {index.text?.abstract && <p className="project-digest">{index.text.abstract}</p>}
+    <div className="project-view">
+      {index.text?.abstract && <p className="project-digest">{richText(index.text.abstract)}</p>}
       <table className="sessions">
         <thead>
           <tr>
             <th>Session</th>
-            <th>Started</th>
-            <th>Last activity</th>
-            <th>Events</th>
-            <th>Cost</th>
+            <th>When</th>
+            <th>Length</th>
+            <th className="right">Events</th>
+            <th className="right">Cost</th>
           </tr>
         </thead>
         <tbody>
           {[...index.sessions].reverse().map((s) => {
             const id = sessionNode(s.id);
             const n = props.hits.get(id);
+            const current = index.current === s.id;
             const cls = [id === props.selected ? "selected" : "", id === props.hover ? "hover" : "", props.dim.has(id) ? "dim" : ""].join(" ");
             return (
-              <tr key={s.id} className={cls} onClick={() => props.onOpen(id)} onMouseEnter={() => props.onHover(id)} onMouseLeave={() => props.onHover(undefined)} title="open this session">
-                <td>
-                  {s.label || s.id} {n ? <span className="badge hit">{n}</span> : null}
+              <tr key={s.id} className={cls} onClick={() => props.onOpen(id)} onMouseEnter={() => props.onHover(id)} onMouseLeave={() => props.onHover(undefined)} title="Open this session">
+                <td className="title">
+                  {current && <span className="live-dot live" title="Active now" />}
+                  {s.label || s.id}
+                  {n ? <span className="badge hit ml-2">{n}</span> : null}
+                  <small>{s.id.slice(0, 8)}</small>
                 </td>
-                <td>{new Date(s.ts_first).toLocaleString()}</td>
-                <td>{new Date(s.ts_last).toLocaleString()}</td>
-                <td>{s.events}</td>
-                <td>{s.cost_usd !== undefined ? `$${s.cost_usd.toFixed(2)}` : ""}</td>
+                <td>
+                  {day(s.ts_first)}
+                  <small className="block text-ink-3">
+                    {clock(s.ts_first)} to {clock(s.ts_last)}
+                  </small>
+                </td>
+                <td>{fmtDuration(Date.parse(s.ts_last) - Date.parse(s.ts_first))}</td>
+                <td className="right">{s.events}</td>
+                <td className="right">{s.cost_usd !== undefined ? `$${s.cost_usd.toFixed(2)}` : ""}</td>
               </tr>
             );
           })}
@@ -472,16 +652,28 @@ function SessionList(props: {
 }
 
 /** Project-wide matches from the engine; opening one focuses its session with the same filters. */
-function ProjectResults(props: { hits: SearchHit[]; sessions: ProjectIndex["sessions"]; onOpen: (session: string) => void }) {
-  if (props.hits.length === 0) return <p className="muted pad">No matches. Type a query or pick a filter.</p>;
+function ProjectResults(props: { hits: SearchHit[]; sessions: ProjectIndex["sessions"]; query: string; onOpen: (session: string) => void }) {
+  if (props.hits.length === 0)
+    return (
+      <div className="empty">
+        <ListTree size={22} />
+        No matches yet. Search above, or pick a filter to list things across all sessions.
+      </div>
+    );
   const label = new Map(props.sessions.map((s) => [s.id, s.label || s.id]));
   return (
     <ul className="results">
       {props.hits.map((h) => (
         <li key={`${h.session}:${h.id}`} onClick={() => props.onOpen(h.session)}>
-          <span className="kind">{h.kind}</span> {h.tool && <span className="tool">{h.tool}</span>} <span className="muted">{label.get(h.session)}</span>
-          <span className="time">{new Date(h.ts).toLocaleString()}</span>
-          <div className="snippet">{h.snippet}</div>
+          <span className="kicon">
+            <KindIcon kind={h.kind === "user.prompt" ? "you" : h.kind.startsWith("tool") ? "tool" : "text"} />
+          </span>
+          <span className="what">
+            {label.get(h.session)}
+            {h.tool && <span className="tool-name">{h.tool}</span>}
+          </span>
+          <span className="time">{new Date(h.ts).toLocaleString([], { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}</span>
+          <div className="snippet">{richText(h.snippet, props.query)}</div>
         </li>
       ))}
     </ul>

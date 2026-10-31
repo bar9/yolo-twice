@@ -305,6 +305,17 @@ Design rules:
 The UI shows four linked views at once: a filter bar, a timeline scrubber, the reader (the
 zoom tree) and the graph. They are projections of one state, and that state is the URL.
 
+Look and layout: the session is treated as a recording. The timeline is a tape: blocks for the
+parts of the focus, a waveform of activity underneath, search hits as marker ticks and an
+orange playhead on the selection (or the live tail while following). The reader tells the story
+in a serif (Newsreader), with inline code in a monospace and the interface in a sans (Instrument
+Sans); steps hang off a thread from their parent's icon. The graph is a canvas with drag to pan,
+Ctrl or Command and scroll to zoom, and text never scaled above 1:1. One icon and one colour per
+event kind (lucide icons) is used everywhere: reader, tape, graph, filters and legend. Reader
+and graph sit side by side with a draggable divider, or one of them takes the whole width
+(Read, Map). Components are shadcn/ui on Tailwind and Radix; fonts are bundled, so the UI works
+offline.
+
 - **Focus narrows.** The focus is a node: the project, a session, a phase, a turn or a step.
   The reader is rooted at it, the graph is redrawn one level below it (semantic zoom, no pixel
   zoom), and the timeline axis spans it. A single click focuses (a graph node, a timeline bar, a session; in the reader the ⤢ button, since a row click expands), Esc goes up one level, the
@@ -343,6 +354,7 @@ URL form:
 | `k` | filters: `u` your prompts, `a` assistant text, `h` thinking, `t` tool calls, `t:Name` one tool, `e` tool errors, `s` subagents, `c` compactions and commands, `r` rewound turns | none |
 | `z` | default text length: `t` title, `a` abstract, `s` summary, `f` full | `a` |
 | `f` | follow: the view stays on the newest events as they arrive, like `tail -f` | off |
+| `v` | layout: `r` text only, `m` graph only | text and graph side by side |
 
 Example: `http://127.0.0.1:9656/yolo-twice/34b27c/t2?k=t,e&x=t2.s4`
 

@@ -1,16 +1,21 @@
 import { useEffect, useRef, useState } from "react";
+import { ChevronDown, Search, X } from "lucide-react";
 import type { FilterCode } from "@yolo-twice/analyzers/search";
+import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Kbd } from "@/components/ui/kbd";
+import { KIND, kindStyle, type Kind } from "./kinds";
+import { Tip } from "./Tip";
 
 /** Chip codes in display order. Codes are OR'd; tool chips live in the tools menu. */
-export const CHIPS: { code: FilterCode; label: string; title: string }[] = [
-  { code: "u", label: "user", title: "your prompts (subagent briefs excluded)" },
-  { code: "a", label: "assistant", title: "assistant text" },
-  { code: "h", label: "thinking", title: "thinking blocks" },
-  { code: "t", label: "tools", title: "every tool call and result" },
-  { code: "e", label: "errors", title: "tool calls that failed" },
-  { code: "s", label: "subagents", title: "everything subagents did" },
-  { code: "c", label: "compactions", title: "compactions and slash commands" },
-  { code: "r", label: "rewinds", title: "turns on a rewound branch" },
+export const CHIPS: { code: FilterCode; kind: Kind; label: string; title: string }[] = [
+  { code: "u", kind: "you", label: "You", title: "Your prompts (subagent briefs excluded)" },
+  { code: "a", kind: "text", label: "Claude", title: "What Claude wrote" },
+  { code: "h", kind: "think", label: "Thinking", title: "Thinking blocks" },
+  { code: "t", kind: "tool", label: "Tools", title: "Every tool call and result" },
+  { code: "e", kind: "error", label: "Errors", title: "Tool calls that failed" },
+  { code: "s", kind: "agent", label: "Subagents", title: "Everything subagents did" },
+  { code: "c", kind: "compaction", label: "Compactions", title: "Compactions and slash commands" },
+  { code: "r", kind: "rewind", label: "Rewinds", title: "Turns on a rewound branch" },
 ];
 
 /**
@@ -53,52 +58,73 @@ export function FilterBar(props: {
   const toggle = (code: FilterCode) => props.onCodes(props.k.includes(code) ? props.k.filter((c) => c !== code) : [...props.k, code]);
   const toolCodes = props.k.filter((c) => c.startsWith("t:"));
   const active = Boolean(props.q) || props.k.length > 0;
+  const ToolIcon = KIND.tool.icon;
 
   return (
     <div className="filterbar">
-      <input
-        ref={input}
-        className="query"
-        placeholder={`search ${props.scopeLabel}…  (press /)`}
-        value={draft}
-        onChange={(e) => setDraft(e.target.value)}
-        onKeyDown={(e) => {
-          if (e.key === "Escape") {
-            if (draft) setDraft("");
-            (e.target as HTMLInputElement).blur();
-            e.stopPropagation();
-          }
-        }}
-        aria-label="search"
-      />
-      <div className="chips" role="group" aria-label="filters">
-        {CHIPS.map((c) => (
-          <button key={c.code} className={`chip ${props.k.includes(c.code) ? "on" : ""}`} title={c.title} onClick={() => toggle(c.code)} aria-pressed={props.k.includes(c.code)}>
-            {c.label}
-          </button>
-        ))}
+      <div className="search">
+        <Search size={15} aria-hidden />
+        <input
+          ref={input}
+          className="query"
+          placeholder={`Search ${props.scopeLabel}`}
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Escape") {
+              if (draft) setDraft("");
+              (e.target as HTMLInputElement).blur();
+              e.stopPropagation();
+            }
+          }}
+          aria-label="Search"
+        />
+        {!draft && <Kbd>/</Kbd>}
+      </div>
+      <div className="chips" role="group" aria-label="Filters">
+        {CHIPS.map((c) => {
+          const Icon = KIND[c.kind].icon;
+          const on = props.k.includes(c.code);
+          return (
+            <Tip key={c.code} label={c.title}>
+              <button className={`chip ${on ? "on" : ""}`} style={kindStyle(c.kind)} onClick={() => toggle(c.code)} aria-pressed={on}>
+                <Icon aria-hidden />
+                {c.label}
+              </button>
+            </Tip>
+          );
+        })}
         {props.tools.length > 0 && (
-          <details className="tools-menu">
-            <summary className={`chip ${toolCodes.length ? "on" : ""}`}>{toolCodes.length ? toolCodes.map((c) => c.slice(2)).join(", ") : "tool ▾"}</summary>
-            <div className="menu">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className={`chip ${toolCodes.length ? "on" : ""}`} style={kindStyle("tool")}>
+                <ToolIcon aria-hidden />
+                {toolCodes.length ? toolCodes.map((c) => c.slice(2)).join(", ") : "Tool"}
+                <ChevronDown aria-hidden />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="max-h-80 min-w-48">
+              <DropdownMenuLabel>Only these tools</DropdownMenuLabel>
+              <DropdownMenuSeparator />
               {props.tools.map((t) => {
                 const code = `t:${t}` as FilterCode;
                 return (
-                  <label key={t}>
-                    <input type="checkbox" checked={props.k.includes(code)} onChange={() => toggle(code)} /> {t}
-                  </label>
+                  <DropdownMenuCheckboxItem key={t} checked={props.k.includes(code)} onCheckedChange={() => toggle(code)} onSelect={(e) => e.preventDefault()} className="font-mono text-[13px]">
+                    {t}
+                  </DropdownMenuCheckboxItem>
                 );
               })}
-            </div>
-          </details>
+            </DropdownMenuContent>
+          </DropdownMenu>
         )}
       </div>
       <span className="match-count" aria-live="polite">
         {active ? `${props.matches} match${props.matches === 1 ? "" : "es"} in ${props.scopeLabel}` : ""}
       </span>
       {active && (
-        <button className="clear" onClick={() => (setDraft(""), props.onQuery(""), props.onCodes([]))} title="clear query and filters">
-          clear
+        <button className="chip" onClick={() => (setDraft(""), props.onQuery(""), props.onCodes([]))}>
+          <X aria-hidden />
+          Clear
         </button>
       )}
     </div>

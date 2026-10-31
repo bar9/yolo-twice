@@ -12,6 +12,7 @@
  * - k        filter codes, comma separated (see analyzers/search.ts)
  * - z        default text granularity: t(itle) a(bstract, default) s(ummary) f(ull)
  * - f        follow: keep the view on the newest events as they arrive (like `tail -f`)
+ * - v        layout: r(ead: text only) m(ap: graph only); omitted = split, text and graph side by side
  *
  * Defaults are omitted. Pure functions here; the React hook lives at the bottom.
  */
@@ -30,12 +31,17 @@ export interface ViewState {
   k: FilterCode[];
   z: Granularity;
   follow: boolean;
+  layout: Layout;
 }
 
-export const EMPTY: ViewState = { project: "", pinned: true, q: "", k: [], z: "abstract", follow: false };
+export type Layout = "split" | "read" | "map";
+
+export const EMPTY: ViewState = { project: "", pinned: true, q: "", k: [], z: "abstract", follow: false, layout: "split" };
 
 const Z_CODE: Record<Granularity, string> = { title: "t", abstract: "a", summary: "s", full: "f" };
 const Z_FROM: Record<string, Granularity> = { t: "title", a: "abstract", s: "summary", f: "full" };
+const V_CODE: Record<Layout, string> = { split: "", read: "r", map: "m" };
+const V_FROM: Record<string, Layout> = { r: "read", m: "map" };
 
 const VALID_CODE = /^(u|a|h|t|e|s|c|r|t:[^,]+)$/;
 
@@ -72,6 +78,7 @@ export function parseUrl(pathname: string, search: string): ViewState {
     .filter((s): s is FilterCode => VALID_CODE.test(s));
   state.z = Z_FROM[p.get("z") ?? ""] ?? "abstract";
   state.follow = p.has("f");
+  state.layout = V_FROM[p.get("v") ?? ""] ?? "split";
   return state;
 }
 
@@ -90,6 +97,7 @@ export function toUrl(s: ViewState): string {
   if (s.k.length) q.push(`k=${s.k.map(enc).join(",")}`);
   if (s.z !== "abstract") q.push(`z=${Z_CODE[s.z]}`);
   if (s.follow) q.push("f");
+  if (s.layout !== "split") q.push(`v=${V_CODE[s.layout]}`);
   return path + (q.length ? `?${q.join("&")}` : "");
 }
 

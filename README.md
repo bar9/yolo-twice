@@ -128,6 +128,14 @@ each of them. If one of them fits your need better, use it.
 | [ccusage](https://github.com/ryoppippi/ccusage) by ryoppippi                                       | Token and cost reporting across agents                                        | Cost shown per phase in context; use ccusage for accounting |
 | [pele](https://github.com/obsidianmd/pele) by the Obsidian team                                    | Fast, themeable mermaid rendering                                             | We use it as-is for every diagram, with thanks              |
 
+The web UI is built on [shadcn/ui](https://ui.shadcn.com/) with [Radix](https://www.radix-ui.com/)
+and [Tailwind CSS](https://tailwindcss.com/), icons from [Lucide](https://lucide.dev/), split
+panes from [react-resizable-panels](https://github.com/bvaughn/react-resizable-panels), and the
+typefaces [Instrument Sans](https://github.com/Instrument/instrument-sans),
+[Newsreader](https://github.com/productiontype/Newsreader) and
+[JetBrains Mono](https://www.jetbrains.com/lp/mono/), all under open licenses and bundled through
+[Fontsource](https://fontsource.org/).
+
 Mermaid is the only diagram format we use, on GitHub, on the website, in the pitch deck and in
 the UI, so the same text renders everywhere.
 
