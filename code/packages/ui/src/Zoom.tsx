@@ -73,10 +73,9 @@ export function Zoom(props: {
         <div
           className="row"
           onClick={() => (props.onSelect(node.id), toggle(node.id))}
-          onDoubleClick={(e) => (e.stopPropagation(), props.onFocus(node.id))}
           onMouseEnter={() => props.onHover(node.id)}
           onMouseLeave={() => props.onHover(undefined)}
-          title="click selects and expands · double click focuses"
+          title="click expands"
         >
           <span className="caret">{node.children.length || node.event_ids?.length ? (isOpen ? "▾" : "▸") : "·"}</span>
           <span className="label">{node.label}</span>
@@ -90,6 +89,11 @@ export function Zoom(props: {
             {node.stats.cost_usd !== undefined && ` · $${node.stats.cost_usd.toFixed(2)}`}
           </span>
           <span className="time">{fmtTime(node.span.ts_first)}</span>
+          {depth > 0 && (
+            <button className="zoom-in" onClick={(e) => (e.stopPropagation(), props.onFocus(node.id))} title="zoom in: make this the focus of every view">
+              ⤢
+            </button>
+          )}
         </div>
         {isOpen && (
           <div className="body">

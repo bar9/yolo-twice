@@ -9,7 +9,7 @@ const safe = (id: string) => id.replace(/[^A-Za-z0-9_]/g, "_");
 /**
  * Renders mermaid text with pele and links it to the shared scope. The emitter sanitizes structure
  * ids (`t1.s4` -> `t1_s4`); pele keeps them as `data-id` on each node and cluster, so we map back.
- * Click selects, double click focuses (semantic zoom: the graph is redrawn for that node).
+ * A click zooms in (semantic zoom: the graph is redrawn for that node); hover links the other views.
  */
 export function Graph(props: {
   mermaid: string;
@@ -21,7 +21,6 @@ export function Graph(props: {
   hover?: string;
   dim: Set<string>;
   hits: Map<string, number>;
-  onSelect: (id: string) => void;
   onFocus: (id: string) => void;
   onHover: (id: string | undefined) => void;
 }) {
@@ -104,10 +103,6 @@ export function Graph(props: {
       className="graph pele"
       ref={host}
       onClick={(e) => {
-        const id = idAt(e);
-        if (id) props.onSelect(id);
-      }}
-      onDoubleClick={(e) => {
         const id = idAt(e);
         if (id) props.onFocus(id);
       }}

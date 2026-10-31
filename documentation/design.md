@@ -307,7 +307,7 @@ zoom tree) and the graph. They are projections of one state, and that state is t
 
 - **Focus narrows.** The focus is a node: the project, a session, a phase, a turn or a step.
   The reader is rooted at it, the graph is redrawn one level below it (semantic zoom, no pixel
-  zoom), and the timeline axis spans it. Double click focuses, Esc goes up one level, the
+  zoom), and the timeline axis spans it. A single click focuses (a graph node, a timeline bar, a session; in the reader the ⤢ button, since a row click expands), Esc goes up one level, the
   breadcrumb jumps anywhere above.
 - **The window narrows in time.** Dragging on the timeline sets a window that snaps to whole
   bars (turns, or steps inside a turn), so it always maps to nodes in the tree and graph.

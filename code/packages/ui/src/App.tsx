@@ -370,7 +370,6 @@ export function App() {
           hover={hover}
           dim={dim}
           hits={hits}
-          onSelect={select}
           onFocus={focusOn}
           onWindow={(w) => act({ window: w })}
           onHover={setHover}
@@ -406,7 +405,7 @@ export function App() {
               <Results ids={resultIds} events={events} owner={scope.owner} selected={sel} query={view.q} onSelect={select} />
             )
           ) : reader === "outline" ? (
-            <SessionList index={index} selected={sel} hover={hover} hits={hits} dim={dim} onSelect={select} onOpen={focusOn} onHover={setHover} />
+            <SessionList index={index} selected={sel} hover={hover} hits={hits} dim={dim} onOpen={focusOn} onHover={setHover} />
           ) : (
             <ProjectResults hits={projectHits} sessions={sessions} onOpen={(sid) => focusOn(sessionNode(sid))} />
           )}
@@ -414,9 +413,9 @@ export function App() {
         <section className="pane right">
           <div className="pane-head">
             <span>graph of {scope ? (scope.graphRoot.kind === "session" ? "the session" : `${scope.graphRoot.kind} ${scope.graphRoot.label.slice(0, 40)}`) : "the project"}</span>
-            <span className="muted">click selects · double click zooms in · Esc zooms out</span>
+            <span className="muted">click zooms in · Esc zooms out</span>
           </div>
-          <Graph mermaid={mermaid} ids={graphIds} selected={sel} follow={view.follow} hover={hover} dim={dim} hits={hits} onSelect={select} onFocus={focusOn} onHover={setHover} />
+          <Graph mermaid={mermaid} ids={graphIds} selected={sel} follow={view.follow} hover={hover} dim={dim} hits={hits} onFocus={focusOn} onHover={setHover} />
         </section>
       </div>
     </div>
@@ -430,7 +429,6 @@ function SessionList(props: {
   hover?: string;
   hits: Map<string, number>;
   dim: Set<string>;
-  onSelect: (id: string) => void;
   onOpen: (id: string) => void;
   onHover: (id: string | undefined) => void;
 }) {
@@ -456,7 +454,7 @@ function SessionList(props: {
             const n = props.hits.get(id);
             const cls = [id === props.selected ? "selected" : "", id === props.hover ? "hover" : "", props.dim.has(id) ? "dim" : ""].join(" ");
             return (
-              <tr key={s.id} className={cls} onClick={() => props.onSelect(id)} onDoubleClick={() => props.onOpen(id)} onMouseEnter={() => props.onHover(id)} onMouseLeave={() => props.onHover(undefined)} title="click selects · double click opens">
+              <tr key={s.id} className={cls} onClick={() => props.onOpen(id)} onMouseEnter={() => props.onHover(id)} onMouseLeave={() => props.onHover(undefined)} title="open this session">
                 <td>
                   {s.label || s.id} {n ? <span className="badge hit">{n}</span> : null}
                 </td>

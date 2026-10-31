@@ -21,7 +21,7 @@ tool call or you go full yolo and lose track of what happened.
   (nothing until you ask, then "catch me up"). You choose how many tokens and how much
   attention to spend; the cost is shown next to the slider.
 - **Linked views, shareable links.** Filter bar, timeline, reader and graph react to each
-  other: drag a time window, double click to zoom into a phase or turn, filter to your prompts
+  other: drag a time window, click to zoom into a phase or turn, filter to your prompts
   or tool errors, and every view follows. The URL captures the whole view, so a link opens
   exactly what you saw.
 - **Project-local history.** Everything derived lands in `.yolo-twice/` in your repo,

@@ -120,6 +120,9 @@ button:disabled { opacity: .5; cursor: default; }
 .node.selected { border-left-color: var(--accent); background: color-mix(in srgb, var(--accent) 8%, transparent); }
 .node .row { display: flex; align-items: baseline; gap: 6px; padding: 3px 4px; cursor: pointer; border-radius: 4px; }
 .node .row:hover, .node.hover > .row { background: var(--surface); }
+.node .row .zoom-in { visibility: hidden; border: 1px solid var(--line); background: var(--bg); border-radius: 4px; padding: 0 5px; font-size: 12px; line-height: 16px; cursor: pointer; color: var(--muted); }
+.node .row:hover > .zoom-in, .node.selected > .row > .zoom-in { visibility: visible; }
+.node .row .zoom-in:hover { color: var(--accent); border-color: var(--accent); }
 .node.dim > .row { opacity: .4; }
 .badge.hit { background: var(--hit); }
 .caret { width: 12px; color: var(--muted); flex: none; }

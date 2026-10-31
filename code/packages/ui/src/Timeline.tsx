@@ -42,7 +42,7 @@ function barColour(b: Bar): string {
 /**
  * The scrubber: one strip of bars (sessions, turns or steps, whatever the focus contains) on an
  * axis spanning the focus, hit ticks underneath, and a brush. Drag to set a window, which snaps to
- * whole bars; click a bar to select it, double click to focus it; click empty space to clear.
+ * whole bars; click a bar to zoom into it; click empty space to clear.
  */
 export function Timeline(props: {
   bars: Bar[];
@@ -54,7 +54,6 @@ export function Timeline(props: {
   hover?: string;
   dim: Set<string>;
   hits: Map<string, number>;
-  onSelect: (id: string) => void;
   onFocus: (id: string) => void;
   onWindow: (w: [number, number] | undefined) => void;
   onHover: (id: string | undefined) => void;
@@ -89,7 +88,7 @@ export function Timeline(props: {
     const [a, b] = [Math.min(drag.a, drag.b), Math.max(drag.a, drag.b)];
     setDrag(undefined);
     if (b - a < 4) {
-      // a click: on a bar it selects (the bar's own handler), on empty space it clears the window
+      // a click: on a bar it zooms in (the bar's own handler), on empty space it clears the window
       if (!e || !(e.target as Element).closest(".tl-bar")) props.onWindow(undefined);
       return;
     }
@@ -145,8 +144,7 @@ export function Timeline(props: {
               rx={2}
               fill={barColour(b)}
               className={cls}
-              onClick={() => props.onSelect(b.id)}
-              onDoubleClick={() => props.onFocus(b.id)}
+              onClick={() => props.onFocus(b.id)}
               onMouseEnter={(e) => (props.onHover(b.id), setTip({ bar: b, x: e.clientX, y: e.clientY }))}
               onMouseLeave={() => (props.onHover(undefined), setTip(undefined))}
             />
@@ -178,7 +176,7 @@ export function Timeline(props: {
             {props.hits.get(tip.bar.id) ? ` · ${props.hits.get(tip.bar.id)} hits` : ""}
             {tip.bar.node?.meta?.branch && " · rewind"}
           </div>
-          <div className="muted">click selects · double click focuses</div>
+          <div className="muted">click zooms in · drag sets a window</div>
         </div>
       )}
     </div>
