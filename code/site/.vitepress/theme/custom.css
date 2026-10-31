@@ -30,51 +30,82 @@
   margin: 1rem 0 2rem;
 }
 
-/* ---------- match the pitch deck: navy and orange, Inter ---------- */
+/* ---------- brand: from the wordmark (navy to purple, cream, orange), matches the deck ---------- */
 :root {
   --vp-font-family-base: Inter, ui-sans-serif, system-ui, sans-serif;
-  --vp-font-family-mono: "JetBrains Mono", ui-monospace, monospace;
+  --brand-heading: Nunito, Inter, ui-sans-serif, system-ui, sans-serif;
 
-  /* light mode: a darker orange so text links keep enough contrast on white */
-  --vp-c-brand-1: #c2522a;
-  --vp-c-brand-2: #a94524;
-  --vp-c-brand-3: #c2522a;
-  --vp-c-brand-soft: rgb(194 82 42 / 0.12);
-
+  /* light mode: cream paper, navy ink, a darker orange that keeps contrast */
+  --vp-c-bg: #fbf7ef;
+  --vp-c-bg-alt: #f4eee2;
+  --vp-c-bg-soft: #f1eadc;
+  --vp-c-text-1: #101648;
+  --vp-c-text-2: #3d4270;
+  --vp-c-brand-1: #c2410c;
+  --vp-c-brand-2: #a8380a;
+  --vp-c-brand-3: #c2410c;
+  --vp-c-brand-soft: rgb(194 65 12 / 0.12);
   --vp-home-hero-name-color: var(--vp-c-brand-1);
 }
 
 .dark {
-  --vp-c-bg: #10151f;
-  --vp-c-bg-alt: #0b0f17;
-  --vp-c-bg-soft: #182030;
-  --vp-c-bg-elv: #182030;
-  --vp-c-divider: #2b3546;
-  --vp-c-border: #2b3546;
-  --vp-c-gutter: #0b0f17;
-  --vp-c-text-1: #eef2f7;
-  --vp-c-text-2: #cfd7e3;
-  --vp-c-text-3: #8a96a8;
+  --vp-c-bg: #070a2a;
+  --vp-c-bg-alt: #04061c;
+  --vp-c-bg-soft: #11163f;
+  --vp-c-bg-elv: #11163f;
+  --vp-c-divider: #262c5e;
+  --vp-c-border: #262c5e;
+  --vp-c-gutter: #04061c;
+  --vp-c-text-1: #f8f1e4;
+  --vp-c-text-2: #d8d3e6;
+  --vp-c-text-3: #9291b8;
 
-  --vp-c-brand-1: #f0956a;
-  --vp-c-brand-2: #f4ab88;
-  --vp-c-brand-3: #d9774c;
-  --vp-c-brand-soft: rgb(240 149 106 / 0.14);
+  --vp-c-brand-1: #fd7a2e;
+  --vp-c-brand-2: #ff9a5c;
+  --vp-c-brand-3: #fd5f02;
+  --vp-c-brand-soft: rgb(253 95 2 / 0.16);
 
-  --vp-code-block-bg: #0b0f17;
-  --vp-code-bg: #182030;
+  --vp-code-block-bg: #04061c;
+  --vp-code-bg: #11163f;
 }
 
-/* brand button: dark text on orange reads better than white */
-.dark .VPButton.brand { color: #10151f; }
-
-/* the hero: a soft glow, like the deck's background */
-.dark .VPHome {
-  background: radial-gradient(1100px 520px at 85% -10%, rgb(108 182 255 / 0.08), transparent 60%);
+/* headings in the wordmark's rounded heavy style */
+.VPHero .name, .VPHero .text, .vp-doc h1, .vp-doc h2, .VPFeature .title {
+  font-family: var(--brand-heading);
+  font-weight: 900;
+  letter-spacing: -0.01em;
 }
+.vp-doc h2 { font-weight: 800; }
+
+/* brand button: navy text on orange */
+.VPButton.brand { color: #070a2a; background-color: #fd5f02; border-color: #fd5f02; }
+.VPButton.brand:hover { color: #070a2a; background-color: #ff7a2a; border-color: #ff7a2a; }
+
+/* dark background: the wordmark's navy and purple glows */
+.dark .VPHome, .dark .VPContent {
+  background:
+    radial-gradient(900px 520px at 0% 0%, rgb(22 44 150 / 0.35), transparent 62%),
+    radial-gradient(900px 600px at 100% 30%, rgb(76 16 150 / 0.28), transparent 62%);
+}
+
+/* hero image: the wordmark as a poster */
+.VPHero .image-container { transform: none; }
+.VPHero .image-bg { display: none; }
+.VPHero .image-src {
+  position: static; transform: none;
+  max-width: 100%; width: 520px; border-radius: 16px;
+  box-shadow: 0 24px 60px rgb(4 6 28 / 0.55);
+}
+
+/* nav logo */
+.VPNavBarTitle .logo { height: 30px; }
 
 /* feature cards: the deck's tagged colours, one per question */
 .VPFeatures .item:nth-child(1) .VPFeature { border-top: 3px solid #6cb6ff; }
 .VPFeatures .item:nth-child(2) .VPFeature { border-top: 3px solid #c39bff; }
 .VPFeatures .item:nth-child(3) .VPFeature { border-top: 3px solid #e3b341; }
 .VPFeatures .item:nth-child(4) .VPFeature { border-top: 3px solid #4ac26b; }
+
+/* VitePress paints solid "curtains" under the aside and sidebar; let the gradient show through */
+.dark .VPDoc .aside-curtain { display: none; }
+.VPButton.brand, .VPButton.brand:hover { color: #070a2a !important; }

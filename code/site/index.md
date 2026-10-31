@@ -4,6 +4,9 @@ hero:
   name: yolo-twice
   text: What did the AI do, and why?
   tagline: Long AI coding sessions are a black box for the team. yolo-twice keeps the conversation with the code, readable at any level of detail.
+  image:
+    src: /wordmark.png
+    alt: yolo-twice wordmark
   actions:
     - theme: brand
       text: Install

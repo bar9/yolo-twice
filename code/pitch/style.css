@@ -1,31 +1,35 @@
 /* ---------- palette: a calm dark theme, terminals as supporting evidence ---------- */
 :root {
-  --bg: #10151f;
-  --bg-raised: #182030;
-  --bg-term: #0b0f17;
-  --line: #2b3546;
-  --fg: #eef2f7;
-  --text: #cfd7e3;
-  --muted: #8a96a8;
+  /* brand: taken from the wordmark */
+  --bg: #070a2a;
+  --bg-raised: #11163f;
+  --bg-term: #04061c;
+  --line: #262c5e;
+  --fg: #f8f1e4;
+  --text: #d8d3e6;
+  --muted: #9291b8;
+  --orange: #fd5f02;
   --green: #4ac26b;
   --red: #f47067;
   --amber: #e3b341;
   --blue: #6cb6ff;
   --purple: #c39bff;
-  --orange: #f0956a;
 }
 
 .slidev-layout {
-  background: radial-gradient(1200px 600px at 85% -10%, rgb(108 182 255 / 0.07), transparent 60%), var(--bg);
+  background:
+    radial-gradient(900px 520px at 0% 0%, rgb(22 44 150 / 0.45), transparent 62%),
+    radial-gradient(900px 600px at 100% 100%, rgb(76 16 150 / 0.45), transparent 62%),
+    var(--bg);
   color: var(--fg);
   font-family: Inter, system-ui, sans-serif;
 }
 .slidev-layout h1 {
-  font-family: Inter, system-ui, sans-serif;
-  font-weight: 700;
+  font-family: Nunito, Inter, system-ui, sans-serif;
+  font-weight: 900;
   font-size: 2.1rem;
   line-height: 1.2;
-  letter-spacing: -0.025em;
+  letter-spacing: -0.01em;
   margin-bottom: 1rem;
   color: var(--fg);
 }
@@ -180,11 +184,11 @@ ul.plain li::before { content: ""; position: absolute; left: 0; top: 0.55em; wid
 .chips { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1.4rem; }
 .chips span {
   font-size: 0.78rem; font-weight: 500;
-  color: var(--green); border: 1px solid rgb(74 194 107 / 0.4); background: rgb(74 194 107 / 0.08);
+  color: var(--orange); border: 1px solid rgb(253 95 2 / 0.45); background: rgb(253 95 2 / 0.1);
   border-radius: 999px; padding: 0.18rem 0.75rem;
 }
 .facts p { font-size: 0.98rem; line-height: 1.5; margin: 0 0 0.9rem; padding-left: 0.9rem; border-left: 3px solid var(--line); }
-.facts p b { color: var(--green); }
+.facts p b { color: var(--orange); }
 .facts.wide { max-width: 44rem; }
 .team { margin-top: 2.2rem; }
 .team p { margin: 0.2rem 0; }
@@ -212,12 +216,12 @@ ul.plain li::before { content: ""; position: absolute; left: 0; top: 0.55em; wid
 /* ---------- pele diagrams on the dark background ---------- */
 .pele {
   --pele-bg: transparent;
-  --pele-fg: #eef2f7;
+  --pele-fg: #f8f1e4;
   --pele-muted: #8a96a8;
   --pele-line: #6b778a;
-  --pele-surface: #182030;
-  --pele-surface-alt: #222c3e;
-  --pele-border: #33405a;
+  --pele-surface: #11163f;
+  --pele-surface-alt: #1a2052;
+  --pele-border: #303770;
   --pele-accent: #6cb6ff;
   --pele-font: Inter, system-ui, sans-serif;
   --pele-radius: 8px;
@@ -226,18 +230,18 @@ ul.plain li::before { content: ""; position: absolute; left: 0; top: 0.55em; wid
 }
 .pele svg { max-height: 50vh; width: auto; max-width: 100%; }
 
-/* ---------- title slide: full-bleed cover art, title in a band along the bottom ---------- */
-.slidev-page-1 .slidev-layout { padding: 0; position: relative; overflow: hidden; }
-.cover-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 35%; }
-.cover-band {
-  position: absolute; left: 0; right: 0; bottom: 0; padding: 1.1rem 2rem 1rem;
-  background: linear-gradient(to top, rgb(12 8 24 / .94) 0%, rgb(12 8 24 / .88) 75%, rgb(12 8 24 / 0) 100%);
-  color: #fff; text-align: center;
+/* ---------- title slide: the wordmark full-bleed, tagline below it ---------- */
+.slidev-page-1 .slidev-layout { padding: 0; position: relative; overflow: hidden; background: #050722; }
+.cover-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.cover-band { position: absolute; left: 0; right: 0; bottom: 13%; text-align: center; }
+.cover-tag {
+  font-family: Nunito, Inter, sans-serif; font-weight: 800; font-size: 1.5rem;
+  color: var(--fg) !important; margin: 0;
 }
-.cover-band h1 { margin: 0; font-size: 2.6rem; line-height: 1.1; color: #fff; }
-.cover-band p { margin: .15rem 0 0; }
-.cover-tag { font-size: 1.15rem; color: #fde68a !important; text-shadow: 0 1px 2px rgb(0 0 0 / .6); }
-.cover-team { font-size: .7rem; opacity: .75; padding-top: .35rem; color: #fff !important; }
+.cover-team { font-size: 0.72rem; color: var(--muted) !important; margin: 0.6rem 0 0; letter-spacing: 0.02em; }
+
+/* brand mark in the corner of every slide but the first */
+.brand-mark { position: absolute; right: 1.4rem; bottom: 1.1rem; width: 2.6rem; opacity: 0.9; pointer-events: none; }
 
 /* "what is new" line on the idea slide */
 .new { margin-top: 0.9rem; font-weight: 500; color: var(--fg) !important; }
@@ -245,7 +249,7 @@ ul.plain li::before { content: ""; position: absolute; left: 0; top: 0.55em; wid
 /* under the hood: six compact cards */
 .hood { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; margin-top: 0.4rem; }
 .hood .card {
-  border: 1px solid var(--line); border-top: 2px solid var(--blue);
+  border: 1px solid var(--line); border-top: 2px solid var(--orange);
   background: var(--bg-raised); border-radius: 8px; padding: 0.6rem 0.8rem 0.4rem;
 }
 .hood .card b { font-size: 0.9rem; }

@@ -5,8 +5,9 @@ info: Long AI coding sessions are a black box. yolo-twice makes them something a
 colorSchema: dark
 fonts:
   sans: Inter
+  serif: Nunito
   mono: JetBrains Mono
-  weights: '400,500,600,700'
+  weights: '400,500,600,700,800,900'
 highlighter: shiki
 drawings:
   persist: false
@@ -14,10 +15,9 @@ transition: fade
 mdc: true
 ---
 
-<img src="./assets/cover-yolo.jpg" class="cover-bg" alt="A zombie developer with a laptop in a moonlit graveyard, behind stone letters spelling YOLO" />
+<img src="./assets/wordmark.png" class="cover-bg" alt="yolo-twice wordmark: YOLO, with the last O struck through by an orange brush-stroke T" />
 
 <div class="cover-band">
-  <h1>yolo-twice</h1>
   <p class="cover-tag">What did the AI do, and why?</p>
   <p class="cover-team">BaselHack 2026 · Matthias Cullmann · Roland Brand · Jan Babin · Thomas Schöller</p>
 </div>
@@ -268,7 +268,7 @@ We treat an AI session like source code: saved in the project, versioned, shared
 
 <div class="kicker">07 · Under the hood</div>
 
-# Small, careful engineering.
+# Incremental, private, cheap to run.
 
 <div class="hood">
   <div class="card"><b>Incremental and repeatable</b><p>Reads only what is new since last time. Run it twice: identical output, byte for byte.</p></div>
