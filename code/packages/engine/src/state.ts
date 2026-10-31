@@ -1,10 +1,14 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { readJson, writeJsonAtomic } from "@yolo-twice/core";
 
 export const DEFAULT_PORT = 9656;
-export const VERSION = "0.1.0";
+// src/state.ts and the bundled dist/cli.js both sit one level below package.json.
+export const VERSION: string = JSON.parse(
+  fs.readFileSync(path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "package.json"), "utf8"),
+).version;
 
 export function homeDir(): string {
   return process.env.YOLO_TWICE_HOME || path.join(os.homedir(), ".yolo-twice");
