@@ -1,9 +1,0 @@
-{
-  "analyzer": "claude-cli:haiku",
-  "created": "2026-10-31T11:06:27.243Z",
-  "granularity": "abstract",
-  "hash": "e6234f0825a3bcea",
-  "node": "t17",
-  "text": "The agent concluded an open merge of three sessions' `.yolo-twice/project.json`, committed the UI follow-mode work, and added portable anonymous path rewriting in `packages/core/src/anonymize.ts` (project root as `$PROJECT`, home as `~`, Claude folder names as `<project-slug>` or `-~-`, login name as `<user>`), applied in `ingest.ts` with redaction extended to `data` strings and the normalizer bumped to v4, so usernames and folder layouts stay out of the shared repo. `resume` now rebuilds the transcript into the gitignored `cache/resume/` with paths expanded for the resumer and runs `claude --resume <file> --fork-session`, so a teammate never writes into a committed session; the agent verified this with the real CLI and rebuilt the index. Unit tests (45), typecheck and 30 browser checks pass, and this repo's `~`, `-~-` and `<user>` counts fell from 435, 151 and 88 to 0, but Roland's two sessions still contain `~` until he rebuilds, one garbled `e-matthi-git` string remains, and the `project.json` split is not done.",
-  "version": "1"
-}

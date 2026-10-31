@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T12:38:28.590Z",
+  "granularity": "abstract",
+  "hash": "4a4bb9263958eb5f",
+  "node": "t18",
+  "text": "Moved machine and aggregate state out of the committed `.yolo-twice/`: `project.json` and each `source.json` cursor now live under `cache/`, each session gets a committed `meta.json`, the attention slider goes to gitignored `local.json`, and live-tail summaries go to `cache/text/`, with the old layout migrated on engine start. While verifying, found that `--bare` in `ClaudeCliSummarizer` skipped the login, so every `claude -p` call failed and fell back to structural text; it now passes `--settings {\"disableAllHooks\": true}` and titles are cut to one line. Four commits landed (582ef0e, 4073b3f, f46f357, 6245e42) and 50 tests pass, but one `claude -p exited 1` failure after restart is unexplained, and Roland's sessions get `meta.json` only after his engine restarts.",
+  "version": "2"
+}

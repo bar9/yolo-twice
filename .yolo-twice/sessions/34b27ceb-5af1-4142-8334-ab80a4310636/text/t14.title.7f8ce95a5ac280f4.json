@@ -1,9 +1,0 @@
-{
-  "analyzer": "structural",
-  "created": "2026-10-31T10:52:26.879Z",
-  "granularity": "title",
-  "hash": "7f8ce95a5ac280f4",
-  "node": "t14",
-  "text": "- add a \"follow\" mode that automatically scrolls to the latest incoming events,…",
-  "version": "1"
-}

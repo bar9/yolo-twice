@@ -1,9 +1,0 @@
-{
-  "analyzer": "structural",
-  "created": "2026-10-31T10:52:10.806Z",
-  "granularity": "title",
-  "hash": "dfca45995110308b",
-  "node": "t8",
-  "text": "add a contributing.md that describes the local dev flow from source to running",
-  "version": "1"
-}

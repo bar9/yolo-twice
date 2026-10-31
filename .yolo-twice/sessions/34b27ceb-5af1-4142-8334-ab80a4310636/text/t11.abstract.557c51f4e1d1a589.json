@@ -1,9 +1,0 @@
-{
-  "analyzer": "claude-cli:haiku",
-  "created": "2026-10-31T11:08:16.333Z",
-  "granularity": "abstract",
-  "hash": "557c51f4e1d1a589",
-  "node": "t11",
-  "text": "On a \"commit\" request, the agent confirmed that only the `.yolo-twice` index files and a new `text/` folder of summaries had changed, then checked two summary files for secret patterns (none found) and committed them as `606edbb` \"Refresh .yolo-twice index with first summary artifacts\", leaving the tree clean and nothing pushed. It then noted that both summaries came from the fallback path, which copies the start of the text because model calls were disabled during contributing-guide testing, so they begin with raw `[user.prompt] <pasted_content ...>` markup and are placeholders rather than real summaries. It proposed two fixes: strip injected markup in the fallback, and label fallback output as a placeholder so it is not committed looking like a finished summary.",
-  "version": "1"
-}

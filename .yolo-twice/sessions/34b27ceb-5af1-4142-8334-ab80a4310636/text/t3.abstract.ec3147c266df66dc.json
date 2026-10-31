@@ -1,9 +1,0 @@
-{
-  "analyzer": "claude-cli:haiku",
-  "created": "2026-10-31T11:03:31.433Z",
-  "granularity": "abstract",
-  "hash": "ec3147c266df66dc",
-  "node": "t3",
-  "text": "To address four requests (a top-level zoom that can summarize long text, pele.run for mermaid, use of gh, and a humble credited comparison in the README), the agent checked pele (MIT, obsidianmd/pele, synchronous `render()`), confirmed `bar9/yolo-twice` is public with gh authenticated, and reviewed five existing Claude Code transcript viewers. It rewrote the zoom section of `documentation/design.md` as two axes (structural L-1 to L4, plus title/abstract/summary/full text granularities that apply at every node, including the top), moved the site, deck and UI to pele, and renamed `readme.md` to `README.md` with a getting-started guide and a \"standing on shoulders\" credits table. Nothing is committed: the README's one-line `claude plugin install yolo-twice --marketplace bar9/yolo-twice` does not work yet, and `license.txt` still has the template placeholder.",
-  "version": "1"
-}

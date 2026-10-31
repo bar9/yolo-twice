@@ -1,9 +1,0 @@
-{
-  "analyzer": "claude-cli:haiku",
-  "created": "2026-10-31T11:08:46.605Z",
-  "granularity": "abstract",
-  "hash": "997e0d7023ba2788",
-  "node": "t18",
-  "text": "Split the shared `.yolo-twice` state so each committed file has one writer: `project.json` and the `source.json` cursors moved to the gitignored `cache/`, a per-session `sessions/<id>/meta.json` now feeds the project list, and the attention slider moved from `config.json` to a personal `local.json`, with automatic migration on engine start. Live-tail summaries go to `cache/text/` so they stop churning the repo, and this repo's team attention was reset to `balanced` (commits 582ef0e, 4073b3f, f46f357). Verification exposed that `--bare` in the Claude summarizer skipped the login, so every `claude -p` call failed silently into the structural fallback; it was replaced with `--settings '{\"disableAllHooks\": true}'` and titles were trimmed to one line (6245e42), after which Claude-written summaries appear and all 50 tests pass, though one call still failed after restart with no error text and Roland must restart his engine to write his `meta.json` files.",
-  "version": "1"
-}

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ancestors, api, fmtTime, fmtTokens, type Event, type Granularity, type StructureNode } from "./api";
+import { ancestors, api, fmtTime, fmtTokens, walk, type Event, type Granularity, type ImageRef, type StructureNode } from "./api";
 
 const ORDER: Granularity[] = ["title", "abstract", "summary", "full"];
 
@@ -84,6 +84,7 @@ export function Zoom(props: {
           {node.meta?.step_kind === "subagent" && <span className="badge agent">{node.meta.agent_type ?? "agent"}</span>}
           {node.meta?.step_kind === "tool-error" && <span className="badge error">error</span>}
           {hitCount ? <span className="badge hit">{hitCount}</span> : null}
+          {imageCount(node, props.events) > 0 && <span className="badge image" title="pasted images">🖼 {imageCount(node, props.events)}</span>}
           <span className="stats">
             {node.stats.events}ev · {node.stats.tool_calls}🔧 · {fmtTokens(node.stats.input_tokens + node.stats.output_tokens)}tok
             {node.stats.cost_usd !== undefined && ` · $${node.stats.cost_usd.toFixed(2)}`}
@@ -103,6 +104,7 @@ export function Zoom(props: {
             ) : text !== undefined && sameText(text, node.label) ? null : (
               <p className={`text ${text === undefined ? "muted" : ""}`}>{text ?? structuralFallback(node, g)}</p>
             )}
+            {g !== "full" && node.level >= 3 && <Images session={props.session} refs={ownImages(node, props.events)} />}
             {node.children.map((c, i) => render(c, depth + 1, i === 0 ? undefined : node.children[i - 1]!.meta?.boundary))}
           </div>
         )}
@@ -128,6 +130,36 @@ function structuralFallback(node: StructureNode, g: Granularity): string {
   return kids.length ? `${node.label}. ${kids.join(" · ")}` : node.label;
 }
 
+/** Images pasted into the prompts among a node's own events. */
+function ownImages(node: StructureNode, events?: Map<string, Event>): ImageRef[] {
+  if (!events) return [];
+  return (node.event_ids ?? []).flatMap((id) => (events.get(id)?.data?.images ?? []) as ImageRef[]);
+}
+
+function imageCount(node: StructureNode, events?: Map<string, Event>): number {
+  let n = 0;
+  for (const c of walk(node)) n += ownImages(c, events).length;
+  return n;
+}
+
+/** Thumbnails; a click opens the full image. Images that were not stored say why. */
+function Images({ session, refs }: { session: string; refs: ImageRef[] }) {
+  if (!refs.length) return null;
+  return (
+    <div className="images">
+      {refs.map((r, i) =>
+        r.file ? (
+          <a key={r.file + i} href={api.imageUrl(session, r.file)} target="_blank" rel="noreferrer" title={`${r.media_type} · ${Math.round(r.bytes / 1024)} kB`}>
+            <img src={api.imageUrl(session, r.file)} alt="pasted image" loading="lazy" />
+          </a>
+        ) : (
+          <span key={i} className="muted image-omitted">[image not stored: {r.omitted === "too-large" ? `${Math.round(r.bytes / 1024)} kB, over the limit` : "images are switched off"}]</span>
+        ),
+      )}
+    </div>
+  );
+}
+
 /** Raw events of a step (L3) in append order. */
 function Events({ node, events }: { node: StructureNode; events?: Map<string, Event> }) {
   if (!events) return <p className="muted">Loading events…</p>;
@@ -147,6 +179,7 @@ function Events({ node, events }: { node: StructureNode; events?: Map<string, Ev
               <span className="time">{fmtTime(e.ts)}</span>
             </div>
             <pre>{e.text || (e.data?.hidden ? "(hidden)" : "")}</pre>
+            <Images session={e.session} refs={(e.data?.images ?? []) as ImageRef[]} />
           </div>
         );
       })}

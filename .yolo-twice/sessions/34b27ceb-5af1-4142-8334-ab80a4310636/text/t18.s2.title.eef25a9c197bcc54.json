@@ -1,9 +1,0 @@
-{
-  "analyzer": "claude-cli:haiku",
-  "created": "2026-10-31T12:25:07.929Z",
-  "granularity": "title",
-  "hash": "eef25a9c197bcc54",
-  "node": "t18.s2",
-  "text": "Title: Empty assistant thinking step, no tool calls or output to summarize",
-  "version": "1"
-}

@@ -46,6 +46,25 @@ describe("normalizer v2", () => {
   });
 });
 
+describe("normalizer v5: pasted images", () => {
+  const png = { type: "image", source: { type: "base64", media_type: "image/png", data: "iVBORw0KGgo=" } };
+  test("an image belongs to its prompt: one event, Claude Code's own path note dropped", () => {
+    const content = [png, { type: "text", text: "avoid trivial title see example\n" }, { type: "text", text: "[Image: source: /tmp/claude-1000/x/images/1.png]" }];
+    const evs = normalizeRecord(JSON.stringify({ type: "user", uuid: "u1", message: { role: "user", content } }), ctx);
+    expect(evs).toHaveLength(1);
+    expect(evs[0]).toMatchObject({ id: "u1", kind: "user.prompt", text: "avoid trivial title see example\n" });
+    expect(evs[0]!.blobs).toEqual([{ media_type: "image/png", base64: "iVBORw0KGgo=" }]);
+  });
+
+  test("an image alone is a prompt too; images inside tool results are not pasted images", () => {
+    const [only] = normalizeRecord(JSON.stringify({ type: "user", uuid: "u2", message: { role: "user", content: [png] } }), ctx);
+    expect(only).toMatchObject({ kind: "user.prompt", text: "[image]" });
+    const tool = normalizeRecord(JSON.stringify({ type: "user", uuid: "u3", message: { role: "user", content: [{ type: "tool_result", tool_use_id: "t", content: [png] }] } }), ctx);
+    expect(tool.map((e) => e.kind)).toEqual(["tool.result"]);
+    expect(tool[0]!.blobs).toBeUndefined();
+  });
+});
+
 describe("concurrent writers", () => {
   test("two stores on the same project never duplicate events, and a damaged file reads clean", () => {
     const fx = tempFixture("cw");

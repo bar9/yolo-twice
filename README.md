@@ -94,8 +94,13 @@ flowchart TB
     structure.json             the zoom tree
     graph.mmd                  the flow graph as mermaid
     text/                      titles, abstracts and summaries of finished parts
+    images/                    images pasted into prompts, shown in the reader
   cache/, local.json           gitignored: project list, cursors, live summaries, your slider
 ```
+
+Pasted images are committed as they are: redaction cannot see inside a screenshot. Set
+`"images": { "keep": false }` in `config.json` for sensitive work, or lower `max_bytes`
+(default 5 MB per image).
 
 Every committed file belongs to exactly one session, so teammates indexing in parallel never
 produce merge conflicts in this folder.

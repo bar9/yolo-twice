@@ -1,9 +1,0 @@
-{
-  "analyzer": "claude-cli:haiku",
-  "created": "2026-10-31T11:05:38.709Z",
-  "granularity": "abstract",
-  "hash": "2fea7f1726d49b90",
-  "node": "t13",
-  "text": "The transcript turns the separate graph, timeline and search tabs of the yolo-twice web UI into one linked view: a filter bar, a snapping timeline brush, semantic graph zoom and a reader, all driven by a short deep-link URL (`state.ts`, `scope.ts`, `search.ts` filter codes `k=u,t:Bash,e`, `/api/search` filters, project key resolution). Building it on real session data exposed four bugs that were fixed and committed: duplicate events from concurrent engines (now a per-session lock in `store.ts`), mid-turn messages dropped (now `queued_command` prompts), task notifications counted as prompts (now `system` events, normalizer v2), and a stale search index after session rebuild (`project.ts`). The result passes 38 unit tests and 30 headless-browser checks, the `.yolo-twice` index is rebuilt clean with 14 human prompts, and the work is committed but not pushed.",
-  "version": "1"
-}

@@ -16,6 +16,7 @@ most recently registered project is used. All JSON uses the types from `@yolo-tw
 | GET | `/api/sessions/:id` | `project` | `{ structure: StructureNode, graph: string, events: number, config: Config }` |
 | GET | `/api/sessions/:id/structure` | `project` | `StructureNode`, decorated with cached `text` granularities |
 | GET | `/api/sessions/:id/graph` | `project`, `level=1\|2\|3` | `text/plain` mermaid |
+| GET | `/api/sessions/:id/images/:file` | `project` | the pasted image (`data.images[].file` of a `user.prompt` event), immutable cache |
 | GET | `/api/sessions/:id/events` | `project`, `after=<event id>`, `limit` (default 500) | `{ events: Event[], next?: string }` in append order |
 | POST | `/api/sessions/:id/text` | `{ project, node, granularity }` | `TextArtifact` (lazy summarization; computed on demand, cached by hash; may take seconds; falls back to the structural summarizer when the CLI is unavailable, with `analyzer: "structural"`) |
 | GET | `/api/sessions/:id/digest` | `project`, `since=<event id>` | `{ since, until, events, text }` "catch me up": summary of everything after `since` |

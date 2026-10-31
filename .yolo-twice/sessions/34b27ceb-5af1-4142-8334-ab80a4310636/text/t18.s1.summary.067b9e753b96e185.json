@@ -1,9 +1,0 @@
-{
-  "analyzer": "claude-cli:haiku",
-  "created": "2026-10-31T12:22:12.223Z",
-  "granularity": "summary",
-  "hash": "067b9e753b96e185",
-  "node": "t18.s1",
-  "text": "The transcript contains only the user's request, \"implement the project.json split\". It records no tool calls, file edits, commands, errors, or decisions, so no steps can be summarized. The request names no files or target layout, so the intended split is unknown from this excerpt.",
-  "version": "1"
-}

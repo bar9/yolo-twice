@@ -1,9 +1,0 @@
-{
-  "analyzer": "claude-cli:haiku",
-  "created": "2026-10-31T12:25:38.022Z",
-  "granularity": "title",
-  "hash": "99d14189b33df131",
-  "node": "p1",
-  "text": "Re-running marketplace add: yolo-twice already registered, plugin enabled from checkout",
-  "version": "1"
-}

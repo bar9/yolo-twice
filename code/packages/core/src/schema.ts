@@ -113,6 +113,15 @@ export type Attention = z.infer<typeof Attention>;
 
 export const RedactionRule = z.object({ name: z.string(), pattern: z.string(), flags: z.string().optional() });
 
+/** An image pasted into a prompt: `data.images` of a user.prompt event. `file` lives in the session's images/ folder. */
+export interface ImageRef {
+  file?: string;
+  media_type: string;
+  bytes: number;
+  /** Why the image was not stored. */
+  omitted?: "disabled" | "too-large";
+}
+
 export const Config = z.object({
   version: z.literal(1),
   attention: Attention,
@@ -123,6 +132,10 @@ export const Config = z.object({
     /** Write paths as $PROJECT/… and ~/…, and the login name as <user>. */
     paths: z.boolean().default(true),
   }),
+  /** Images pasted into prompts, stored as files next to the events. They are not redacted: switch off for sensitive work. */
+  images: z
+    .object({ keep: z.boolean(), max_bytes: z.number() })
+    .default({ keep: true, max_bytes: 5_000_000 }),
   analyzers: z.object({
     semantic: z.boolean(),
     model: z.string(),
@@ -135,6 +148,7 @@ export const DEFAULT_CONFIG: Config = {
   attention: "balanced",
   sources: ["claude-code"],
   redaction: { extra_rules: [], max_text_chars: 8000, paths: true },
+  images: { keep: true, max_bytes: 5_000_000 },
   analyzers: { semantic: true, model: "haiku" },
 };
 

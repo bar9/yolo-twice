@@ -59,7 +59,7 @@ describe("ingest writes portable paths", () => {
       expect(raw).toContain("$PROJECT/src/routes/auth.ts");
       const src = store.readSourceState(FIXTURE_SESSION)!;
       expect(src.origin_dir.startsWith("~/claude/projects")).toBe(true);
-      expect(src.normalizer).toBe(4);
+      expect(src.normalizer).toBe(5);
       // data strings are processed too: a tool description with a path
       const desc = store.readEvents(FIXTURE_SESSION).find((e) => e.data?.description)!;
       expect(typeof desc.data!.description).toBe("string");

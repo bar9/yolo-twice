@@ -132,6 +132,14 @@ export class Engine {
       return c.text(g);
     });
 
+    app.get("/api/sessions/:id/images/:file", (c) => {
+      const rt = need(c.req.query("project"));
+      const file = rt.store.imageFile(c.req.param("id"), c.req.param("file"));
+      if (!file) throw new NotFound("image not found");
+      // content-addressed: the name changes when the bytes do
+      return c.body(fs.readFileSync(file), 200, { "content-type": mime(file), "cache-control": "public, max-age=31536000, immutable" });
+    });
+
     app.get("/api/sessions/:id/events", (c) => {
       const rt = need(c.req.query("project"));
       const all = rt.store.readEvents(c.req.param("id"));
@@ -269,7 +277,7 @@ class NotFound extends Error {}
 function mime(file: string): string {
   const ext = path.extname(file);
   return (
-    { ".html": "text/html; charset=utf-8", ".js": "text/javascript", ".css": "text/css", ".json": "application/json", ".svg": "image/svg+xml", ".png": "image/png", ".ico": "image/x-icon", ".woff2": "font/woff2", ".map": "application/json" }[ext] ??
+    { ".html": "text/html; charset=utf-8", ".js": "text/javascript", ".css": "text/css", ".json": "application/json", ".svg": "image/svg+xml", ".png": "image/png", ".jpg": "image/jpeg", ".gif": "image/gif", ".webp": "image/webp", ".ico": "image/x-icon", ".woff2": "font/woff2", ".map": "application/json" }[ext] ??
     "application/octet-stream"
   );
 }

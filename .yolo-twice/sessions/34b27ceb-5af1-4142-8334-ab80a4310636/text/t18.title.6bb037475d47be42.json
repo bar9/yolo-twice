@@ -1,9 +1,0 @@
-{
-  "analyzer": "claude-cli:haiku",
-  "created": "2026-10-31T11:08:27.911Z",
-  "granularity": "title",
-  "hash": "6bb037475d47be42",
-  "node": "t18",
-  "text": "Split .yolo-twice layout into local cache; fix --bare summarizer login",
-  "version": "1"
-}

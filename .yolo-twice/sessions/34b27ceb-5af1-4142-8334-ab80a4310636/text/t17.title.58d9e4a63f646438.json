@@ -1,9 +1,0 @@
-{
-  "analyzer": "claude-cli:haiku",
-  "created": "2026-10-31T11:06:18.840Z",
-  "granularity": "title",
-  "hash": "58d9e4a63f646438",
-  "node": "t17",
-  "text": "Anonymize .yolo-twice paths, resume with --fork-session, rebuild index at normalizer v4",
-  "version": "1"
-}

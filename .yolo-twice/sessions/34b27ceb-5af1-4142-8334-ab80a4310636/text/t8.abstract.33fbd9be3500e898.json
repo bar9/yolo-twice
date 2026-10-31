@@ -1,9 +1,0 @@
-{
-  "analyzer": "structural",
-  "created": "2026-10-31T10:52:12.179Z",
-  "granularity": "abstract",
-  "hash": "33fbd9be3500e898",
-  "node": "t8",
-  "text": "[user.prompt] add a contributing.md that describes the local dev flow from source to running [assistant.thinking] [assistant.text] Let me collect the real scripts and env vars so the guide matches the code. [tool Bash] {\"command\":\"cd $PROJECT/code && for f in package.json packages/*/package.json si…",
-  "version": "1"
-}

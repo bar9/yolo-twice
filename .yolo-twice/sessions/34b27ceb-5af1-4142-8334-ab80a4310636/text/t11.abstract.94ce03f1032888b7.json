@@ -1,9 +1,0 @@
-{
-  "analyzer": "structural",
-  "created": "2026-10-31T10:52:20.060Z",
-  "granularity": "abstract",
-  "hash": "94ce03f1032888b7",
-  "node": "t11",
-  "text": "[user.prompt] commit [tool Bash] {\"command\":\"cd $PROJECT && git status --short\",\"description\":\"Show what is uncommitted\"} [tool.result] M .yolo-twice/project.json M .yolo-twice/sessions/34b27ceb-5af1-4142-8334-ab80a4310636/events.ndjson M .yolo-twice/sessions/34b27ceb-5af1-4142-8334-ab80a4310636/gr…",
-  "version": "1"
-}

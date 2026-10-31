@@ -1,9 +1,0 @@
-{
-  "analyzer": "claude-cli:haiku",
-  "created": "2026-10-31T11:04:38.551Z",
-  "granularity": "abstract",
-  "hash": "9ba49d4c5e787d9c",
-  "node": "t8",
-  "text": "Added CONTRIBUTING.md, linked from the README, to document the clone-to-running dev flow, after finding that the root `bun run build` skipped the engine because its package is named `yolo-twice` rather than `@yolo-twice/*`, and that a single failed run suggested a race between parallel `tsc -b` runs on the shared core. The root build now compiles the engine and pele-markdown before the UI, and site and pitch get `build:site` and `build:pitch` scripts; a fresh clone was verified end to end (install, build in about 7s, 22 tests passing, typecheck, engine started under plain Node and stopped via the plugin launcher), and a scratch-index recipe that would have written into the repo's `.yolo-twice/` was corrected to use `YOLO_TWICE_ORIGIN_DIR` and tested. Committed as b9e218b (guide and script fix), f33a57b (`.yolo-twice/` index refreshed by the dev engines), and 8542f75 (README link).",
-  "version": "1"
-}

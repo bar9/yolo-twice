@@ -1,9 +1,0 @@
-{
-  "analyzer": "claude-cli:haiku",
-  "created": "2026-10-31T11:05:31.341Z",
-  "granularity": "title",
-  "hash": "cff844246e8cd70f",
-  "node": "t13",
-  "text": "Coordinated graph, timeline and search views with shareable URLs",
-  "version": "1"
-}

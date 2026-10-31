@@ -1,9 +1,0 @@
-{
-  "analyzer": "structural",
-  "created": "2026-10-31T10:52:17.009Z",
-  "granularity": "abstract",
-  "hash": "c0fcd1028fd3e6b1",
-  "node": "t10",
-  "text": "[user.prompt] <ide_selection>The user selected the lines 8 to 13 from $PROJECT/CONTRIBUTING.md: Prerequisites | Tool | Version | Why | |---|---|---| | [bun](https://bun.sh) | 1.2 or newer | workspaces, tests, dev scripts | | Node.js | 20 or newer, 22 recommended | the built engine runs on plain Nod…",
-  "version": "1"
-}

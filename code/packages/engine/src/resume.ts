@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { expandPaths, mapStrings, type Event, type Store } from "@yolo-twice/core";
+import { expandPaths, mapStrings, type Event, type ImageRef, type Store } from "@yolo-twice/core";
 
 /**
  * Rebuild a Claude Code transcript (JSONL) from the redacted events committed in .yolo-twice,
@@ -34,7 +34,15 @@ function safeJson(text: string): unknown {
   }
 }
 
-export function reconstructTranscript(sessionId: string, events: Event[], cwd: string, version = "yolo-twice", home = os.homedir()): Reconstructed {
+export function reconstructTranscript(
+  sessionId: string,
+  events: Event[],
+  cwd: string,
+  version = "yolo-twice",
+  home = os.homedir(),
+  /** Absolute path of a stored image (pasted images are put back into their prompt). */
+  imageFile: (file: string) => string | undefined = () => undefined,
+): Reconstructed {
   const expand = (t: string) => expandPaths(t, { root: cwd, home });
   const main = events.filter((e) => e.agent_id == null);
   // group block events back into their original records, in arrival order
@@ -82,7 +90,12 @@ export function reconstructTranscript(sessionId: string, events: Event[], cwd: s
       switch (e.kind) {
         case "user.prompt":
           type = "user";
-          blocks.push({ type: "text", text: expand(e.text) });
+          const before = blocks.length;
+          for (const img of (e.data?.images ?? []) as ImageRef[]) {
+            const f = img.file && imageFile(img.file);
+            if (f) blocks.push({ type: "image", source: { type: "base64", media_type: img.media_type, data: fs.readFileSync(f).toString("base64") } });
+          }
+          if (e.text !== "[image]" || blocks.length === before) blocks.push({ type: "text", text: expand(e.text) });
           break;
         case "compaction":
           type = "user";
@@ -160,7 +173,7 @@ export function prepareResume(store: Store, projectRoot: string, session?: strin
   if (events.length === 0) throw new Error(`session ${id} has no events in .yolo-twice`);
   const dir = path.join(store.cacheDir(), "resume");
   const transcript = path.join(dir, `${id}.jsonl`);
-  const rebuilt = reconstructTranscript(id, events, projectRoot, "yolo-twice", home);
+  const rebuilt = reconstructTranscript(id, events, projectRoot, "yolo-twice", home, (f) => store.imageFile(id, f));
   fs.mkdirSync(dir, { recursive: true });
   fs.writeFileSync(transcript, rebuilt.lines.join("\n") + "\n", { mode: 0o600 });
   return { session: id, transcript, records: rebuilt.records, command: ["claude", "--resume", transcript, "--fork-session"] };

@@ -1,9 +1,0 @@
-{
-  "analyzer": "structural",
-  "created": "2026-10-31T10:52:29.422Z",
-  "granularity": "title",
-  "hash": "c3463c641de965c0",
-  "node": "t15",
-  "text": ".yolo-twice contains my home folder ~ as absulute path instead of using ~ can w…",
-  "version": "1"
-}

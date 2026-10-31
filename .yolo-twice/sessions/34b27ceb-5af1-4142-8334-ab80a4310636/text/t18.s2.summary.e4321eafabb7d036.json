@@ -1,9 +1,0 @@
-{
-  "analyzer": "claude-cli:haiku",
-  "created": "2026-10-31T12:23:23.727Z",
-  "granularity": "summary",
-  "hash": "e4321eafabb7d036",
-  "node": "t18.s2",
-  "text": "The transcript contains only an empty assistant thinking block. It has no text, tool calls, file edits, errors or decisions, so there are no steps to summarize.",
-  "version": "1"
-}

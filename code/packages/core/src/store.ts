@@ -1,8 +1,8 @@
 import fs from "node:fs";
 import path from "node:path";
-import { readJson, stableStringify, writeFileAtomic, writeJsonAtomic } from "./json.js";
+import { readJson, sha256, stableStringify, writeFileAtomic, writeJsonAtomic } from "./json.js";
 import { yoloDir } from "./paths.js";
-import { Config, DEFAULT_CONFIG, type Event, type ProjectIndex, type SourceState, type StructureNode } from "./schema.js";
+import { Config, DEFAULT_CONFIG, type Event, type ImageRef, type ProjectIndex, type SourceState, type StructureNode } from "./schema.js";
 
 /**
  * Layout rule: one writer per committed file. Everything committed belongs to exactly one session
@@ -27,6 +27,8 @@ export interface SessionMeta {
 export type LocalConfig = Partial<Pick<Config, "attention">>;
 
 /** The project-local .yolo-twice folder. All writes are atomic and deterministic. */
+const IMAGE_EXT: Record<string, string> = { "image/png": "png", "image/jpeg": "jpg", "image/gif": "gif", "image/webp": "webp" };
+
 export class Store {
   readonly dir: string;
   /** Known event ids per session, with the file size they were read at (another writer changes it). */
@@ -92,6 +94,29 @@ export class Store {
 
   sessionDir(session: string): string {
     return path.join(this.dir, "sessions", session);
+  }
+
+  /** Pasted images of a session, named by content hash: the same image is stored once, rebuilds rewrite nothing. */
+  imagesDir(session: string): string {
+    return path.join(this.sessionDir(session), "images");
+  }
+
+  writeImage(session: string, media_type: string, base64: string): ImageRef {
+    const buf = Buffer.from(base64, "base64");
+    const file = `${sha256(buf).slice(0, 16)}.${IMAGE_EXT[media_type] ?? "bin"}`;
+    const target = path.join(this.imagesDir(session), file);
+    if (!fs.existsSync(target)) {
+      fs.mkdirSync(this.imagesDir(session), { recursive: true });
+      fs.writeFileSync(target, buf);
+    }
+    return { file, media_type, bytes: buf.length };
+  }
+
+  /** Absolute path of a stored image, or undefined when the name is not one we write. */
+  imageFile(session: string, file: string): string | undefined {
+    if (!/^[0-9a-f]{16}\.(png|jpg|gif|webp)$/.test(file)) return undefined;
+    const p = path.join(this.imagesDir(session), file);
+    return fs.existsSync(p) ? p : undefined;
   }
 
   listSessions(): string[] {

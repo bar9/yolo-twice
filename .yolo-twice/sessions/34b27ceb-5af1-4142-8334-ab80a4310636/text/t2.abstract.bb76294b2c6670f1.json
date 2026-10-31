@@ -1,9 +1,0 @@
-{
-  "analyzer": "claude-cli:haiku",
-  "created": "2026-10-31T11:03:18.733Z",
-  "granularity": "abstract",
-  "hash": "bb76294b2c6670f1",
-  "node": "t2",
-  "text": "The user asked whether near-realtime updates, which cost CPU and `claude -p` tokens, should be traded against low-frequency updates, and the assistant proposed a four-detent attention slider (micro management, attentive, balanced as default, yolo) where ingestion always stays live and the slider controls only semantic triggers and UI push. It inserted a new section 6 into `documentation/design.md` (renumbering sections 7 to 12), added a decisions-table row, the `/api/config` and digest endpoints, and a slider test, then copied the file to `~/.claude/plans/`. The slider section is now at `documentation/design.md:174`, while the GitHub org for the install line and whether to scaffold the monorepo now remain open.",
-  "version": "1"
-}

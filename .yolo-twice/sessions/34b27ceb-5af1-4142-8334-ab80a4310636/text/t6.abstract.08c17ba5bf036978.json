@@ -1,9 +1,0 @@
-{
-  "analyzer": "claude-cli:haiku",
-  "created": "2026-10-31T11:04:13.144Z",
-  "granularity": "abstract",
-  "hash": "08c17ba5bf036978",
-  "node": "t6",
-  "text": "In response to the user's complaint about unstaged changes in yolo-twice, the agent committed the parallel build tracks in turn: a WIP snapshot (0650ce5) of the engine, plugin, UI, pele-markdown, site and pitch directories, then completed commits for the site, deck and Pages workflow (241f8f0), the engine daemon, CLI and plugin (b4734b7), the web UI (384438a), and a refreshed `.yolo-twice/` index (d0c1285), each checked with bun tests (20 passing), `tsc` typecheck, `claude plugin validate` and a site build. The working tree ends with only the README.md website-link removal uncommitted, which the agent did not make and left alone, and the planned headless UI check never ran because Playwright was not in the workspace, so the UI is verified only by its build and HTTP responses. Still open: the repo owner must enable GitHub Pages, and the npm package is unpublished.",
-  "version": "1"
-}

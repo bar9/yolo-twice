@@ -1,9 +1,0 @@
-{
-  "analyzer": "structural",
-  "created": "2026-10-31T10:52:14.622Z",
-  "granularity": "abstract",
-  "hash": "727ed7f50d5ffd54",
-  "node": "t9",
-  "text": "[user.command] /model opus",
-  "version": "1"
-}

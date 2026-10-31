@@ -1,8 +1,8 @@
 /** Thin client for the engine API. Shapes follow code/API.md (contract v1). */
-import type { Attention, Config, Event, Granularity, ProjectIndex, StructureNode } from "@yolo-twice/core";
+import type { Attention, Config, Event, Granularity, ImageRef, ProjectIndex, StructureNode } from "@yolo-twice/core";
 import type { SearchHit, TextArtifact } from "@yolo-twice/analyzers";
 
-export type { Attention, Config, Event, Granularity, ProjectIndex, StructureNode, SearchHit, TextArtifact };
+export type { Attention, Config, Event, Granularity, ImageRef, ProjectIndex, StructureNode, SearchHit, TextArtifact };
 
 export const ATTENTION: Attention[] = ["micro", "attentive", "balanced", "yolo"];
 export const ATTENTION_LABEL: Record<Attention, string> = {
@@ -42,6 +42,8 @@ async function json<T>(url: string, init?: RequestInit): Promise<T> {
 }
 
 export const api = {
+  /** A pasted image of a session (content-addressed, cacheable). */
+  imageUrl: (id: string, file: string) => `/api/sessions/${id}/images/${file}${qs({})}`,
   sessions: () => json<ProjectIndex & { current?: string }>(`/api/sessions${qs({})}`),
   structure: (id: string) => json<StructureNode>(`/api/sessions/${id}/structure${qs({})}`),
   graph: async (id: string, level: 1 | 2 | 3) => {

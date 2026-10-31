@@ -1,0 +1,9 @@
+{
+  "analyzer": "structural",
+  "created": "2026-10-31T12:38:09.084Z",
+  "granularity": "abstract",
+  "hash": "68e3693d27dfae5d",
+  "node": "p2",
+  "text": "[user.prompt] avoid trivial title see example [compaction] This session is being continued from a previous conversation that ran out of context. The summary below covers the earlier portion of the conversation. <system-reminder> <tools-used-before-summary>Agent, AskUserQuestion, Bash, Edit, ExitPla…",
+  "version": "2"
+}

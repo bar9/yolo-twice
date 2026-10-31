@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T12:38:31.431Z",
+  "granularity": "abstract",
+  "hash": "2e86155657504719",
+  "node": "p1",
+  "text": "Built the yolo-twice scaffold for BaselHack: a Node/TypeScript monorepo with an engine daemon on port 9656 that ingests Claude Code JSONL into a committed `.yolo-twice/` folder, a Claude plugin command `/yolo-twice:yolo-twice`, a linked-view web UI (focus, filters, timeline scrubber, pele graph, follow mode) with short deep-link URLs, and a VitePress site and Slidev deck for GitHub Pages. Fixes along the way: duplicate events from concurrent writers, dropped mid-turn prompts, `--bare` breaking the Claude summarizer's login, and `project.json` merge conflicts, which were solved by splitting state into per-session `meta.json`, gitignored `cache/` and `local.json`, with paths anonymized to `$PROJECT`, `~` and `<user>` and resume now using `--fork-session`. Everything is committed and verified by 50 unit tests and about 30 browser checks, but Pages needed the repo owner to enable it, and a teammate's sessions still contain old absolute paths until his engine re-indexes.",
+  "version": "2"
+}

@@ -206,6 +206,7 @@ never touch the same committed file, so `.yolo-twice/` never produces merge conf
     structure.json               # L0 to L3 tree with available granularities per node
     graph.mmd, graph.L1.mmd      # flow graph as mermaid text, rendered with pele everywhere
     text/<node>.<gran>.<hash>.json   # summaries of finished nodes, keyed by input hash + analyzer version
+    images/<sha256-16>.<ext>     # images pasted into prompts, content-addressed (written once, never changed)
   cache/                                                                                            (gitignored)
     project.json                 # L-1 project list, rebuilt from every meta.json
     sources/<session-id>.json    # ingestion cursor: origin path, byte offset, head hash, normalizer version
@@ -248,7 +249,12 @@ Rules that make stop, resume and re-run safe:
    folder as `~`, Claude folder names derived from them as `<project-slug>` and `-~-`, other
    machines' homes as `~`, and the login name as `<user>`. This holds for every string of an
    event, including tool inputs and `data`. Switch it off with `redaction.paths: false`.
-8. Redaction runs before anything is written: API keys, tokens, JWTs, private keys, env
+8. Images pasted into a prompt belong to that prompt event (`data.images`, a list of
+   `{ file, media_type, bytes }`) and are stored once under `images/`, named by content hash.
+   They bypass text redaction, so `images.keep: false` or `images.max_bytes` in the team config
+   leave them out (`omitted: "disabled" | "too-large"`). Resume puts them back into the prompt.
+   Images inside tool results (screenshots taken by tools) are not kept.
+9. Redaction runs before anything is written: API keys, tokens, JWTs, private keys, env
    values and configurable patterns are replaced with `[redacted:<rule>]`; tool results above a
    size limit keep head and tail plus a hash. The original stays in `~/.claude` untouched.
 

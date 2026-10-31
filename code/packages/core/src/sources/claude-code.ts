@@ -27,8 +27,21 @@ export interface SubagentMeta {
  *      background task notifications become system events instead of user prompts
  *   3: paths are written portably ($PROJECT, ~) and the login name as <user>; data strings are redacted too
  *   4: other people's homes are anonymized without a trailing slash too, and their Claude folder names
+ *   5: pasted images belong to their prompt (no separate "[image]" prompt, which started a turn) and are kept
  */
-export const NORMALIZER_VERSION = 4;
+export const NORMALIZER_VERSION = 5;
+
+/** A pasted image, still inline. Ingest stores it as a file and replaces it by an ImageRef in `data.images`. */
+export interface ImageBlob {
+  media_type: string;
+  base64: string;
+}
+
+/** An event straight from the normalizer: may still carry the raw images of its prompt. */
+export type NormalizedEvent = Event & { blobs?: ImageBlob[] };
+
+/** Claude Code's own note next to a pasted image, e.g. `[Image: source: /tmp/…/1.png]` or `[Image #1]`. */
+const IMAGE_NOTE = /^\[Image(?: #\d+|: source: [^\]\n]*)\]$/;
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -175,7 +188,7 @@ function base(ctx: NormalizeContext, rec: Raw, id: string, parent: string | null
 }
 
 /** Normalize one raw Claude Code JSONL record into zero or more events. Text is NOT yet redacted. */
-export function normalizeRecord(rawLine: string, ctx: NormalizeContext): Event[] {
+export function normalizeRecord(rawLine: string, ctx: NormalizeContext): NormalizedEvent[] {
   let rec: Raw;
   try {
     rec = JSON.parse(rawLine);
@@ -214,16 +227,26 @@ export function normalizeRecord(rawLine: string, ctx: NormalizeContext): Event[]
         return [base(ctx, rec, id, parent, "user.prompt", content, ts)];
       }
       if (!Array.isArray(content)) return [];
-      const events: Event[] = [];
+      const events: NormalizedEvent[] = [];
       let prev = parent;
       // A typed prompt arrives as several text blocks (IDE context, pasted content, the prompt itself).
       // They are one user turn, so merge them into a single user.prompt event with the record's uuid.
+      // Pasted images belong to that prompt too.
+      const images: ImageBlob[] = rec.isMeta
+        ? []
+        : content
+            .filter((b: Raw) => b?.type === "image" && b.source?.type === "base64" && typeof b.source.data === "string")
+            .map((b: Raw) => ({ media_type: String(b.source.media_type ?? "image/png"), base64: b.source.data as string }));
       const textBlocks = rec.isMeta
         ? []
-        : content.filter((b: Raw) => b?.type === "text" && !String(b.text ?? "").trim().startsWith("<system-reminder>"));
-      if (textBlocks.length > 0) {
-        const merged = textBlocks.map((b: Raw) => String(b.text ?? "")).join("\n\n");
-        const ev = isTaskNotification(merged.trim()) ? taskNotification(ctx, rec, id, prev, merged.trim(), ts) : base(ctx, rec, id, prev, "user.prompt", merged, ts);
+        : content.filter((b: Raw) => {
+            const t = String(b?.text ?? "").trim();
+            return b?.type === "text" && !t.startsWith("<system-reminder>") && !(images.length && IMAGE_NOTE.test(t));
+          });
+      if (textBlocks.length > 0 || images.length > 0) {
+        const merged = textBlocks.map((b: Raw) => String(b.text ?? "")).join("\n\n") || "[image]";
+        const ev: NormalizedEvent = isTaskNotification(merged.trim()) ? taskNotification(ctx, rec, id, prev, merged.trim(), ts) : base(ctx, rec, id, prev, "user.prompt", merged, ts);
+        if (images.length) ev.blobs = images;
         events.push(ev);
         prev = id;
       }
@@ -239,12 +262,8 @@ export function normalizeRecord(rawLine: string, ctx: NormalizeContext): Event[]
           if (block.is_error) ev.data = { is_error: true };
           events.push(ev);
           prev = bid;
-        } else if (block?.type === "text") {
-          return; // merged above
-        } else if (block?.type === "image") {
-          events.push(base(ctx, rec, bid, prev, "user.prompt", "[image]", ts));
-          prev = bid;
         }
+        // text and image blocks are merged into the prompt above
       });
       return events;
     }

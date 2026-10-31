@@ -3,8 +3,8 @@ import os from "node:os";
 import { anonymizePaths, mapStrings, type PathContext } from "./anonymize.js";
 import { claudeProjectDir } from "./paths.js";
 import { BUILTIN_RULES, compileExtraRules, redact, truncate, type RedactRule } from "./redact.js";
-import type { Event, FileCursor, SourceState } from "./schema.js";
-import { NORMALIZER_VERSION, discoverSessionFiles, headHash, normalizeRecord, readNewLines, readSubagentMeta, type SessionFile } from "./sources/claude-code.js";
+import type { Config, Event, FileCursor, ImageRef, SourceState } from "./schema.js";
+import { NORMALIZER_VERSION, discoverSessionFiles, type ImageBlob, headHash, normalizeRecord, readNewLines, readSubagentMeta, type SessionFile } from "./sources/claude-code.js";
 import type { Store } from "./store.js";
 
 export interface IngestOptions {
@@ -43,6 +43,13 @@ function applyRedaction(ev: Event, rules: RedactRule[], maxChars: number, paths:
   if (ev.data) out.data = mapStrings(ev.data, clean);
   if (count > 0) out.redacted = { count, rules: [...hit] };
   return out;
+}
+
+function storeImage(store: Store, session: string, blob: ImageBlob, opts: Config["images"]): ImageRef {
+  const bytes = Buffer.byteLength(blob.base64, "base64");
+  if (!opts.keep) return { media_type: blob.media_type, bytes, omitted: "disabled" };
+  if (bytes > opts.max_bytes) return { media_type: blob.media_type, bytes, omitted: "too-large" };
+  return store.writeImage(session, blob.media_type, blob.base64);
 }
 
 function firstTimestamp(lines: { text: string }[]): string | undefined {
@@ -127,9 +134,12 @@ export function ingestProject(opts: IngestOptions): IngestResult {
           lastTs,
           maxTextChars: config.redaction.max_text_chars,
         });
-        for (const ev of evs) {
+        for (const { blobs, ...ev } of evs) {
           lastTs = ev.ts;
-          events.push(applyRedaction(ev, rules, config.redaction.max_text_chars, pathCtx));
+          const clean = applyRedaction(ev, rules, config.redaction.max_text_chars, pathCtx);
+          // images skip redaction (base64 is not text) and become files next to the events
+          if (blobs?.length) clean.data = { ...clean.data, images: blobs.map((b) => storeImage(store, session, b, config.images)) };
+          events.push(clean);
         }
       }
 
