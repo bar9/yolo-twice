@@ -67,6 +67,7 @@ export function App() {
   const [hover, setHover] = useState<string | undefined>();
   const [card, setCard] = useState<HoverInfo | undefined>();
   const [reader, setReader] = useState<"outline" | "results">("outline");
+  const [overrides, setOverrides] = useState<Record<string, Granularity>>({});
   const [projectHits, setProjectHits] = useState<SearchHit[]>([]);
   const [projectTools, setProjectTools] = useState<string[]>([]);
   const narrow = useNarrow();
@@ -401,14 +402,14 @@ export function App() {
             Results <span className="num text-ink-3">{matchCount}</span>
           </button>
         </div>
-        {sessionId && reader === "outline" && <LengthSwitch value={view.z} onChange={(z) => setView({ z })} />}
+        {sessionId && reader === "outline" && <LengthSwitch value={view.z} overrides={overrides} onChange={(z) => setView({ z })} />}
       </div>
       <div className={`pane-body ${layout === "read" ? "reading" : ""}`}>
         {sessionId ? (
           !scope ? (
             <p className="empty">Loading the session…</p>
           ) : reader === "outline" ? (
-            <Zoom session={sessionId} root={scope.focus} granularity={view.z} events={events} follow={view.follow} selected={sel} hover={hover} dim={dim} hits={hits} query={view.q} onSelect={select} onFocus={focusOn} onHover={setHover} />
+            <Zoom session={sessionId} root={scope.focus} granularity={view.z} events={events} follow={view.follow} selected={sel} hover={hover} dim={dim} hits={hits} query={view.q} onSelect={select} onFocus={focusOn} onHover={setHover} onGranularity={(z) => setView({ z })} onOverrides={setOverrides} />
           ) : (
             <Results ids={resultIds} events={events} owner={scope.owner} selected={sel} query={view.q} onSelect={select} />
           )
@@ -520,14 +521,24 @@ export function App() {
 }
 
 /** Detail for every open part. A part can differ with its own −/+; choosing here resets those. */
-function LengthSwitch({ value, onChange }: { value: Granularity; onChange: (g: Granularity) => void }) {
+function LengthSwitch({ value, overrides, onChange }: { value: Granularity; overrides: Record<string, Granularity>; onChange: (g: Granularity) => void }) {
+  const parts = new Map<Granularity, number>();
+  for (const g of Object.values(overrides)) parts.set(g, (parts.get(g) ?? 0) + 1);
   return (
     <div className="flex items-center gap-2">
       <span className="text-[13px] text-ink-2 hide-narrow">Detail</span>
       <div className="seg" role="radiogroup" aria-label="Detail">
         {DETAIL.map((l) => (
-          <button key={l.g} className={l.g === value ? "on" : ""} onClick={() => onChange(l.g)} title={l.hint} role="radio" aria-checked={l.g === value}>
+          <button
+            key={l.g}
+            className={`${l.g === value ? "on" : ""} ${parts.has(l.g) ? "has-parts" : ""}`}
+            onClick={() => onChange(l.g)}
+            title={parts.has(l.g) ? `${l.hint}. ${parts.get(l.g)} part${parts.get(l.g) === 1 ? " is" : "s are"} set to ${l.label.toLowerCase()} on its own; choosing a level resets them.` : l.hint}
+            role="radio"
+            aria-checked={l.g === value}
+          >
             {l.label}
+            {parts.has(l.g) && <span className="parts-count">{parts.get(l.g)}</span>}
           </button>
         ))}
       </div>

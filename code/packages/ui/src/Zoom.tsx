@@ -26,12 +26,17 @@ export function Zoom(props: {
   onSelect: (id: string) => void;
   onFocus: (id: string) => void;
   onHover: (id: string | undefined) => void;
+  /** The focus's own −/+ is the page-wide detail. */
+  onGranularity: (g: Granularity) => void;
+  /** Parts set to their own detail, so the page switch can show them. */
+  onOverrides: (o: Record<string, Granularity>) => void;
 }) {
   // expansion state keyed by node id survives structure refetches
   const [open, setOpen] = useState<Record<string, boolean>>({ [props.root.id]: true });
   // per-part detail; the page-wide level resets them all, so the two controls never disagree
   const [override, setOverride] = useState<Record<string, Granularity>>({});
   useEffect(() => setOverride({}), [props.granularity]);
+  useEffect(() => props.onOverrides(override), [override]); // eslint-disable-line react-hooks/exhaustive-deps
   const [fetched, setFetched] = useState<Record<string, string>>({}); // `${node}.${gran}` -> text
   const [pending, setPending] = useState<Record<string, boolean>>({});
 
@@ -71,7 +76,7 @@ export function Zoom(props: {
     const text = g === "full" ? undefined : node.text?.[g] ?? fetched[key];
     if (isOpen && g !== "full" && text === undefined && !pending[key]) void request(node, g);
     const setHere = (to: Granularity) =>
-      setOverride((o) => {
+      isRoot ? props.onGranularity(to) : setOverride((o) => {
         const { [node.id]: _, ...rest } = o;
         return to === props.granularity ? rest : { ...rest, [node.id]: to };
       });
