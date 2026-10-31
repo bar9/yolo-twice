@@ -23,7 +23,7 @@ watch(active, (on) => on && $renderContext.value === "slide" && (location.href =
 
 <template>
   <div class="hand-over">
-    <a :href="target">Live: {{ script }} →</a>
+    <a v-if="$renderContext !== 'slide'" :href="target">Live: {{ script }} →</a>
   </div>
 </template>
 

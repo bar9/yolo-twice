@@ -26,7 +26,7 @@ type Loaded = { name: string; source: string; script: Demo };
 
 const framed = typeof window !== "undefined" && window.parent !== window;
 const asked = new URLSearchParams(location.search);
-// presenting: no bar, no timer, the clicker steps; past the last step it hands back to the deck at `back`
+// presenting: no timer; the clicker and ← → step like slides; past the last step it hands back to the deck at `back`
 const presenting = asked.has("present");
 const back = (() => {
   const b = asked.get("back");
@@ -178,6 +178,12 @@ export function useDemo(host: DemoHost) {
     },
     [go],
   );
+  /** One step on; past the last one, back to the deck that handed over (if any). */
+  const forward = useCallback(() => {
+    const { demo: d, step: at } = current.current;
+    if (back && d && at >= d.script.steps.length - 1) location.href = back;
+    else stepTo(at + 1);
+  }, [stepTo]);
   /** Play on from the next step, or from the start after the last one. */
   const play = useCallback(() => {
     const { demo: d, step: at } = current.current;
@@ -229,20 +235,22 @@ export function useDemo(host: DemoHost) {
   useEffect(() => {
     if (!demo) return;
     const onKey = (e: KeyboardEvent) => {
-      const dir = e.key === "PageDown" ? 1 : e.key === "PageUp" ? -1 : 0;
+      const next = e.key === "PageDown" || (presenting && e.key === "ArrowRight");
+      const prev = e.key === "PageUp" || (presenting && e.key === "ArrowLeft");
+      const dir = next ? 1 : prev ? -1 : 0;
       if (!dir || e.ctrlKey || e.metaKey || e.altKey) return;
       e.preventDefault();
       e.stopPropagation();
       if (framed) parent.postMessage({ yt: "nav", dir }, "*");
-      else if (back && dir > 0 && current.current.step >= (current.current.demo?.script.steps.length ?? 0) - 1) location.href = back;
-      else stepTo(current.current.step + dir);
+      else if (dir > 0) forward();
+      else stepTo(current.current.step - 1);
     };
     addEventListener("keydown", onKey, true);
     return () => removeEventListener("keydown", onKey, true);
-  }, [demo, stepTo]);
+  }, [demo, stepTo, forward]);
 
   const steps = demo?.script.steps ?? [];
-  return { active: !!demo, framed: framed || presenting, title: demo?.script.title, step, steps: steps.length, caption: steps[step]?.caption, timed: steps.some((s) => s.wait), playing, point, error, stepTo, play, pause, stop };
+  return { active: !!demo, framed, presenting, title: demo?.script.title, step, steps: steps.length, caption: steps[step]?.caption, timed: steps.some((s) => s.wait), playing, point, error, stepTo, forward, handsBack: !!back, play, pause, stop };
 }
 
 /** The presenter's strip: where you are in the demo, the caption, and the way through it. Hidden inside a deck. */
@@ -260,20 +268,20 @@ export function DemoBar({ demo }: { demo: DemoState }) {
   return (
     <div className="demo-bar" role="toolbar" aria-label="Demo">
       <span className="demo-title">{demo.title ?? "Demo"}</span>
-      <button className="demo-btn" onClick={() => demo.stepTo(demo.step - 1)} disabled={demo.step === 0} aria-label="Previous step" title="Previous step (Page Up)">
+      <button className="demo-btn" onClick={() => demo.stepTo(demo.step - 1)} disabled={demo.step === 0} aria-label="Previous step" title={demo.presenting ? "Previous step (← or Page Up)" : "Previous step (Page Up)"}>
         <ChevronLeft size={16} />
       </button>
       <span className="num demo-count">
         {demo.step + 1} / {demo.steps}
       </span>
-      <button className="demo-btn" onClick={() => demo.stepTo(demo.step + 1)} disabled={demo.step === demo.steps - 1} aria-label="Next step" title="Next step (Page Down)">
+      <button className="demo-btn" onClick={demo.forward} disabled={demo.step === demo.steps - 1 && !demo.handsBack} aria-label="Next step" title={demo.presenting ? "Next step (→ or Page Down)" : "Next step (Page Down)"}>
         <ChevronRight size={16} />
       </button>
       {demo.step === demo.steps - 1 ? (
         <button className="demo-btn" onClick={demo.play} aria-label="Play again" title="Play again from the start">
           <RotateCcw size={15} />
         </button>
-      ) : demo.timed ? (
+      ) : demo.timed && !demo.presenting ? (
         <button className="demo-btn" onClick={demo.playing ? demo.pause : demo.play} aria-label={demo.playing ? "Pause" : "Play"} title={demo.playing ? "Pause: step by hand (Page Down)" : "Play on by itself"}>
           {demo.playing ? <Pause size={15} /> : <Play size={15} />}
         </button>
