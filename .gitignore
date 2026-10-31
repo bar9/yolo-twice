@@ -1,1 +1,5 @@
 .playwright-mcp
+
+# local-only audio for the pitch deck (not redistributable)
+assets/teams.mp3
+*:Zone.Identifier
