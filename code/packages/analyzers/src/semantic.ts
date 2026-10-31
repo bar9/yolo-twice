@@ -153,28 +153,47 @@ export function artifactPath(textDir: string, nodeId: string, granularity: Granu
   return path.join(textDir, `${nodeId.replace(/[^A-Za-z0-9_.-]/g, "_")}.${granularity}.${hash}.json`);
 }
 
+/**
+ * Summaries live in two places: finished nodes in the committed `text/` folder (their input can no
+ * longer change), nodes still at the live tail in a local folder (they change every turn and would
+ * only churn the repository).
+ */
 export class TextCache {
-  constructor(readonly textDir: string) {}
+  constructor(
+    readonly textDir: string,
+    readonly openDir?: string,
+  ) {}
 
-  get(nodeId: string, granularity: Granularity, hash: string): TextArtifact | undefined {
-    return readJson<TextArtifact>(artifactPath(this.textDir, nodeId, granularity, hash));
+  private dirs(): string[] {
+    return this.openDir ? [this.textDir, this.openDir] : [this.textDir];
   }
 
-  put(artifact: TextArtifact): void {
-    writeJsonAtomic(artifactPath(this.textDir, artifact.node, artifact.granularity, artifact.hash), artifact);
+  get(nodeId: string, granularity: Granularity, hash: string): TextArtifact | undefined {
+    for (const d of this.dirs()) {
+      const a = readJson<TextArtifact>(artifactPath(d, nodeId, granularity, hash));
+      if (a) return a;
+    }
+    return undefined;
+  }
+
+  put(artifact: TextArtifact, open = false): void {
+    const dir = open && this.openDir ? this.openDir : this.textDir;
+    writeJsonAtomic(artifactPath(dir, artifact.node, artifact.granularity, artifact.hash), artifact);
   }
 
   /** Latest artifact per granularity for a node, regardless of hash (used for display when input moved on). */
   latest(nodeId: string): Partial<Record<Granularity, TextArtifact>> {
     const prefix = nodeId.replace(/[^A-Za-z0-9_.-]/g, "_") + ".";
     const out: Partial<Record<Granularity, TextArtifact>> = {};
-    if (!fs.existsSync(this.textDir)) return out;
-    for (const f of fs.readdirSync(this.textDir)) {
-      if (!f.startsWith(prefix) || !f.endsWith(".json")) continue;
-      const a = readJson<TextArtifact>(path.join(this.textDir, f));
-      if (!a) continue;
-      const cur = out[a.granularity];
-      if (!cur || cur.created < a.created) out[a.granularity] = a;
+    for (const dir of this.dirs()) {
+      if (!fs.existsSync(dir)) continue;
+      for (const f of fs.readdirSync(dir)) {
+        if (!f.startsWith(prefix) || !f.endsWith(".json")) continue;
+        const a = readJson<TextArtifact>(path.join(dir, f));
+        if (!a) continue;
+        const cur = out[a.granularity];
+        if (!cur || cur.created < a.created) out[a.granularity] = a;
+      }
     }
     return out;
   }
@@ -200,6 +219,18 @@ export interface SemanticJob {
   node: StructureNode;
   granularity: Exclude<Granularity, "full">;
   interim: boolean;
+  /** The node still grows (it ends at the live tail): its summary stays local. */
+  open?: boolean;
+}
+
+/** Idle time after which the tail of a session counts as finished (same as a phase gap). */
+export const OPEN_IDLE_MS = 30 * 60 * 1000;
+
+/** A node is open while it ends at the session's newest event and the session was active recently. */
+export function isOpenNode(node: StructureNode, root: StructureNode, now = Date.now(), idleMs = OPEN_IDLE_MS): boolean {
+  if (node.span.last !== root.span.last) return false;
+  const last = Date.parse(root.span.ts_last);
+  return Number.isNaN(last) || now - last < idleMs;
 }
 
 /** Which (node, granularity) pairs the attention detent wants computed eagerly. */
@@ -250,7 +281,7 @@ export async function summarizeNode(
     created: new Date().toISOString(),
   };
   if (job.interim) artifact.interim = true;
-  cache.put(artifact);
+  cache.put(artifact, job.interim || job.open === true);
   return artifact;
 }
 

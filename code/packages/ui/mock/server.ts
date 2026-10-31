@@ -37,8 +37,8 @@ Bun.serve({
     if (p === "/api/config" && req.method === "GET") return json(store.readConfig());
     if (p === "/api/config" && req.method === "PUT") {
       const body = (await req.json()) as { attention: Attention };
-      const cfg = { ...store.readConfig(), attention: body.attention };
-      store.writeConfig(cfg);
+      store.writeLocalConfig({ attention: body.attention });
+      const cfg = store.readConfig();
       broadcast("config", cfg);
       return json(cfg);
     }
@@ -95,7 +95,7 @@ Bun.serve({
         const full = nodeFullText(node, byId);
         const text = await summarizer.summarize({ granularity: body.granularity, text: full, kind: node.kind, label: node.label });
         const artifact = { node: node.id, granularity: body.granularity, hash: inputHash(full, body.granularity, summarizer.name), analyzer: summarizer.name, version: "1", text, created: new Date().toISOString() };
-        new TextCache(store.textDir(id)).put(artifact);
+        new TextCache(store.textDir(id), store.openTextDir(id)).put(artifact, true);
         setTimeout(() => broadcast("semantic", { session: id, node: node.id, granularity: body.granularity }), 50);
         return json(artifact);
       }

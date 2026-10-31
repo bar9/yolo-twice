@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import chokidar, { type FSWatcher } from "chokidar";
 import { claudeProjectDir, ingestProject, Store, type Config, type Event, type StructureNode } from "@yolo-twice/core";
-import {
+import { isOpenNode,
   ClaudeCliSummarizer,
   decorate,
   deriveProject,
@@ -133,8 +133,9 @@ export class ProjectRuntime {
   }
 
   setAttention(attention: Config["attention"]): Config {
-    const cfg = { ...this.store.readConfig(), attention };
-    this.store.writeConfig(cfg);
+    // the slider is personal: it goes to the gitignored local.json, the team config stays untouched
+    this.store.writeLocalConfig({ attention });
+    const cfg = this.store.readConfig();
     this.broadcast("config", cfg);
     return cfg;
   }
@@ -184,7 +185,9 @@ export class ProjectRuntime {
   private async summarize(session: string, job: SemanticJob): Promise<TextArtifact> {
     const events = this.store.readEvents(session);
     const byId = new Map(events.map((e) => [e.id, e]));
-    const cache = new TextCache(this.store.textDir(session));
+    const cache = new TextCache(this.store.textDir(session), this.store.openTextDir(session));
+    const root = this.store.readStructure(session);
+    if (root) job = { ...job, open: isOpenNode(job.node, root) };
     let artifact: TextArtifact;
     try {
       artifact = await summarizeNode(job, byId, cache, this.summarizer);

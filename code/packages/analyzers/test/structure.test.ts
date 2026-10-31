@@ -67,7 +67,7 @@ describe("structure", () => {
       deriveSession(store, FIXTURE_SESSION);
       deriveProject(store, "demo");
       const dir = store.sessionDir(FIXTURE_SESSION);
-      const snap = () => ["structure.json", "graph.mmd", "graph.L1.mmd"].map((f) => fs.readFileSync(path.join(dir, f), "utf8")).concat(fs.readFileSync(path.join(store.dir, "project.json"), "utf8"));
+      const snap = () => ["structure.json", "graph.mmd", "graph.L1.mmd"].map((f) => fs.readFileSync(path.join(dir, f), "utf8")).concat(fs.readFileSync(path.join(dir, "meta.json"), "utf8"), fs.readFileSync(store.projectIndexFile, "utf8"));
       const a = snap();
       deriveSession(store, FIXTURE_SESSION);
       deriveProject(store, "demo");

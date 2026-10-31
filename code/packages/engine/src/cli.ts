@@ -163,7 +163,7 @@ async function main(): Promise<void> {
       } else {
         const store = new Store(root);
         store.ensure();
-        store.writeConfig({ ...store.readConfig(), attention: parsed.data });
+        store.writeLocalConfig({ attention: parsed.data });
       }
       console.log(`attention: ${parsed.data}`);
       return;

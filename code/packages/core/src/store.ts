@@ -4,7 +4,27 @@ import { readJson, stableStringify, writeFileAtomic, writeJsonAtomic } from "./j
 import { yoloDir } from "./paths.js";
 import { Config, DEFAULT_CONFIG, type Event, type ProjectIndex, type SourceState, type StructureNode } from "./schema.js";
 
-const GITIGNORE = "# runtime state, never commit\ncache/\nengine.json\n";
+/**
+ * Layout rule: one writer per committed file. Everything committed belongs to exactly one session
+ * (sessions/<id>/...) or is a team setting (config.json). Anything that combines sessions, any
+ * machine state and any personal preference lives in gitignored files and is rebuilt locally.
+ */
+const GITIGNORE = "# machine state and personal settings, never commit\ncache/\nengine.json\nlocal.json\n";
+const GITIGNORE_LINES = ["cache/", "engine.json", "local.json"];
+
+/** Per-session summary used for the project list. Committed: one session, one writer. */
+export interface SessionMeta {
+  id: string;
+  agent: string;
+  label: string;
+  ts_first: string;
+  ts_last: string;
+  events: number;
+  cost_usd?: number;
+}
+
+/** Personal overrides of config.json, never committed. */
+export type LocalConfig = Partial<Pick<Config, "attention">>;
 
 /** The project-local .yolo-twice folder. All writes are atomic and deterministic. */
 export class Store {
@@ -21,17 +41,49 @@ export class Store {
     fs.mkdirSync(path.join(this.dir, "cache"), { recursive: true });
     const gi = path.join(this.dir, ".gitignore");
     if (!fs.existsSync(gi)) writeFileAtomic(gi, GITIGNORE);
+    else {
+      const cur = fs.readFileSync(gi, "utf8");
+      const missing = GITIGNORE_LINES.filter((l) => !cur.split("\n").includes(l));
+      if (missing.length) writeFileAtomic(gi, cur.replace(/\n?$/, "\n") + missing.join("\n") + "\n");
+    }
     if (!fs.existsSync(this.configFile)) this.writeConfig(DEFAULT_CONFIG);
+    this.migrateLayout();
+  }
+
+  /** Move files of the first layout out of the committed tree (idempotent). */
+  private migrateLayout(): void {
+    const legacyProject = path.join(this.dir, "project.json");
+    if (fs.existsSync(legacyProject)) fs.rmSync(legacyProject);
+    for (const id of this.listSessions()) {
+      const legacy = path.join(this.sessionDir(id), "source.json");
+      if (!fs.existsSync(legacy)) continue;
+      if (!fs.existsSync(this.sourceFile(id))) {
+        fs.mkdirSync(path.dirname(this.sourceFile(id)), { recursive: true });
+        fs.renameSync(legacy, this.sourceFile(id));
+      } else fs.rmSync(legacy);
+    }
   }
 
   get configFile(): string {
     return path.join(this.dir, "config.json");
   }
 
+  get localConfigFile(): string {
+    return path.join(this.dir, "local.json");
+  }
+
+  /** Team config (committed) with this user's local overrides on top. */
   readConfig(): Config {
-    const raw = readJson<unknown>(this.configFile);
-    const parsed = Config.safeParse(raw);
-    return parsed.success ? parsed.data : DEFAULT_CONFIG;
+    const parsed = Config.safeParse(readJson<unknown>(this.configFile));
+    const team = parsed.success ? parsed.data : DEFAULT_CONFIG;
+    const local = readJson<LocalConfig>(this.localConfigFile) ?? {};
+    const attention = Config.shape.attention.safeParse(local.attention);
+    return attention.success ? { ...team, attention: attention.data } : team;
+  }
+
+  /** Personal settings such as the attention slider: never committed, never conflicting. */
+  writeLocalConfig(patch: LocalConfig): void {
+    writeJsonAtomic(this.localConfigFile, { ...(readJson<LocalConfig>(this.localConfigFile) ?? {}), ...patch });
   }
 
   writeConfig(config: Config): void {
@@ -53,12 +105,17 @@ export class Store {
   }
 
   /* ---- source cursor ---- */
+  /** The ingestion cursor is machine state: it lives in the cache, not in the session folder. */
+  sourceFile(session: string): string {
+    return path.join(this.dir, "cache", "sources", `${session}.json`);
+  }
+
   readSourceState(session: string): SourceState | undefined {
-    return readJson<SourceState>(path.join(this.sessionDir(session), "source.json"));
+    return readJson<SourceState>(this.sourceFile(session)) ?? readJson<SourceState>(path.join(this.sessionDir(session), "source.json"));
   }
 
   writeSourceState(session: string, state: SourceState): void {
-    writeJsonAtomic(path.join(this.sessionDir(session), "source.json"), state);
+    writeJsonAtomic(this.sourceFile(session), state);
   }
 
   /* ---- events ---- */
@@ -157,6 +214,8 @@ export class Store {
   /** Drop a session's derived and event files (used when the source file was replaced). */
   resetSession(session: string): void {
     fs.rmSync(this.sessionDir(session), { recursive: true, force: true });
+    fs.rmSync(this.sourceFile(session), { force: true });
+    fs.rmSync(this.openTextDir(session), { recursive: true, force: true });
     this.idCache.delete(session);
   }
 
@@ -183,16 +242,50 @@ export class Store {
     }
   }
 
+  /** Summaries of finished nodes: committed, their input can no longer change. */
   textDir(session: string): string {
     return path.join(this.sessionDir(session), "text");
   }
 
+  /** Summaries of nodes still at the live tail: they change every turn, so they stay local. */
+  openTextDir(session: string): string {
+    return path.join(this.dir, "cache", "text", session);
+  }
+
+  writeSessionMeta(meta: SessionMeta): void {
+    writeJsonAtomic(path.join(this.sessionDir(meta.id), "meta.json"), meta);
+  }
+
+  /** Session summary from meta.json, or from structure.json for folders written before meta existed. */
+  readSessionMeta(session: string): SessionMeta | undefined {
+    const meta = readJson<SessionMeta>(path.join(this.sessionDir(session), "meta.json"));
+    if (meta) return meta;
+    const s = this.readStructure(session);
+    if (!s) return undefined;
+    return { id: session, agent: "claude-code", label: s.label, ts_first: s.span.ts_first, ts_last: s.span.ts_last, events: s.stats.events, cost_usd: s.stats.cost_usd };
+  }
+
+  get projectIndexFile(): string {
+    return path.join(this.dir, "cache", "project.json");
+  }
+
+  /** The project list combines every session, so it is local: rebuilt from the per-session meta files. */
   writeProjectIndex(index: ProjectIndex): void {
-    writeJsonAtomic(path.join(this.dir, "project.json"), index);
+    writeJsonAtomic(this.projectIndexFile, index);
   }
 
   readProjectIndex(): ProjectIndex | undefined {
-    return readJson<ProjectIndex>(path.join(this.dir, "project.json"));
+    return readJson<ProjectIndex>(this.projectIndexFile) ?? this.buildProjectIndex();
+  }
+
+  /** Project list straight from the session folders (a fresh clone has no cache yet). */
+  buildProjectIndex(name = path.basename(this.projectRoot)): ProjectIndex | undefined {
+    const sessions = this.listSessions()
+      .map((id) => this.readSessionMeta(id))
+      .filter((m): m is SessionMeta => Boolean(m))
+      .sort((a, b) => a.ts_first.localeCompare(b.ts_first) || a.id.localeCompare(b.id));
+    if (sessions.length === 0) return undefined;
+    return { version: 1, project: name, sessions: sessions.map((m) => ({ id: m.id, agent: m.agent, label: m.label, ts_first: m.ts_first, ts_last: m.ts_last, events: m.events, cost_usd: m.cost_usd })) };
   }
 
   cacheDir(): string {
