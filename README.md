@@ -37,14 +37,17 @@ claude plugin install yolo-twice --marketplace bar9/yolo-twice
 
 ## Use
 
-Inside any Claude Code session:
+Inside any Claude Code session (plugin commands are namespaced, so the command is `/yolo-twice:yolo-twice`):
 
 ```
-/yolo-twice             start the engine for this project and open the UI
-/yolo-twice stop        stop the engine
-/yolo-twice status      show engine, session and index state
-/yolo-twice mode yolo   set the attention slider: micro | attentive | balanced | yolo
+/yolo-twice:yolo-twice                  start the engine for this project and open the UI
+/yolo-twice:yolo-twice stop             stop the engine
+/yolo-twice:yolo-twice status           show engine, session and index state
+/yolo-twice:yolo-twice mode yolo        set the attention slider: micro | attentive | balanced | yolo
 ```
+
+The same commands work from a terminal via the engine CLI, for example `yolo-twice status` or
+`yolo-twice index` for a one-shot index without the daemon.
 
 ## How it works
 

@@ -31,7 +31,14 @@ if [ -n "${YOLO_TWICE_ENGINE:-}" ]; then
   esac
 fi
 if [ -d "$HERE/../packages/engine" ]; then run_engine_dir "$HERE/../packages/engine" "$CMD" "$@"; fi
-for d in "${CLAUDE_CONFIG_DIR:-$HOME/.claude}"/plugins/marketplaces/*/code/packages/engine; do
+CLAUDE_DIR="${CLAUDE_CONFIG_DIR:-$HOME/.claude}"
+for d in "$CLAUDE_DIR"/plugins/marketplaces/*/code/packages/engine; do
   [ -d "$d" ] && run_engine_dir "$d" "$CMD" "$@"
 done
+# marketplace added from a local directory (dev install): its path is recorded in known_marketplaces.json
+if [ -f "$CLAUDE_DIR/plugins/known_marketplaces.json" ]; then
+  for p in $(grep -o '"path": *"[^"]*"' "$CLAUDE_DIR/plugins/known_marketplaces.json" | sed 's/.*"path": *"//; s/"$//'); do
+    [ -d "$p/code/packages/engine" ] && run_engine_dir "$p/code/packages/engine" "$CMD" "$@"
+  done
+fi
 exec npx -y yolo-twice@latest "$CMD" "$@"
