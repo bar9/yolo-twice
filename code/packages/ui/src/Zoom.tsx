@@ -192,8 +192,12 @@ export const Zoom = memo(function Zoom(props: {
     const g = override[node.id] ?? props.granularity;
     const gi = ORDER.indexOf(g);
     const key = `${node.id}.${g}`;
-    const text = g === "full" ? undefined : node.text?.[g] ?? fetched[key];
-    if (isOpen && g !== "full" && text === undefined && !pending[key]) void request(node, g);
+    // a tool step is its call: from Medium up it shows the call rendered (and from High its result),
+    // a prose summary of one command would only be worse than the command itself
+    const toolStep = node.kind === "step" && (node.meta?.step_kind === "tool" || node.meta?.step_kind === "tool-error");
+    const asCall = toolStep && g !== "title";
+    const text = g === "full" || asCall ? undefined : node.text?.[g] ?? fetched[key];
+    if (isOpen && g !== "full" && !asCall && text === undefined && !pending[key]) void request(node, g);
     const setHere = (to: Granularity) =>
       isRoot ? props.onGranularity(to) : setOverride((o) => {
         const { [node.id]: _, ...rest } = o;
@@ -209,7 +213,7 @@ export const Zoom = memo(function Zoom(props: {
     const images = imageCount(node, props.events);
     const tokens = node.stats.input_tokens + node.stats.output_tokens;
     const boundary = node.meta?.boundary && node.meta.boundary !== prev?.meta?.boundary ? boundaryText(node, prev) : undefined;
-    const showText = g !== "full" && !(text !== undefined && sameText(text, node.label));
+    const showText = asCall || (g !== "full" && !(text !== undefined && sameText(text, node.label)));
 
     return (
       <div key={node.id} id={`node-${node.id}`} className={cls} style={kindStyle(kind)}>
@@ -296,7 +300,9 @@ export const Zoom = memo(function Zoom(props: {
           <div className="body">
             {(g === "full" || showText || ownImages(node, props.events).length > 0 || isRoot) && (
             <div className="text-block">
-              {g === "full" ? (
+              {asCall && g !== "full" ? (
+                <Events node={node} events={props.events} calls={calls} query={props.query} matches={props.matches} only={g === "abstract" ? "calls" : "bare"} />
+              ) : g === "full" ? (
                 node.level >= 3 ? <Events node={node} events={props.events} calls={calls} query={props.query} matches={props.matches} /> : <p className="prose muted">The full text is in the steps below.</p>
               ) : showText ? (
                 <p className={`prose ${text === undefined ? "muted" : ""}`}>{richText(text ?? structuralFallback(node, g), props.query)}</p>
@@ -429,19 +435,36 @@ function Images({ session, refs }: { session: string; refs: ImageRef[] }) {
 const PROSE = new Set(["user.prompt", "assistant.text", "compaction"]);
 
 /** Raw events of a step (L3) in append order: words as prose, tool input and output as code. */
-function Events({ node, events, calls, query, matches }: { node: StructureNode; events?: Map<string, Event>; calls: Map<string, Event>; query?: string; matches?: Set<string> }) {
+function Events({
+  node,
+  events,
+  calls,
+  query,
+  matches,
+  only,
+}: {
+  node: StructureNode;
+  events?: Map<string, Event>;
+  calls: Map<string, Event>;
+  query?: string;
+  matches?: Set<string>;
+  /** "calls": only the tool calls, without headers; "bare": calls and results without headers. */
+  only?: "calls" | "bare";
+}) {
   if (!events) return <p className="prose muted">Loading events…</p>;
   const ids = node.event_ids ?? [];
   return (
-    <div className="events">
+    <div className={`events ${only ? "bare" : ""}`}>
       {ids.map((id) => {
         const e = events.get(id);
         if (!e) return null;
+        if (only === "calls" && e.kind !== "tool.call") return null;
+        if (only === "bare" && (e.kind !== "tool.call" && e.kind !== "tool.result" || (e.kind === "tool.result" && !e.text.trim()))) return null;
         const k = eventKind(e);
         const text = e.text || (e.data?.hidden ? "Hidden by Claude Code" : "");
         return (
           <div key={id} className={`event ${e.kind.replace(".", "-")} ${matches?.has(id) ? "match" : ""}`} style={kindStyle(k)}>
-            <div className="event-head">
+            {!only && <div className="event-head">
               <span className="kind">
                 <KindIcon kind={k} size={13} />
                 {e.kind === "tool.result" ? "Result" : KIND[k].label}
@@ -454,7 +477,7 @@ function Events({ node, events, calls, query, matches }: { node: StructureNode; 
                 </span>
               )}
               <span className="time">{fmtTime(e.ts)}</span>
-            </div>
+            </div>}
             {PROSE.has(e.kind) ? (
               <p className="event-prose">{richText(text, query)}</p>
             ) : e.kind === "tool.call" ? (
