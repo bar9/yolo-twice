@@ -352,7 +352,7 @@ URL form:
 | `x` | selected node | none |
 | `q` | text query | none |
 | `k` | filters: `u` your prompts, `a` assistant text, `h` thinking, `t` tool calls, `t:Name` one tool, `e` tool errors, `s` subagents, `c` compactions and commands, `r` rewound turns | none |
-| `z` | default text length: `t` title, `a` abstract, `s` summary, `f` full | `a` |
+| `z` | detail for every open part: `t` low (a title), `a` medium (an abstract), `s` high (a summary), `f` raw (the events) | `a` |
 | `f` | follow: the view stays on the newest events as they arrive, like `tail -f` | off |
 | `v` | layout: `r` text only, `m` graph only | text and graph side by side |
 

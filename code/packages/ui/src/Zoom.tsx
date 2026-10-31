@@ -1,10 +1,9 @@
 import { useEffect, useState } from "react";
-import { Bot, ChevronRight, Coins, Focus, Image, Minus, Plus, Search, TriangleAlert, Undo2, Wrench } from "lucide-react";
+import { Bot, ChevronRight, Coins, Focus, Image, Minus, Plus, RotateCcw, Search, TriangleAlert, Undo2, Wrench } from "lucide-react";
 import { ancestors, api, fmtDuration, fmtTime, fmtTokens, walk, type Event, type Granularity, type ImageRef, type StructureNode } from "./api";
-import { eventKind, KIND, KindIcon, kindStyle, nodeKind, richText } from "./kinds";
+import { DETAIL_LABEL, DETAIL_ORDER, eventKind, KIND, KindIcon, kindStyle, nodeKind, richText } from "./kinds";
 
-const ORDER: Granularity[] = ["title", "abstract", "summary", "full"];
-const GRAN_LABEL: Record<Granularity, string> = { title: "Title", abstract: "Abstract", summary: "Summary", full: "Full text" };
+const ORDER = DETAIL_ORDER;
 
 /**
  * The reader: the focus as a story. Every node shows its label; an open node shows its text at the
@@ -30,7 +29,9 @@ export function Zoom(props: {
 }) {
   // expansion state keyed by node id survives structure refetches
   const [open, setOpen] = useState<Record<string, boolean>>({ [props.root.id]: true });
+  // per-part detail; the page-wide level resets them all, so the two controls never disagree
   const [override, setOverride] = useState<Record<string, Granularity>>({});
+  useEffect(() => setOverride({}), [props.granularity]);
   const [fetched, setFetched] = useState<Record<string, string>>({}); // `${node}.${gran}` -> text
   const [pending, setPending] = useState<Record<string, boolean>>({});
 
@@ -69,8 +70,14 @@ export function Zoom(props: {
     const key = `${node.id}.${g}`;
     const text = g === "full" ? undefined : node.text?.[g] ?? fetched[key];
     if (isOpen && g !== "full" && text === undefined && !pending[key]) void request(node, g);
-    const shorter = () => setOverride((o) => ({ ...o, [node.id]: ORDER[Math.max(0, gi - 1)]! }));
-    const longer = () => setOverride((o) => ({ ...o, [node.id]: ORDER[Math.min(ORDER.length - 1, gi + 1)]! }));
+    const setHere = (to: Granularity) =>
+      setOverride((o) => {
+        const { [node.id]: _, ...rest } = o;
+        return to === props.granularity ? rest : { ...rest, [node.id]: to };
+      });
+    const less = () => setHere(ORDER[Math.max(0, gi - 1)]!);
+    const more = () => setHere(ORDER[Math.min(ORDER.length - 1, gi + 1)]!);
+    const own = g !== props.granularity;
     const kind = nodeKind(node);
     const expandable = node.children.length > 0 || (node.event_ids?.length ?? 0) > 0;
     const cls = ["node", `level-${node.level}`, node.kind, isRoot ? "root" : "", isOpen ? "open" : "", props.selected === node.id ? "selected" : "", props.hover === node.id ? "hover" : "", props.dim.has(node.id) ? "dim" : ""].join(" ");
@@ -171,14 +178,20 @@ export function Zoom(props: {
                 <p className={`prose ${text === undefined ? "muted" : ""}`}>{richText(text ?? structuralFallback(node, g), props.query)}</p>
               ) : null}
               {g !== "full" && node.level >= 3 && <Images session={props.session} refs={ownImages(node, props.events)} />}
-              <div className="lens" role="group" aria-label="Text length">
-                <button disabled={gi === 0} onClick={shorter} title="Shorter text" aria-label="Shorter text">
+              <div className={`lens ${own ? "own" : ""}`} role="group" aria-label="Detail of this part">
+                <button disabled={gi === 0} onClick={less} title="Less detail for this part" aria-label="Less detail">
                   <Minus size={13} />
                 </button>
-                <span className="gran">{GRAN_LABEL[g]}</span>
-                <button disabled={gi === ORDER.length - 1} onClick={longer} title="Longer text" aria-label="Longer text">
+                <span className="gran">Detail {DETAIL_LABEL[g].toLowerCase()}</span>
+                <button disabled={gi === ORDER.length - 1} onClick={more} title="More detail for this part" aria-label="More detail">
                   <Plus size={13} />
                 </button>
+                {own && (
+                  <button className="reset-here" onClick={() => setHere(props.granularity)} title={`Back to the page setting: ${DETAIL_LABEL[props.granularity].toLowerCase()}`}>
+                    <RotateCcw size={12} />
+                    only here
+                  </button>
+                )}
                 {pending[key] && <span className="spin" aria-label="Summarizing" />}
               </div>
             </div>

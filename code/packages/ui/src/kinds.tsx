@@ -1,6 +1,6 @@
 import type { CSSProperties } from "react";
 import { Archive, Bot, Brain, Disc3, FolderGit2, Layers, MessageSquareText, Reply, SquareSlash, TriangleAlert, Undo2, User, Wrench, type LucideIcon } from "lucide-react";
-import type { Event, StructureNode } from "./api";
+import type { Event, Granularity, StructureNode } from "./api";
 
 /**
  * One icon, one colour and one name per kind of thing in a session. The reader, the tape, the
@@ -94,3 +94,16 @@ function highlight(text: string, mark: string | undefined, key: number): (string
   const re = new RegExp(`(${term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`, "gi");
   return text.split(re).map((p, i) => (i % 2 ? <mark key={`${key}.${i}`}>{p}</mark> : p));
 }
+
+/**
+ * How much text a part shows, from a one-line headline to everything that was said and done.
+ * The page-wide switch and the −/+ on each part use these same words.
+ */
+export const DETAIL: { g: Granularity; label: string; hint: string }[] = [
+  { g: "title", label: "Low", hint: "One line per part" },
+  { g: "abstract", label: "Medium", hint: "A few sentences per part" },
+  { g: "summary", label: "High", hint: "A paragraph per part" },
+  { g: "full", label: "Raw", hint: "Everything that was said and done, unsummarized" },
+];
+export const DETAIL_ORDER: Granularity[] = DETAIL.map((d) => d.g);
+export const DETAIL_LABEL = Object.fromEntries(DETAIL.map((d) => [d.g, d.label])) as Record<Granularity, string>;

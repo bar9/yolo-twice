@@ -325,7 +325,9 @@ button.crumb:hover { background: var(--sheet-2); color: var(--ink); }
 .lens button { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 5px; color: var(--ink-2); }
 .lens button:hover:not(:disabled) { background: var(--sheet-2); color: var(--ink); }
 .lens button:disabled { opacity: .35; cursor: default; }
-.lens .gran { min-width: 58px; text-align: center; }
+.lens .gran { min-width: 82px; text-align: center; }
+.lens.own .gran { color: var(--ink); font-weight: 550; }
+.lens .reset-here { width: auto; gap: 4px; padding: 0 6px; display: inline-flex; align-items: center; color: var(--ink-2); }
 .spin { display: inline-block; width: 11px; height: 11px; margin-left: 6px; border: 2px solid var(--rule-strong); border-top-color: var(--ink-2); border-radius: 50%; animation: spin .8s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 

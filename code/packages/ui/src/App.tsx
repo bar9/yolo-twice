@@ -14,7 +14,7 @@ import { Results, Zoom } from "./Zoom";
 import { useStream } from "./useStream";
 import { resolveId, shortId, useViewState, type Layout, type SetView, type ViewState } from "./state";
 import { computeScope, followTarget, indexTree, walk } from "./scope";
-import { KIND, KindIcon, kindStyle, nodeKind, richText, type Kind } from "./kinds";
+import { DETAIL, KIND, KindIcon, kindStyle, nodeKind, richText, type Kind } from "./kinds";
 
 type Index = ProjectIndex & { current?: string };
 const sessionNode = (id: string) => `s:${id}`;
@@ -519,22 +519,18 @@ export function App() {
   );
 }
 
-const LENGTHS: { g: Granularity; label: string; title: string }[] = [
-  { g: "title", label: "Titles", title: "One line per part" },
-  { g: "abstract", label: "Abstracts", title: "A few sentences per part" },
-  { g: "summary", label: "Summaries", title: "A paragraph per part" },
-  { g: "full", label: "Full", title: "Everything that was said and done" },
-];
-
-/** Default text length for every open part; each part can still be made shorter or longer on its own. */
+/** Detail for every open part. A part can differ with its own −/+; choosing here resets those. */
 function LengthSwitch({ value, onChange }: { value: Granularity; onChange: (g: Granularity) => void }) {
   return (
-    <div className="seg" role="radiogroup" aria-label="Text length">
-      {LENGTHS.map((l) => (
-        <button key={l.g} className={l.g === value ? "on" : ""} onClick={() => onChange(l.g)} title={l.title} role="radio" aria-checked={l.g === value}>
-          {l.label}
-        </button>
-      ))}
+    <div className="flex items-center gap-2">
+      <span className="text-[13px] text-ink-2 hide-narrow">Detail</span>
+      <div className="seg" role="radiogroup" aria-label="Detail">
+        {DETAIL.map((l) => (
+          <button key={l.g} className={l.g === value ? "on" : ""} onClick={() => onChange(l.g)} title={l.hint} role="radio" aria-checked={l.g === value}>
+            {l.label}
+          </button>
+        ))}
+      </div>
     </div>
   );
 }
