@@ -462,3 +462,45 @@ button.crumb:hover { background: var(--sheet-2); color: var(--ink); }
   .seg button { padding: 0 8px; }
   .legend { display: none; }
 }
+
+/* ---------- tool calls and results ---------- */
+.tool-call, .tool-result { padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; }
+.event .tool-call .event-prose, .event .tool-result .event-prose { padding: 0; max-height: none; }
+.tool-title { margin: 0; font-weight: 550; color: var(--ink); }
+.tool-facts { margin: 0; color: var(--ink-3); font-size: 12px; font-variant-numeric: tabular-nums; }
+.tool-path { display: flex; align-items: center; gap: 6px; margin: 0; color: var(--ink-2); min-width: 0; }
+.tool-path code, .tool-path a { font-family: var(--font-code); font-size: 12.5px; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tool-path a:hover { text-decoration: underline; }
+.tool-cut { display: flex; align-items: center; gap: 6px; margin: 0; color: var(--k-system); font-size: 12px; }
+.tool-text { margin: 0; white-space: pre-wrap; font-size: 13.5px; line-height: 1.5; color: var(--ink); }
+.tool-question ul { margin: 4px 0 0; padding-left: 18px; color: var(--ink-2); }
+.tool-question li { margin: 2px 0; }
+.tool-question strong { color: var(--ink); font-weight: 550; }
+.tool-fields { margin: 0; display: grid; gap: 6px; }
+.tool-fields > div { display: grid; grid-template-columns: minmax(80px, max-content) 1fr; gap: 10px; align-items: baseline; }
+.tool-fields > div.block { grid-template-columns: 1fr; gap: 4px; }
+.tool-fields dt { color: var(--ink-3); font-size: 12px; }
+.tool-fields dd { margin: 0; min-width: 0; }
+.tool-fields dd > code { font-family: var(--font-code); font-size: 12.5px; word-break: break-word; }
+.tool-result.error .code { box-shadow: inset 3px 0 0 var(--k-error); }
+
+.code { margin: 0; border-radius: 8px; background: var(--paper); box-shadow: 0 0 0 1px var(--rule); overflow: hidden; }
+.code figcaption { padding: 5px 10px; font-size: 11.5px; color: var(--ink-2); border-bottom: 1px solid var(--rule); background: var(--sheet-2); }
+.code-body { display: flex; max-height: 420px; overflow: auto; }
+.code-body pre { margin: 0; padding: 9px 12px; font: 12.5px/1.55 var(--font-code); white-space: pre; tab-size: 4; flex: 1; min-width: 0; color: var(--ink); background: transparent; max-height: none; overflow: visible; }
+.code-body pre.gutter { flex: none; padding-right: 10px; text-align: right; color: var(--ink-3); user-select: none; border-right: 1px solid var(--rule); }
+.event .code-body pre { padding: 9px 12px; max-height: none; }
+.code.wrap .code-body pre { white-space: pre-wrap; word-break: break-word; }
+
+/* syntax colours from the palette */
+.hljs-comment, .hljs-quote { color: var(--ink-3); font-style: italic; }
+.hljs-keyword, .hljs-selector-tag, .hljs-built_in, .hljs-meta .hljs-keyword { color: var(--k-agent); }
+.hljs-string, .hljs-regexp, .hljs-addition, .hljs-attribute .hljs-string { color: var(--k-tool); }
+.hljs-number, .hljs-literal, .hljs-symbol { color: var(--k-rewind); }
+.hljs-title, .hljs-title.function_, .hljs-section { color: var(--k-you); }
+.hljs-variable, .hljs-template-variable, .hljs-params, .hljs-attr, .hljs-property { color: var(--k-system); }
+.hljs-deletion { color: var(--k-error); background: color-mix(in srgb, var(--k-error) 8%, transparent); }
+.hljs-addition { background: color-mix(in srgb, var(--k-tool) 8%, transparent); }
+.hljs-meta, .hljs-type, .hljs-class .hljs-title { color: var(--k-you); }
+.hljs-emphasis { font-style: italic; }
+.hljs-strong { font-weight: 600; }

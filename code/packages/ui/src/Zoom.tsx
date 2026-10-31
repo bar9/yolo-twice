@@ -1,4 +1,5 @@
-import { memo, useEffect, useRef, useState } from "react";
+import { memo, useEffect, useMemo, useRef, useState } from "react";
+import { ToolCallView, ToolResultView } from "./ToolCall";
 import { Bot, ChevronRight, Coins, Focus, Image, Minus, Plus, RotateCcw, Search, TriangleAlert, Undo2, Wrench } from "lucide-react";
 import { ancestors, api, fmtDuration, fmtTime, fmtTokens, walk, type Event, type Granularity, type ImageRef, type StructureNode } from "./api";
 import { DETAIL_LABEL, DETAIL_ORDER, eventKind, KIND, KindIcon, kindStyle, nodeKind, richText } from "./kinds";
@@ -39,6 +40,12 @@ export const Zoom = memo(function Zoom(props: {
   useEffect(() => props.onOverrides(override), [override]); // eslint-disable-line react-hooks/exhaustive-deps
   const [fetched, setFetched] = useState<Record<string, string>>({}); // `${node}.${gran}` -> text
   const [pending, setPending] = useState<Record<string, boolean>>({});
+  // tool results name their call only by id; one lookup for the whole session
+  const calls = useMemo(() => {
+    const m = new Map<string, Event>();
+    for (const e of props.events?.values() ?? []) if (e.kind === "tool.call" && e.tool?.call_id) m.set(e.tool.call_id, e);
+    return m;
+  }, [props.events]);
 
   const request = async (node: StructureNode, g: Granularity) => {
     const key = `${node.id}.${g}`;
@@ -183,7 +190,7 @@ export const Zoom = memo(function Zoom(props: {
             {(g === "full" || showText || ownImages(node, props.events).length > 0 || isRoot) && (
             <div className="text-block">
               {g === "full" ? (
-                node.level >= 3 ? <Events node={node} events={props.events} query={props.query} /> : <p className="prose muted">The full text is in the steps below.</p>
+                node.level >= 3 ? <Events node={node} events={props.events} calls={calls} query={props.query} /> : <p className="prose muted">The full text is in the steps below.</p>
               ) : showText ? (
                 <p className={`prose ${text === undefined ? "muted" : ""}`}>{richText(text ?? structuralFallback(node, g), props.query)}</p>
               ) : null}
@@ -306,7 +313,7 @@ function Images({ session, refs }: { session: string; refs: ImageRef[] }) {
 const PROSE = new Set(["user.prompt", "assistant.text", "compaction"]);
 
 /** Raw events of a step (L3) in append order: words as prose, tool input and output as code. */
-function Events({ node, events, query }: { node: StructureNode; events?: Map<string, Event>; query?: string }) {
+function Events({ node, events, calls, query }: { node: StructureNode; events?: Map<string, Event>; calls: Map<string, Event>; query?: string }) {
   if (!events) return <p className="prose muted">Loading events…</p>;
   const ids = node.event_ids ?? [];
   return (
@@ -323,7 +330,7 @@ function Events({ node, events, query }: { node: StructureNode; events?: Map<str
                 <KindIcon kind={k} size={13} />
                 {e.kind === "tool.result" ? "Result" : KIND[k].label}
               </span>
-              {e.tool?.name && <span className="tool-name">{e.tool.name}</span>}
+              {(e.tool?.name || (e.tool?.call_id && calls.get(e.tool.call_id)?.tool?.name)) && <span className="tool-name">{e.tool?.name || calls.get(e.tool!.call_id!)?.tool?.name}</span>}
               {e.model && <span>{e.model}</span>}
               {e.redacted && (
                 <span className="badge redacted" title={e.redacted.rules.join(", ")}>
@@ -332,7 +339,15 @@ function Events({ node, events, query }: { node: StructureNode; events?: Map<str
               )}
               <span className="time">{fmtTime(e.ts)}</span>
             </div>
-            {PROSE.has(e.kind) ? <p className="event-prose">{richText(text, query)}</p> : <pre>{text}</pre>}
+            {PROSE.has(e.kind) ? (
+              <p className="event-prose">{richText(text, query)}</p>
+            ) : e.kind === "tool.call" ? (
+              <ToolCallView event={e} />
+            ) : e.kind === "tool.result" ? (
+              <ToolResultView event={e} call={e.tool?.call_id ? calls.get(e.tool.call_id) : undefined} />
+            ) : (
+              <pre>{text}</pre>
+            )}
             <Images session={e.session} refs={(e.data?.images ?? []) as ImageRef[]} />
           </div>
         );
