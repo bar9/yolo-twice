@@ -164,10 +164,19 @@ export interface ResumeResult {
  * second writer, so resuming a teammate's session cannot cause merge conflicts in .yolo-twice.
  * Nothing is written to ~/.claude: Claude Code resumes straight from the transcript path.
  */
+/** The session with the latest activity (by structure span); `lastActivity` overrides it with live ingest times. */
+export function lastActiveSession(store: Store, lastActivity?: Map<string, string>): string | undefined {
+  let best: { id: string; ts: string } | undefined;
+  for (const id of store.listSessions()) {
+    const ts = lastActivity?.get(id) ?? store.readStructure(id)?.span.ts_last ?? "";
+    if (!best || ts > best.ts) best = { id, ts };
+  }
+  return best?.id;
+}
+
 export function prepareResume(store: Store, projectRoot: string, session?: string, home = os.homedir()): ResumeResult {
-  const index = store.readProjectIndex();
   const ids = store.listSessions();
-  const id = session ? (ids.find((s) => s === session) ?? ids.find((s) => s.startsWith(session))) : (index?.sessions.at(-1)?.id ?? ids.at(-1));
+  const id = session ? (ids.find((s) => s === session) ?? ids.find((s) => s.startsWith(session))) : lastActiveSession(store);
   if (!id) throw new Error(session ? `no session ${session} in .yolo-twice` : "no session in .yolo-twice to resume");
   const events = store.readEvents(id);
   if (events.length === 0) throw new Error(`session ${id} has no events in .yolo-twice`);

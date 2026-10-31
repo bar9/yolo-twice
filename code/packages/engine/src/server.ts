@@ -3,10 +3,10 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { Hono } from "hono";
+import { Hono, type Context, type Next } from "hono";
 import { streamSSE } from "hono/streaming";
 import { serve, type ServerType } from "@hono/node-server";
-import { sha256, Attention, findProjectRoot, projectSlug } from "@yolo-twice/core";
+import { sha256, Attention, findProjectRoot, isSafeSessionId, projectSlug } from "@yolo-twice/core";
 import { activityFrom, type Activity, type HookPayload } from "./activity.js";
 import { ProjectRuntime, type ProjectOptions } from "./project.js";
 import { DEFAULT_HOST, isExposed, reachableAt, readProjects, VERSION, writeProjects, writeSettings } from "./state.js";
@@ -171,6 +171,14 @@ export class Engine {
       return c.json({ ...index, current: rt.currentSession() });
     });
 
+    // the id becomes a path segment under .yolo-twice/sessions: refuse anything that could leave it
+    const checkId = async (c: Context, next: Next) => {
+      if (!isSafeSessionId(c.req.param("id") ?? "")) return c.json({ error: "invalid session id" }, 400);
+      await next();
+    };
+    app.use("/api/sessions/:id", checkId);
+    app.use("/api/sessions/:id/*", checkId);
+
     app.get("/api/sessions/:id", (c) => {
       const rt = need(c.req.query("project"));
       const id = c.req.param("id");
@@ -189,7 +197,8 @@ export class Engine {
     app.get("/api/sessions/:id/graph", (c) => {
       const rt = need(c.req.query("project"));
       const level = Number(c.req.query("level") ?? 2);
-      const g = rt.store.readGraph(c.req.param("id"), level === 2 ? 2 : level);
+      if (!Number.isInteger(level)) return c.json({ error: "level must be an integer" }, 400);
+      const g = rt.store.readGraph(c.req.param("id"), level);
       if (g === undefined) throw new NotFound("graph not found");
       return c.text(g);
     });
@@ -218,10 +227,11 @@ export class Engine {
       const rt = need(body.project);
       const g = body.granularity;
       if (!body.node || (g !== "title" && g !== "abstract" && g !== "summary")) return c.json({ error: "node and granularity (title|abstract|summary) required" }, 400);
+      let timer: NodeJS.Timeout | undefined;
       const result = await Promise.race([
         rt.text(c.req.param("id"), body.node, g),
-        new Promise<never>((_, rej) => setTimeout(() => rej(new Error("summarization timed out")), 120_000)),
-      ]);
+        new Promise<never>((_, rej) => (timer = setTimeout(() => rej(new Error("summarization timed out")), 120_000))),
+      ]).finally(() => clearTimeout(timer));
       if (!result) throw new NotFound("node not found");
       return c.json(result);
     });
@@ -241,7 +251,6 @@ export class Engine {
       return c.json({ hits: rt.search.search(q, { ...filter, limit: Number(c.req.query("limit") ?? 50) }), tools: rt.search.tools() });
     });
 
-    // which interface the engine listens on; set at start (--host) it is shown, not changed
     // scripted demos live with the project's sessions: .yolo-twice/demos/<name>.json, played by the UI with ?demo=<name>
     app.get("/api/demos/:name", (c) => {
       const rt = need(c.req.query("project"));
@@ -252,6 +261,7 @@ export class Engine {
       return c.body(fs.readFileSync(file, "utf8"), 200, { "content-type": "application/json" });
     });
 
+    // which interface the engine listens on; set at start (--host) it is shown, not changed
     app.get("/api/network", (c) => c.json(this.network()));
     app.put("/api/network", async (c) => {
       const body = (await c.req.json().catch(() => ({}))) as { host?: string };
@@ -305,7 +315,7 @@ export class Engine {
 
     app.post("/hook", async (c) => {
       const body = (await c.req.json().catch(() => ({}))) as HookPayload & { session_id?: string; cwd?: string; transcript_path?: string };
-      const cwd = body.cwd ?? (body.transcript_path ? undefined : undefined);
+      const cwd = body.cwd;
       if (cwd) {
         const rt = this.register(cwd);
         this.broadcast(rt.root, "hook", { hook_event_name: body.hook_event_name, session_id: body.session_id });

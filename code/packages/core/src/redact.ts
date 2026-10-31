@@ -26,7 +26,11 @@ export const BUILTIN_RULES: RedactRule[] = [
 ];
 
 export function compileExtraRules(rules: { name: string; pattern: string; flags?: string }[]): RedactRule[] {
-  return rules.map((r) => ({ name: r.name, re: new RegExp(r.pattern, r.flags ?? "g") }));
+  // always global: without "g", String.replace redacts only the first match
+  return rules.map((r) => {
+    const flags = r.flags ?? "";
+    return { name: r.name, re: new RegExp(r.pattern, flags.includes("g") ? flags : flags + "g") };
+  });
 }
 
 export interface RedactResult {

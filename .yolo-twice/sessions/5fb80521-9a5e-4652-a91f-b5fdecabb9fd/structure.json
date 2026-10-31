@@ -104,9 +104,6 @@
             "input_tokens": 82095,
             "output_tokens": 204,
             "tool_calls": 1
-          },
-          "text": {
-            "title": "Serve yolo-twice insights UI on port 9656 for session 7f825bc9"
           }
         }
       ],

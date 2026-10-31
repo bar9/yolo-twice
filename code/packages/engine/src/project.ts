@@ -19,6 +19,7 @@ import { isOpenNode,
   type TextArtifact,
 } from "@yolo-twice/analyzers";
 import { AutoCommitter } from "./autocommit.js";
+import { lastActiveSession } from "./resume.js";
 
 export type Broadcast = (event: string, data: unknown) => void;
 
@@ -147,13 +148,7 @@ export class ProjectRuntime {
 
   /** Session with the latest activity (by structure span, falling back to ingest time). */
   currentSession(): string | undefined {
-    let best: { id: string; ts: string } | undefined;
-    for (const id of this.store.listSessions()) {
-      const s = this.store.readStructure(id);
-      const ts = this.lastActivity.get(id) ?? s?.span.ts_last ?? "";
-      if (!best || ts > best.ts) best = { id, ts };
-    }
-    return best?.id;
+    return lastActiveSession(this.store, this.lastActivity);
   }
 
   /* ---------- semantic ---------- */

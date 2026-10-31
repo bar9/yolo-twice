@@ -3,11 +3,10 @@ import fs from "node:fs";
 import path from "node:path";
 import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
-import { findProjectRoot, Store, Attention } from "@yolo-twice/core";
+import { findProjectRoot, ingestProject, Store, Attention } from "@yolo-twice/core";
 import { deriveProject, deriveSession } from "@yolo-twice/analyzers";
-import { ingestProject } from "@yolo-twice/core";
 import { Engine } from "./server.js";
-import { prepareResume } from "./resume.js";
+import { lastActiveSession, prepareResume } from "./resume.js";
 import { clearEngineState, DEFAULT_HOST, DEFAULT_PORT, health, homeDir, isExposed, localUrl, logFile, pidAlive, reachableAt, readEngineState, readSettings, VERSION, writeEngineState } from "./state.js";
 
 const args = process.argv.slice(2);
@@ -155,7 +154,7 @@ async function main(): Promise<void> {
       const root = findProjectRoot(cwd);
       const store = new Store(root);
       const sessions = store.listSessions();
-      const status = { engine: live ? { running: true, ...live, url: `${localUrl(live.port)}/` } : { running: false }, project: root, attention: store.readConfig().attention, sessions: sessions.length, current: sessions.length ? store.readProjectIndex()?.sessions.at(-1)?.id : undefined };
+      const status = { engine: live ? { running: true, ...live, url: `${localUrl(live.port)}/` } : { running: false }, project: root, attention: store.readConfig().attention, sessions: sessions.length, current: lastActiveSession(store) };
       if (has("json")) console.log(JSON.stringify(status, null, 2));
       else {
         console.log(live ? `engine: running (pid ${live.pid}, ${localUrl(live.port, live.host)}/)${isExposed(live.host) ? `, listening on ${live.host}: reachable from other machines ${reachableAt(live.port, live.host).join(" ")}` : ""}` : "engine: not running");
@@ -182,7 +181,9 @@ async function main(): Promise<void> {
       const root = findProjectRoot(cwd);
       const live = await liveEngine();
       if (live) {
-        await fetch(`${localUrl(live.port)}/api/config`, { method: "PUT", headers: { "content-type": "application/json" }, body: JSON.stringify({ project: root, attention: parsed.data }) });
+        await register(live.port);
+        const res = await fetch(`${localUrl(live.port)}/api/config`, { method: "PUT", headers: { "content-type": "application/json" }, body: JSON.stringify({ project: root, attention: parsed.data }) });
+        if (!res.ok) throw new Error(`engine refused the mode change: ${res.status} ${await res.text()}`);
       } else {
         const store = new Store(root);
         store.ensure();
@@ -223,7 +224,9 @@ async function main(): Promise<void> {
       const chunks: Buffer[] = [];
       for await (const c of process.stdin) chunks.push(c as Buffer);
       try {
-        await fetch(`${localUrl(port)}/hook`, { method: "POST", headers: { "content-type": "application/json" }, body: Buffer.concat(chunks).toString(), signal: AbortSignal.timeout(2000) });
+        // the port the running engine actually uses, not the default: `start --port` must reach the hooks too
+        const st = readEngineState();
+        await fetch(`${localUrl(st?.port ?? port, st?.host)}/hook`, { method: "POST", headers: { "content-type": "application/json" }, body: Buffer.concat(chunks).toString(), signal: AbortSignal.timeout(2000) });
       } catch {
         /* engine down: silent */
       }
