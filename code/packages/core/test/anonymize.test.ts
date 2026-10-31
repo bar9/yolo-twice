@@ -15,6 +15,8 @@ describe("anonymizePaths", () => {
     expect(a("/home/alice/.claude/projects/-home-alice-git-repo/abc.jsonl")).toBe("~/.claude/projects/<project-slug>/abc.jsonl");
     expect(a("/tmp/claude-1000/-home-alice-git-other/scratch")).toBe("/tmp/claude-1000/-~-git-other/scratch");
     expect(a("/home/bob/yolo/x and /Users/carol/src/y")).toBe("~/yolo/x and ~/src/y");
+    // other homes in prose, and other people's Claude folder names
+    expect(a("Roland's home `/home/bar9` and ~/.claude/projects/-home-bar9-yolo-twice")).toBe("Roland's home `~` and ~/.claude/projects/-~-yolo-twice");
     expect(a("drwxr-x 2 alice alice 4096 x")).toBe("drwxr-x 2 <user> <user> 4096 x");
   });
 
@@ -57,7 +59,7 @@ describe("ingest writes portable paths", () => {
       expect(raw).toContain("$PROJECT/src/routes/auth.ts");
       const src = store.readSourceState(FIXTURE_SESSION)!;
       expect(src.origin_dir.startsWith("~/claude/projects")).toBe(true);
-      expect(src.normalizer).toBe(3);
+      expect(src.normalizer).toBe(4);
       // data strings are processed too: a tool description with a path
       const desc = store.readEvents(FIXTURE_SESSION).find((e) => e.data?.description)!;
       expect(typeof desc.data!.description).toBe("string");

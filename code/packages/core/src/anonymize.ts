@@ -66,11 +66,12 @@ export function anonymizePaths(text: string, ctx: PathContext): string {
   const homeSlug = projectSlug(home);
   if (homeSlug.length > 1) out = out.replace(new RegExp(`${escapeRe(homeSlug)}-`, "g"), "-~-");
 
-  // 5. other machines' homes
+  // 5. other machines' homes, with or without a path after them, and their Claude folder names
   out = out
-    .replace(/\/home\/[A-Za-z0-9._-]+(?=\/)/g, "~")
-    .replace(/\/Users\/[A-Za-z0-9._ -]+?(?=\/)/g, "~")
-    .replace(/[A-Za-z]:\\Users\\[^\\\s"']+(?=\\)/g, "~");
+    .replace(/\/home\/[A-Za-z0-9._-]+(?![\w.-])/g, "~")
+    .replace(/\/Users\/[A-Za-z0-9._-]+(?![\w.-])/g, "~")
+    .replace(/[A-Za-z]:\\Users\\[^\\\s"']+(?=\\)/g, "~")
+    .replace(/-(?:home|Users)-[A-Za-z0-9._]+-/g, "-~-");
 
   // 6. the bare login name, whole word, when it is distinctive enough not to hit normal words
   const user = ctx.user;

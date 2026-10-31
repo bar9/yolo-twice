@@ -26,8 +26,9 @@ export interface SubagentMeta {
  *   2: mid-turn messages (queued_command attachments) become user prompts;
  *      background task notifications become system events instead of user prompts
  *   3: paths are written portably ($PROJECT, ~) and the login name as <user>; data strings are redacted too
+ *   4: other people's homes are anonymized without a trailing slash too, and their Claude folder names
  */
-export const NORMALIZER_VERSION = 3;
+export const NORMALIZER_VERSION = 4;
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
