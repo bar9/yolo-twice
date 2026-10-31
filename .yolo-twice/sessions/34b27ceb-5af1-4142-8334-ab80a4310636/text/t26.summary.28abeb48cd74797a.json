@@ -1,0 +1,9 @@
+{
+  "analyzer": "structural",
+  "created": "2026-10-31T15:36:41.690Z",
+  "granularity": "summary",
+  "hash": "28abeb48cd74797a",
+  "node": "t26",
+  "text": "[user.prompt] install claude UX plugin [assistant.thinking] [tool Bash] {\"command\":\"claude plugin marketplace list 2>&1 | head -20; claude plugin list 2>&1 | head -30\",\"description\":\"List marketplaces and installed plugins\"} [tool.result] Configured marketplaces: ❯ anthropic-plugin-directory Source: Built in (Anthropic Directory) ❯ claude-plugins-official Source: GitHub (anthropics/claude-plugins-official) ❯ yolo-twice Source: Folder ($PROJECT) From claude.ai: ❯ claudeai-my-uploads (listed as \"My Uploads\") — hosted on claude.ai, your uploads · not added Add: claude plugin marketplace add --claudeai claudeai-my-uploads ❯ (no CLI name) · listed as \"Anthropic Directory\" (browse on claude.ai) Installed plugins: ❯ yolo-twice@yolo-twice Version: 0.1.2 Read from: $PROJECT/code/plugin Scope: user…",
+  "version": "2"
+}
