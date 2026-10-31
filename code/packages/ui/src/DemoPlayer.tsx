@@ -26,6 +26,16 @@ type Loaded = { name: string; source: string; script: Demo };
 
 const framed = typeof window !== "undefined" && window.parent !== window;
 const asked = new URLSearchParams(location.search);
+// presenting: no bar, no timer, the clicker steps; past the last step it hands back to the deck at `back`
+const presenting = asked.has("present");
+const back = (() => {
+  const b = asked.get("back");
+  try {
+    return b && trustedOrigin(new URL(b).origin) ? b : undefined;
+  } catch {
+    return undefined;
+  }
+})();
 const SAVED = "yt.demo";
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 /** The pace inside a step, slow enough to talk over: the views settle first, then one action every GAP ms. */
@@ -76,7 +86,7 @@ export function useDemo(host: DemoHost) {
   const [point, setPoint] = useState<{ id: string; on?: Target } | undefined>();
   const [error, setError] = useState<string | undefined>();
   // steps with a wait go on by themselves until the presenter steps by hand; inside a deck, the deck steps
-  const [playing, setPlaying] = useState(!framed);
+  const [playing, setPlaying] = useState(!framed && !presenting);
   const playingRef = useRef(playing);
   playingRef.current = playing;
   const current = useRef({ demo, step });
@@ -224,6 +234,7 @@ export function useDemo(host: DemoHost) {
       e.preventDefault();
       e.stopPropagation();
       if (framed) parent.postMessage({ yt: "nav", dir }, "*");
+      else if (back && dir > 0 && current.current.step >= (current.current.demo?.script.steps.length ?? 0) - 1) location.href = back;
       else stepTo(current.current.step + dir);
     };
     addEventListener("keydown", onKey, true);
@@ -231,7 +242,7 @@ export function useDemo(host: DemoHost) {
   }, [demo, stepTo]);
 
   const steps = demo?.script.steps ?? [];
-  return { active: !!demo, framed, title: demo?.script.title, step, steps: steps.length, caption: steps[step]?.caption, timed: steps.some((s) => s.wait), playing, point, error, stepTo, play, pause, stop };
+  return { active: !!demo, framed: framed || presenting, title: demo?.script.title, step, steps: steps.length, caption: steps[step]?.caption, timed: steps.some((s) => s.wait), playing, point, error, stepTo, play, pause, stop };
 }
 
 /** The presenter's strip: where you are in the demo, the caption, and the way through it. Hidden inside a deck. */

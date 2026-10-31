@@ -143,19 +143,18 @@ One command installs it. Next slide: the real product, live. We click through it
 
 ---
 layout: full
-clicks: 5
 ---
 
-<LiveDemo src="http://localhost:9656/yolo-twice" script="privacy" poster="./assets/ui-split.png" />
+<HandOver ui="http://localhost:9656/yolo-twice" script="privacy" />
 
 <!--
-The live product, stepped by our clicks (.yolo-twice/demos/privacy.json). Needs the engine: /yolo-twice:yolo-twice.
+The deck hands over to the real product (.yolo-twice/demos/privacy.json). Page Down steps; after step 6 it comes back to the next slide. Needs the engine: /yolo-twice:yolo-twice.
 1. Yes. 24 hours of AI work, in the repo.
-2. [click] We asked first. One word finds it: "disclosure", our own prompt.
-3. [click] The agent counted every leak. Then masked them: $PROJECT, ~.
-4. [click] A scan alarm. False: it caught its own pattern.
-5. [click] Before the push: 0 secrets, 0 home paths.
-6. [click] The whole fix. One map.
+2. [Page Down] We asked first. One word finds it: "disclosure", our own prompt.
+3. [Page Down] The agent counted every leak. Then masked them: $PROJECT, ~.
+4. [Page Down] A scan alarm. False: it caught its own pattern.
+5. [Page Down] Before the push: 0 secrets, 0 home paths.
+6. [Page Down] The whole fix. One map.
 -->
 
 ---
