@@ -117,6 +117,11 @@ each of them. If one of them fits your need better, use it.
 Mermaid is the only diagram format we use, on GitHub, on the website, in the pitch deck and in
 the UI, so the same text renders everywhere.
 
+## Contributing
+
+The local development flow, from clone to a running engine, UI and plugin, is in
+[CONTRIBUTING.md](CONTRIBUTING.md).
+
 ## License
 
 MIT, see [license.txt](license.txt).
