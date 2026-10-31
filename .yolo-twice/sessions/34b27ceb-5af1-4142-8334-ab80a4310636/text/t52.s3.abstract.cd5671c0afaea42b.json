@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T19:34:17.738Z",
+  "granularity": "abstract",
+  "hash": "cd5671c0afaea42b",
+  "node": "t52.s3",
+  "text": "Built `code/` into a 347 MB `yolo-twice:test` image with Docker 27.3.1 and ran it with the documented flags, but published on port 9690 instead of 9656 (the running engine held 9656) and mounted a throwaway project with a sample transcript so it would not write to the same `.yolo-twice` folder. Checks from the host with `curl` passed: the UI and scripts loaded, the test session was ingested, the server answered on the LAN address 192.168.21.59, Settings showed the address locked by `YOLO_TWICE_HOST`, `.yolo-twice` was owned by the host user, and a hand-sent Stop hook logged `hook Stop … -> idle`. Not tested: the `/data` volume, the `~/.gitconfig` mount, publishing on `127.0.0.1` only, auto-commit inside the container, and access from another machine.",
+  "version": "2"
+}

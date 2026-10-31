@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T19:31:43.820Z",
+  "granularity": "abstract",
+  "hash": "12acd5f190a24349",
+  "node": "t51.s107",
+  "text": "The engine can now listen on a chosen network interface, set by a `--host` flag on `start` or `open`, by `YOLO_TWICE_HOST`, or by a Network setting in the UI that persists across restarts, with foreign addresses refused, a fallback to `127.0.0.1` when a remembered address disappears, and warnings that the unauthenticated port exposes sessions to anyone who can reach it. A two-stage `code/Dockerfile` (347 MB) runs as the host user with `~/.claude/projects` mounted read-only, and it is documented in `documentation/network.md`, `API.md` (new `/api/network` endpoints and the `activity` event) and the README. Four new engine tests bring the suite to 76 passing, an end-to-end Docker run against a sample project confirmed hooks and live updates reach the container, and the work is committed as 73be96f without being pushed.",
+  "version": "2"
+}
