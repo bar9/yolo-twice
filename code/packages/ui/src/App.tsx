@@ -13,7 +13,7 @@ import { Graph, type HoverInfo } from "./Graph";
 import { Results, Zoom } from "./Zoom";
 import { useStream } from "./useStream";
 import { resolveId, shortId, useViewState, type Layout, type SetView, type ViewState } from "./state";
-import { computeScope, followTarget, indexTree, walk } from "./scope";
+import { computeScope, foldTree, followTarget, indexTree, walk } from "./scope";
 import { DETAIL, KIND, KindIcon, kindStyle, nodeKind, richText, type Kind } from "./kinds";
 
 type Index = ProjectIndex & { current?: string };
@@ -377,7 +377,8 @@ export function App() {
         const e = events.get(id);
         return e ? [{ id, ts: Date.parse(e.ts), kind: e.kind }] : [];
       });
-      mermaid = focusMermaid(scope.graphRoot);
+      // "hide the rest" folds the graph too: runs without matches become one dashed box each
+      mermaid = focusMermaid(foldRest && scope.active && scope.matches.size > 0 ? foldTree(scope.graphRoot, scope.dim) : scope.graphRoot);
       graphIds = [...walk(scope.graphRoot)].map((n) => n.id);
       dim = scope.dim;
       hits = scope.hits;
@@ -401,7 +402,7 @@ export function App() {
       matchCount = visibleHits.length;
     }
     return { bars, ticks, tlStart, tlEnd, mermaid, graphIds, dim, hits, matchCount, tools, scopeLabel, projectWindow };
-  }, [scope, events, tree, searchIndex, sessionId, sessions, projectHits, projectTools, view.window, dq, dk]);
+  }, [scope, events, tree, searchIndex, sessionId, sessions, projectHits, projectTools, view.window, dq, dk, foldRest]);
   const { bars, ticks, tlStart, tlEnd, mermaid, graphIds, dim, hits, matchCount, tools, scopeLabel, projectWindow } = vm;
 
   // how busy the agent was across the tape: events per time bucket
