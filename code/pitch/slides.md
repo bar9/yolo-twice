@@ -367,7 +367,8 @@ class: text-center
 <p>We learned from the viewers that came first:
 <a href="https://github.com/vladar107/claudescope">Claudescope</a>,
 <a href="https://github.com/jhlee0409/claude-code-history-viewer">claude-code-history-viewer</a>,
-<a href="https://github.com/tim-hua-01/cc_transcript_viewer">cc_transcript_viewer</a>.</p>
+<a href="https://github.com/tim-hua-01/cc_transcript_viewer">cc_transcript_viewer</a>.
+Every diagram in this deck is rendered with <a href="https://github.com/obsidianmd/pele">pele</a>.</p>
 
 <p><b>Next:</b> support for AI agents beyond Claude Code, comments on saved sessions, and letting the AI search its own history.</p>
 

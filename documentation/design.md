@@ -262,43 +262,58 @@ Rules that make stop, resume and re-run safe:
 
 Not every layer costs the same. Ingestion, redaction, the structural tree and the search index
 are cheap and incremental, so they always run near realtime and the data is always complete.
-Semantic analysis through `claude -p` is the expensive layer: seconds to minutes per call,
-thousands of tokens, and it competes with the user's own session for the same subscription
-rate limit. Re-summarizing an open phase after every turn is quadratic in tokens and every
-interim result is a cache miss by design.
+Semantic analysis through `claude -p` is the expensive layer: seconds per call, thousands of
+tokens, and it competes with the user's own session for the same subscription rate limit.
+Re-summarizing an open part of the session after every turn costs tokens again and again, and
+every interim result is a cache miss by design.
 
-The slider therefore controls semantic triggers and UI attention, never ingestion. Four
-detents, not a continuous value, so each mode is testable:
+The slider therefore decides only which summaries the engine writes ahead of time. It never
+affects ingestion and never limits what can be read: whatever the slider skips is written on
+demand when the reader opens that node. Four detents, not a continuous value, so each mode is
+testable. The policy is one function, `planJobs` in `code/packages/analyzers/src/semantic.ts`.
 
-| Detent | Semantic trigger | Default zoom | UI behaviour |
+A node is *closed* once newer work follows it or the session has been idle for 30 minutes
+(`OPEN_IDLE_MS`); the newest turn and phase are *open* while the session runs.
+
+| Detent | Written ahead of time | Lag | Cost estimate shown |
 |---|---|---|---|
-| Micro management | every turn: incremental fold summary of the open phase, small model | L3 steps | live ticker, graph re-layout batched to 1 s |
-| Attentive | turn label on each Stop hook, phase summary when the phase closes | L2 turns | live, no interim phase summaries |
-| Balanced (default) | phase close only: compaction, idle gap, topic change | L1 phases | updates on phase boundaries |
-| Yolo | nothing automatic; summaries computed lazily for nodes the UI shows, or on SessionEnd | L0 digest | "catch me up": digest of everything since the user last looked |
+| Micro management | title and abstract of every turn and phase and of the session, open ones included (as interim) | seconds | ≈ 3 calls per turn |
+| Attentive | title of every closed turn; title and abstract of every closed phase | about one turn | ≈ 1 call per turn |
+| Balanced (default) | title and abstract of every closed phase | about one phase | ≈ 1 call per 4 turns |
+| Yolo | nothing | on demand | 0 |
+
+Phases are split structurally (compaction, long idle gap, topic-changing prompt), so "a phase
+closes" needs no model. The detent does not change the reader's default zoom or any other UI
+behaviour; the reader always starts at the abstract.
 
 Design rules:
 
-- The UI viewport is the demand signal. The UI requests summaries for visible nodes; the
-  slider only sets how far ahead the engine prefetches. One code path, different policy.
-- Idempotency survives the slider. A closed phase has the same input hash in every mode, so
-  its artifact is identical whether computed eagerly or lazily. Interim summaries of open
-  phases carry `interim: true` and live in `cache/`, never in the committed `sessions/`.
-- Show the cost. Next to the slider the UI displays estimated tokens per hour and update lag
-  for the current setting.
+- The reader is the demand signal. Opening a node without a summary calls
+  `POST /api/sessions/<id>/text`, which computes it with the same code path as the eager jobs.
+  The detent only decides how much is ready before anyone looks.
+- Short text is never summarized: a node whose plain text already fits the granularity is shown
+  verbatim (`analyzer: "verbatim"`), without a model call.
+- Idempotency survives the slider. Every artifact is keyed by the hash of its input text,
+  granularity and analyzer, so a closed phase gets the identical artifact whether computed
+  eagerly or lazily. Summaries of open nodes carry `interim: true` and live in
+  `cache/text/<session>/`, never in the committed `sessions/`.
+- Show the cost. Next to the slider the UI displays estimated summarization calls per hour for
+  the current session and the expected lag of the summaries.
 - The team default is `attention` in `.yolo-twice/config.json`; each person's choice goes to the
   gitignored `.yolo-twice/local.json`, changeable live from the UI header or
-  `/yolo-twice mode <micro|attentive|balanced|yolo>`. The engine reloads it without restart.
-- "Catch me up" uses a last-viewed cursor per session stored in the per-user config, so the
-  digest covers exactly what the user has not seen.
-- `claude -p` jobs run with concurrency one and a per-hour token budget derived from the
-  detent; when the budget is exhausted the engine degrades to the next lazier mode and says so
-  in the UI.
-- The call is `claude -p --bare --no-session-persistence --tools "" --max-turns 1
-  --output-format json --json-schema …`: `--bare` skips hooks so our own hooks never recurse,
-  `--no-session-persistence` keeps the summarizer out of `~/.claude/projects`, and the schema
-  returns clean text. When the CLI is missing or fails, a structural head-and-tail summarizer
-  answers instead and the artifact says so.
+  `/yolo-twice:yolo-twice mode <micro|attentive|balanced|yolo>`. The engine reloads it without
+  restart.
+- "Catch me up" summarizes the events after a last-seen cursor. The cursor is stored per
+  session in the browser (`localStorage`, `yt.seen.<session>`) and moves whenever the reader
+  shows the session, so the digest covers what this browser has not shown yet.
+- `claude -p` jobs run one at a time from a single queue. All detents use the model in
+  `analyzers.model` (default haiku). There is no token budget: the detent is the cost control.
+- The call is `claude -p --settings '{"disableAllHooks":true}' --no-session-persistence
+  --tools "" --max-turns 1 --output-format json --json-schema … --model <model>`. Disabling
+  hooks keeps our own hooks from recursing while keeping the user's login (`--bare` would skip
+  both), `--no-session-persistence` keeps the summarizer out of `~/.claude/projects`, and the
+  schema returns clean text. When the CLI is missing or fails, a structural head-and-tail
+  summarizer answers instead and the artifact says so.
 
 ## 7. Coordinated views and deep links
 
