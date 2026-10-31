@@ -377,7 +377,7 @@ export function App() {
         const e = events.get(id);
         return e ? [{ id, ts: Date.parse(e.ts), kind: e.kind }] : [];
       });
-      // "hide the rest" folds the graph too: runs without matches become one dashed box each
+      // "Hide filtered" folds the graph too: runs without matches become one dashed box each
       mermaid = focusMermaid(foldRest && scope.active && scope.matches.size > 0 ? foldTree(scope.graphRoot, scope.dim) : scope.graphRoot);
       graphIds = [...walk(scope.graphRoot)].map((n) => n.id);
       dim = scope.dim;

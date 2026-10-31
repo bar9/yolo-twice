@@ -131,10 +131,10 @@ export function FilterBar(props: {
         {!active ? "" : props.matches === 0 ? `Nothing matches in ${props.scopeLabel}` : `${props.matches} match${props.matches === 1 ? "" : "es"} in ${props.scopeLabel}`}
       </span>
       {active && props.matches > 0 && (
-        <Tip label={props.folded ? "Parts without matches are folded into one line each. Show them all." : "Fold parts without matches into one line each."}>
-          <button className={`chip ${props.folded ? "on" : ""}`} onClick={() => props.onFolded(!props.folded)} aria-pressed={props.folded}>
-            {props.folded ? <FoldVertical aria-hidden /> : <UnfoldVertical aria-hidden />}
-            {props.folded ? "Rest hidden" : "Hide the rest"}
+        <Tip label={props.folded ? "Show the parts without matches again, in the text and the graph." : "Fold the parts without matches into one line each, in the text and the graph."}>
+          <button className="chip fold-toggle" onClick={() => props.onFolded(!props.folded)}>
+            {props.folded ? <UnfoldVertical aria-hidden /> : <FoldVertical aria-hidden />}
+            {props.folded ? "Show filtered" : "Hide filtered"}
           </button>
         </Tip>
       )}

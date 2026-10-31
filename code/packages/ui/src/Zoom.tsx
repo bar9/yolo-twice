@@ -168,9 +168,9 @@ export const Zoom = memo(function Zoom(props: {
       if (openRuns.has(first.id) || run.length === 1 && !first.children.length) out.push(...run.map((i) => render(node.children[i]!, depth + 1, node.children[i - 1], node)));
       else
         out.push(
-          <button key={`run-${first.id}`} className="dim-run" onClick={() => setOpenRuns((s) => new Set(s).add(first.id))} title="Show these parts">
+          <button key={`run-${first.id}`} className="dim-run" onClick={() => setOpenRuns((s) => new Set(s).add(first.id))} title="Show these filtered parts">
             <Ellipsis size={14} aria-hidden />
-            {run.length} {run.length === 1 ? "part" : "parts"} without matches
+            {run.length} filtered
           </button>,
         );
       run = [];

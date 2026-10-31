@@ -88,7 +88,7 @@ describe("scope", () => {
       expect(nothing.active).toBe(true);
       expect(nothing.matches.size).toBe(0);
       expect(nothing.dim.size).toBe(0);
-      // "hide the rest" in the graph: runs without matches fold into one placeholder each
+      // "Hide filtered" in the graph: runs without matches fold into one placeholder each
       const errs = computeScope(root, index, { q: "", k: ["e"] });
       const folded = foldTree(root, errs.dim);
       const ids = (n: typeof root): string[] => [n.id, ...n.children.flatMap(ids)];
