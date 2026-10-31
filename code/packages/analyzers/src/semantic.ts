@@ -55,7 +55,7 @@ export interface ClaudeCliOptions {
 
 /**
  * Summarize through the user's own Claude Code CLI in headless mode.
- * --bare skips hooks (so our own hooks never recurse), --no-session-persistence keeps ~/.claude clean,
+ * disableAllHooks keeps our own hooks from recursing (--bare would also skip the login), --no-session-persistence keeps ~/.claude clean,
  * --tools "" makes it a pure text call.
  */
 export class ClaudeCliSummarizer implements Summarizer {
@@ -77,7 +77,8 @@ export class ClaudeCliSummarizer implements Summarizer {
     const schema = JSON.stringify({ type: "object", properties: { text: { type: "string" } }, required: ["text"] });
     const args = [
       "-p",
-      "--bare",
+      "--settings",
+      JSON.stringify({ disableAllHooks: true }), // no hooks (ours would recurse) but keep the login; --bare skips both
       "--no-session-persistence",
       "--tools",
       "",
@@ -94,7 +95,8 @@ export class ClaudeCliSummarizer implements Summarizer {
     const parsed = JSON.parse(out) as { structured_output?: { text?: string }; result?: string; is_error?: boolean };
     const text = parsed.structured_output?.text ?? tryParseResult(parsed.result);
     if (!text) throw new Error(`claude -p returned no text: ${out.slice(0, 300)}`);
-    return text.trim();
+    // a title is one line, even when the model adds an explanation below it
+    return input.granularity === "title" ? text.trim().split(/\n/)[0]!.trim() : text.trim();
   }
 }
 
