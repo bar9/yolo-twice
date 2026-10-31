@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T18:56:52.682Z",
+  "granularity": "summary",
+  "hash": "0ecc56b1de63442c",
+  "node": "s:83257393-7473-4d2c-9ad3-28ad72e434b1",
+  "text": "Added opt-in auto-commit in packages/engine/src/autocommit.ts. It is held in engine memory only, so it resets on restart. Enabling runs `git commit --only -- .yolo-twice` at once, then every 10 min when something changed. It skips during merges, rebases or a detached HEAD. Toggled from a header button or `yolo-twice autocommit on|off`, backed by GET/PUT /api/autocommit (1a719fa, tests pass). A stale engine hid the button until restarted. Added auto-reload: `hello` and a new `build` SSE event carry a build id, and `bun run dev` runs the engine under `bun --watch` plus `vite build --watch` (65a7fea). The header shows the next commit time (b1bc5d3). A slicing bug dropped AM/PM, fixed with locale formatting (c238968).",
+  "version": "2"
+}

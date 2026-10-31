@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T18:56:52.523Z",
+  "granularity": "summary",
+  "hash": "05d6c4287e7bf8ad",
+  "node": "t3",
+  "text": "Engine and UI now reload the page automatically. `hello` carries a build id (engine start time plus a hash of `ui/dist/index.html`), and a new `build` SSE event fires when `dist` changes; `useStream.ts` reloads when the id changes. `bun run dev` runs `dev:engine` (`bun --watch`) and `dev:ui-build` (`vite build --watch`) in parallel. In the shared browser on isolated port 9662, an engine source edit and a `dist` rewrite each reloaded the page. CONTRIBUTING.md and API.md are updated. Committed as 65a7fea with only the owned files, since others were editing core. The engine on 9656 still needs one manual restart. 57 tests pass.",
+  "version": "2"
+}

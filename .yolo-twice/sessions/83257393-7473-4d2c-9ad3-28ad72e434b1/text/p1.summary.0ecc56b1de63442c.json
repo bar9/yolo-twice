@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T18:57:06.029Z",
+  "granularity": "summary",
+  "hash": "0ecc56b1de63442c",
+  "node": "p1",
+  "text": "Added opt-in auto-commit held only in engine memory (`engine/src/autocommit.ts`, `AutoCommitter`): `git commit --only -- .yolo-twice` on enable and every 10 min when changed, skipping during merges, rebases or detached HEAD. Exposed via `/api/autocommit` GET/PUT, a header button and `yolo-twice autocommit on|off`. The button was missing because the running engine predated the change, so it was restarted. Then added auto-reload: `hello` and a new `build` SSE event carry a build id, and the page reloads when it changes. `bun run dev` runs the engine under `bun --watch` plus `vite build --watch`. The button later shows the next commit time, after a 12-hour truncation bug. Tests, typecheck and build pass; commits 1a719fa, 65a7fea, b1bc5d3, c238968.",
+  "version": "2"
+}

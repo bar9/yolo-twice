@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T18:58:08.341Z",
+  "granularity": "summary",
+  "hash": "cf1c669039d2bbee",
+  "node": "t25",
+  "text": "Swapped the double-click handlers for single clicks: graph nodes and timeline bars now zoom in on click, and session rows open on click (App.tsx, Graph.tsx, Timeline.tsx). In the reader (Zoom.tsx) a row click still expands, so a new ⤢ button zooms in, visible on hover. Removed the now-unused onSelect props so typecheck passes, and updated hint texts, README.md and documentation/design.md. The linked.mjs browser suite failed one check until the fixture engine was restarted to clear a stale index; it then passed 30/30. 57 unit tests pass. Committed as 33fac8e, not pushed.",
+  "version": "2"
+}

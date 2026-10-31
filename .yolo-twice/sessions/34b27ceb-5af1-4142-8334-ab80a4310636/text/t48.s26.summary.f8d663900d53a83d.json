@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T18:56:00.295Z",
+  "granularity": "summary",
+  "hash": "f8d663900d53a83d",
+  "node": "t48.s26",
+  "text": "Timeline playhead is now a solid orange line with an outline and a small orange triangle under the tape, kept 1 px inside the start edge. Ctrl+scroll (or ⌘) over the reader or timeline steps levels like → and ←, one step per gesture so flicks and pinches don't skip levels. Page zoom is suppressed over those areas, but Ctrl+plus and Ctrl+minus still zoom the page. The map keeps its own Ctrl+scroll enlargement. A new browser test covers both directions, the single-step flick, page zoom at 100%, and both playhead ends. One check wrongly expected zoom-out from a turn to reach the session, when it should reach the turn's phase. Committed as d8e81a9, not pushed.",
+  "version": "2"
+}

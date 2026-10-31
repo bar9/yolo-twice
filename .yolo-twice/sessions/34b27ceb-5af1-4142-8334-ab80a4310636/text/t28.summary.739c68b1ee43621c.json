@@ -1,0 +1,9 @@
+{
+  "analyzer": "structural",
+  "created": "2026-10-31T18:57:52.414Z",
+  "granularity": "summary",
+  "hash": "739c68b1ee43621c",
+  "node": "t28",
+  "text": "[user.prompt] revamp the UI use the frontend design plugin and shared browser mcp consider using a lightweight framework like https://ui.shadcn.com/ use consistent icons improve graph view improve readability of text view feel free to reconsider the overall layout like speration in seprate graph and text view the current look is cramped and sterile [assistant.thinking] [tool Skill] {\"skill\":\"frontend-design:frontend-design\",\"args\":\"Revamp the yolo-twice web UI (React + Vite, code/packages/ui): less cramped and sterile, consistent icons, better graph view, more readable text view, reconsider layout (maybe separate graph and text views). Consider shadcn/ui.\"} [tool.result] Launching skill: frontend-design:frontend-design [assistant.thinking] [assistant.text] I'll start by looking at what's …",
+  "version": "2"
+}
