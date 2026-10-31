@@ -192,6 +192,7 @@ button.crumb:hover { background: var(--sheet-2); color: var(--ink); }
 .chip:hover { border-color: var(--rule-strong); color: var(--ink); }
 .chip.on { color: var(--ink); border-color: color-mix(in srgb, var(--k, var(--ink)) 55%, transparent); background: color-mix(in srgb, var(--k, var(--ink)) 12%, var(--sheet)); }
 .match-count { font-size: 13px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.match-count.none { color: var(--ink); font-weight: 550; }
 
 /* ---------- the tape (timeline) ---------- */
 

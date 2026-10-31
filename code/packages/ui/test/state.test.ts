@@ -83,6 +83,11 @@ describe("scope", () => {
       const none = computeScope(root, index, { q: "", k: [] });
       expect(none.active).toBe(false);
       expect(none.dim.size).toBe(0);
+      // a filter that matches nothing dims nothing: the page would only turn to fog
+      const nothing = computeScope(root, index, { q: "qqxjzv", k: [] });
+      expect(nothing.active).toBe(true);
+      expect(nothing.matches.size).toBe(0);
+      expect(nothing.dim.size).toBe(0);
     } finally {
       fx.cleanup();
     }

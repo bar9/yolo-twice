@@ -358,7 +358,7 @@ export function App() {
     ticks = visibleHits.map((h) => ({ id: h.id, ts: Date.parse(h.ts), kind: h.kind }));
     for (const h of visibleHits) hits.set(sessionNode(h.session), (hits.get(sessionNode(h.session)) ?? 0) + 1);
     const active = Boolean(view.q.trim()) || view.k.length > 0;
-    for (const b of bars) if ((active && !hits.has(b.id)) || (projectWindow && (b.end < tlStart + projectWindow[0] * 1000 || b.start > tlStart + projectWindow[1] * 1000))) dim.add(b.id);
+    for (const b of bars) if ((active && visibleHits.length > 0 && !hits.has(b.id)) || (projectWindow && (b.end < tlStart + projectWindow[0] * 1000 || b.start > tlStart + projectWindow[1] * 1000))) dim.add(b.id);
     mermaid = projectToMermaid(ordered.map((s) => ({ id: s.id, label: s.label })));
     graphIds = bars.map((b) => b.id);
     matchCount = visibleHits.length;

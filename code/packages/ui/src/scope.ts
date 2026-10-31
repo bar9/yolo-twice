@@ -130,7 +130,8 @@ export function computeScope(root: StructureNode, index: SearchIndex | undefined
     for (let n: string | undefined = owner.get(id); n; n = parent.get(n)) hits.set(n, (hits.get(n) ?? 0) + 1);
   }
   const dim = new Set<string>();
-  if (active) for (const n of walk(focus)) if (!hits.has(n.id)) dim.add(n.id);
+  // with no match at all there is nothing to point at: dimming everything would only fog the page
+  if (active && matches.size > 0) for (const n of walk(focus)) if (!hits.has(n.id)) dim.add(n.id);
   // the window dims what lies outside it, filter or not
   if (windowed) for (const u of units) if (!inWindow.has(u.node.id)) for (const n of walk(u.node)) dim.add(n.id);
 

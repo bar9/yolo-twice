@@ -118,8 +118,8 @@ export function FilterBar(props: {
           </DropdownMenu>
         )}
       </div>
-      <span className="match-count" aria-live="polite">
-        {active ? `${props.matches} match${props.matches === 1 ? "" : "es"} in ${props.scopeLabel}` : ""}
+      <span className={`match-count ${active && props.matches === 0 ? "none" : ""}`} aria-live="polite">
+        {!active ? "" : props.matches === 0 ? `Nothing matches in ${props.scopeLabel}` : `${props.matches} match${props.matches === 1 ? "" : "es"} in ${props.scopeLabel}`}
       </span>
       {active && (
         <button className="chip" onClick={() => (setDraft(""), props.onQuery(""), props.onCodes([]))}>
