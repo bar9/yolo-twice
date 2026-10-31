@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T22:03:00.719Z",
+  "granularity": "title",
+  "hash": "9bed94f025911bdc",
+  "node": "t1.s1",
+  "text": "Pitch yolo-twice design to Claude, request challenges and clarifying questions",
+  "version": "2"
+}

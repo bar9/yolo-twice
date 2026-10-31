@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T21:44:43.580Z",
+  "granularity": "title",
+  "hash": "cf4af17c02cf4ba0",
+  "node": "t7",
+  "text": "Rebuild committed sessions into Claude transcripts for resume, with round-trip tests",
+  "version": "2"
+}

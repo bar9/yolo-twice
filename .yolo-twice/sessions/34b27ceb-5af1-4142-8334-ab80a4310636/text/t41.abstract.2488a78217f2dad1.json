@@ -1,0 +1,9 @@
+{
+  "analyzer": "structural",
+  "created": "2026-10-31T21:07:11.957Z",
+  "granularity": "abstract",
+  "hash": "2488a78217f2dad1",
+  "node": "t41",
+  "text": "[user.prompt] - the \"widen the scope one level\" keybinding does not work while my cursor and focus are in the text search field. How can we best enable keyboard navigation in this case while keeping it consistent with the rest of the UX? [assistant.thinking] [tool Bash] {\"command\":\"cd $PROJECT/code…",
+  "version": "2"
+}

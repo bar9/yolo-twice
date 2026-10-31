@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T20:26:46.880Z",
+  "granularity": "summary",
+  "hash": "0f88a1dfe0d47bd9",
+  "node": "t17",
+  "text": "- Concluded the open merge with the regenerated `.yolo-twice/project.json` (three sessions), then committed follow-mode UI separately as 5bccc82.\n- Added path anonymization in `packages/core/src/anonymize.ts`: `$PROJECT`, `~`, `<user>`, with redaction now covering `data` strings. Normalizer went v3, then v4.\n- `resume` now rebuilds into the gitignored `cache/resume/` and runs `claude --resume <file> --fork-session`. Checked with the real CLI.\n- Rebuilt `.yolo-twice` (08136ad): `~` went from 435 to 0, bare `<user>` from 88 to 0. 45 unit tests and 30 browser checks pass.\n- Open: Roland's sessions still contain `~`, and the project.json split is not done. The rebuild was committed before the secret-scan output was read; the match was the scan pattern itself.",
+  "version": "2"
+}

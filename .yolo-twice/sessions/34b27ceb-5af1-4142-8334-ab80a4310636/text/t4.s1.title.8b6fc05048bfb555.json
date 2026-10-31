@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T22:03:02.406Z",
+  "granularity": "title",
+  "hash": "8b6fc05048bfb555",
+  "node": "t4.s1",
+  "text": "Scope unclear: license fix requested with README.md open, no specifics",
+  "version": "2"
+}

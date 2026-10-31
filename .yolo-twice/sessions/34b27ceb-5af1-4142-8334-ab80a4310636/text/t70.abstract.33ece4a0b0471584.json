@@ -1,0 +1,9 @@
+{
+  "analyzer": "structural",
+  "created": "2026-10-31T21:48:50.186Z",
+  "granularity": "abstract",
+  "hash": "33ece4a0b0471584",
+  "node": "t70",
+  "text": "[user.prompt] slide 5 jumps to an intemediary page then to the tour in the app and one step further to http://localhost:9656/yolo-twice/34b27c?z=t. there it stays stuck without tour bar. left / right keys do not tep through the tour [assistant.thinking] [assistant.text] Three fixes: - **The page be…",
+  "version": "2"
+}

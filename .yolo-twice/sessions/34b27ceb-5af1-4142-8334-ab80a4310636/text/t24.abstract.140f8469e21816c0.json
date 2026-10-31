@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T20:26:36.660Z",
+  "granularity": "abstract",
+  "hash": "140f8469e21816c0",
+  "node": "t24",
+  "text": "Pasted images are now stored content-addressed under `sessions/<id>/images/` and linked from their prompt via `data.images`, with normalizer v5 so an image no longer becomes a fake `[image]` turn. The engine serves them at `/api/sessions/:id/images/:file`, the reader shows thumbnails, `resume.ts` re-embeds them, and `images.keep` / `images.max_bytes` in config control storage; 57 tests pass, typecheck is clean, and the reader was checked in a browser, committed as d4f74f9 (unpushed) after an accidental sweep of another session's auto-reload edits in `server.ts` was undone.",
+  "version": "2"
+}

@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T20:00:05.688Z",
+  "granularity": "abstract",
+  "hash": "75ea4306c5a9fa8a",
+  "node": "p1",
+  "text": "Added an opt-in auto-commit for `.yolo-twice` in the engine (`packages/engine/src/autocommit.ts`, `PUT /api/autocommit`, `yolo-twice autocommit on|off`), committing only that folder with `git commit --only` every 10 minutes and keeping the on/off state in memory so it resets on engine restart. The header button was missing because the running engine predated the change, so the engine was restarted; the UI then gained auto-reload via a build id on the SSE `hello` frame and a `build` event, a `bun run dev` script, and a button that shows the next commit time instead of the last. Tests (57 pass), typecheck and build pass, committed as 1a719fa, 65a7fea, b1bc5d3 and c238968, with another contributor's in-progress edits left unstaged.",
+  "version": "2"
+}

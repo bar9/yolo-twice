@@ -1,5 +1,6 @@
 {
   "agent": "claude-code",
+  "cost_usd": 0,
   "events": 197,
   "id": "83257393-7473-4d2c-9ad3-28ad72e434b1",
   "label": ".yolo-twice auto commit mode",

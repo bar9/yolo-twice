@@ -3593,6 +3593,9 @@
                 "input_tokens": 117713,
                 "output_tokens": 287,
                 "tool_calls": 0
+              },
+              "text": {
+                "abstract": "The auto-commit button now shows the next scheduled commit time (e.g. \"next 02:03 PM\"), and its tooltip gives the last commit's time, ID and file count. A first version cut the time string short and dropped AM/PM, so it now uses the locale's format (14:03 on 24-hour setups). The engine was restarted to load the change and auto-commit was re-enabled, producing commit 9b6cf18 (7 files) with the next run due at 14:03; engine tests, typecheck and build pass, split across three commits ending at c238968."
               }
             }
           ],
@@ -3611,6 +3614,9 @@
             "input_tokens": 2529784,
             "output_tokens": 7470,
             "tool_calls": 10
+          },
+          "text": {
+            "abstract": "[user.prompt] show next commit time instead of last [assistant.thinking] [tool Bash] {\"command\":\"git status --short packages/engine/src/autocommit.ts packages/ui/src/Header.tsx packages/ui/src/api.ts API.md && grep -n \\\"lastCommit\\\\|setInterval\\\" packages/engine/src/autocommit.ts packages/ui/src/He…"
           }
         }
       ],
@@ -3631,6 +3637,7 @@
         "tool_calls": 61
       },
       "text": {
+        "abstract": "Added an opt-in auto-commit for `.yolo-twice` in the engine (`packages/engine/src/autocommit.ts`, `PUT /api/autocommit`, `yolo-twice autocommit on|off`), committing only that folder with `git commit --only` every 10 minutes and keeping the on/off state in memory so it resets on engine restart. The header button was missing because the running engine predated the change, so the engine was restarted; the UI then gained auto-reload via a build id on the SSE `hello` frame and a `build` event, a `bun run dev` script, and a button that shows the next commit time instead of the last. Tests (57 pass), typecheck and build pass, committed as 1a719fa, 65a7fea, b1bc5d3 and c238968, with another contributor's in-progress edits left unstaged.",
         "summary": "Added opt-in auto-commit held only in engine memory (`engine/src/autocommit.ts`, `AutoCommitter`): `git commit --only -- .yolo-twice` on enable and every 10 min when changed, skipping during merges, rebases or detached HEAD. Exposed via `/api/autocommit` GET/PUT, a header button and `yolo-twice autocommit on|off`. The button was missing because the running engine predated the change, so it was restarted. Then added auto-reload: `hello` and a new `build` SSE event carry a build id, and the page reloads when it changes. `bun run dev` runs the engine under `bun --watch` plus `vite build --watch`. The button later shows the next commit time, after a 12-hour truncation bug. Tests, typecheck and build pass; commits 1a719fa, 65a7fea, b1bc5d3, c238968."
       }
     }
@@ -3646,6 +3653,7 @@
     "ts_last": "2026-10-31T12:54:07.232Z"
   },
   "stats": {
+    "cost_usd": 0,
     "events": 197,
     "input_tokens": 11984516,
     "output_tokens": 77499,

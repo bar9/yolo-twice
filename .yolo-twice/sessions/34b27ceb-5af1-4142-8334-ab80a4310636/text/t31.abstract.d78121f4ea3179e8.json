@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T20:31:19.588Z",
+  "granularity": "abstract",
+  "hash": "d78121f4ea3179e8",
+  "node": "t31",
+  "text": "No overlay element existed; the dimming came from the Rewinds filter (`?k=r`) active in a second tab with zero matches, so `computeScope` in `packages/ui/src/scope.ts` dimmed the whole focus once events loaded. The fix skips dimming when `matches.size` is 0 (guarded in `App.tsx` too) and `FilterBar.tsx` now shows \"Nothing matches in …\" in dark text, with a new zero-match test in `test/state.test.ts` that uses `qqxjzv` because a nonsense phrase still matched through MiniSearch word splitting. All 57 tests pass, typecheck and build are clean, the foggy URL no longer dims, and the change is committed as e97033b without a push.",
+  "version": "2"
+}

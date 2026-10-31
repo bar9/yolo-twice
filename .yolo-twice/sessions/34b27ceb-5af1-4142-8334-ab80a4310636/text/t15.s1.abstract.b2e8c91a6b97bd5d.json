@@ -1,0 +1,9 @@
+{
+  "analyzer": "structural",
+  "created": "2026-10-31T21:28:23.864Z",
+  "granularity": "abstract",
+  "hash": "b2e8c91a6b97bd5d",
+  "node": "t15.s1",
+  "text": "[user.prompt] <pasted_content id=\"bba5\"> .yolo-twice contains my home folder ~ as absulute path instead of using ~ can we filter / replace tothe tilde version? goals - better protability to the team - no disclosure of user names and FS layout - less tokens constraint claude tools might need full pa…",
+  "version": "2"
+}

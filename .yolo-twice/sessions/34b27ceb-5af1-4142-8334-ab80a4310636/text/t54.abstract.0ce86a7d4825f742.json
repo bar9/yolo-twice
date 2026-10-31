@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T20:09:54.796Z",
+  "granularity": "abstract",
+  "hash": "0ce86a7d4825f742",
+  "node": "t54",
+  "text": "Compared 12 ways to drive the yolo-twice UI and 4 session-data sources for a scripted live demo in the pitch's slide 09, and wrote the findings to ~/.claude/plans/pasted-content-id-bba5-we-are-transient-nautilus.md. The recommendation is a keyframe script player inside the UI, built on the URL view state in state.ts and the keymap in keys.ts, driven from a Slidev iframe with the existing video as fallback, and the rejected option is a JS eval endpoint in the engine because it would be unauthenticated remote code execution. Nothing is built yet; it is waiting on a go-ahead for four commits before the 1 Nov pitch and a choice between the finished build session and a transcript replayer.",
+  "version": "2"
+}

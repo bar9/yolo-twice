@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T21:15:57.047Z",
+  "granularity": "title",
+  "hash": "51a57345fc9a1f77",
+  "node": "t17.s71",
+  "text": "Amend commit that bundled a secret-scan match in session events",
+  "version": "2"
+}

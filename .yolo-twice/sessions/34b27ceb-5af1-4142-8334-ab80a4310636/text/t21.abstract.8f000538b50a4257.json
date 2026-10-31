@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T20:26:35.488Z",
+  "granularity": "abstract",
+  "hash": "8f000538b50a4257",
+  "node": "t21",
+  "text": "Re-running the command reported that the `yolo-twice` marketplace was already declared in user settings, so nothing changed. The folder-source marketplace serves plugin `yolo-twice@yolo-twice` v0.1.2 (enabled, user scope), read live from `code/plugin` in the checkout, so edits there reach new Claude Code sessions without reinstalling. The plugin's command is `/yolo-twice:yolo-twice`.",
+  "version": "2"
+}

@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T21:45:00.207Z",
+  "granularity": "title",
+  "hash": "eaf3e347a26c228d",
+  "node": "t20",
+  "text": "Scroll graph to newest node; 45vh bottom padding centers it in panes",
+  "version": "2"
+}

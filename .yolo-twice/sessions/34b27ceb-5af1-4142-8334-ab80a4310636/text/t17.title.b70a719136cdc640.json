@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T21:15:59.343Z",
+  "granularity": "title",
+  "hash": "b70a719136cdc640",
+  "node": "t17",
+  "text": "Anonymize .yolo-twice paths; continue committed sessions as forks",
+  "version": "2"
+}

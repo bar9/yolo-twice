@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T20:26:34.256Z",
+  "granularity": "abstract",
+  "hash": "53e5c7579d7ff83f",
+  "node": "t10",
+  "text": "Audited where bun and Node are required: bun for `workspace:` dependencies in four packages, `bun:test` in five test files, and `Bun.serve` in the UI mock; Node for the `node`-shebang tsc, Vite and VitePress binaries and the plain-JS engine build that `npx yolo-twice` uses. Recommends bun-only: add `--bun` to the build scripts and ship the engine as per-platform `bun build --compile` binaries on GitHub releases, which removes the Node requirement for users. Nothing was changed; `bun --bun run build` for the UI succeeded, but the engine-under-bun check failed with \"Module not found packages/engine/dist/cli.js\", so that claim is unverified.",
+  "version": "2"
+}

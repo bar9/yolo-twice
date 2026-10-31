@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T21:27:58.981Z",
+  "granularity": "abstract",
+  "hash": "3b2278231bb3a6de",
+  "node": "t67",
+  "text": "Integrated the privacy case into the pitch deck as slide 2 (\"Did we just leak everything?\") and a new live slide 5 that embeds the running yolo-twice UI via a new `pitch/components/LiveDemo.vue`, advanced one step per click from `.yolo-twice/demos/privacy.json`, with autoplay off and each step's caption drawn on the slide (`packages/ui/src/DemoPlayer.tsx` and `demo.ts` now post the caption in the step message). Committed as `3bace6e`; in the shared browser, clicking the deck moved the embedded product through its steps and updated the caption, with the engine running on localhost:9656 and the deck on localhost:3030. Still open: slide 3 still shows the old newsletter transcript, and a `Pele.vue` 500 error on the backup slides predates this change and is unfixed.",
+  "version": "2"
+}

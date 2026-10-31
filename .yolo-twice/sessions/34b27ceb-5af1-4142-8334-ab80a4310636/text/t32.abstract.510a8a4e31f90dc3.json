@@ -1,0 +1,9 @@
+{
+  "analyzer": "structural",
+  "created": "2026-10-31T20:31:18.207Z",
+  "granularity": "abstract",
+  "hash": "510a8a4e31f90dc3",
+  "node": "t32",
+  "text": "[user.prompt] when I type quickly in the search box the browser gets unresponsive and looses keypresses [assistant.thinking] [assistant.text] Two likely causes. Lost keypresses usually come from the input being reset to an older value: the box writes your text to the URL after 150 ms, and when the …",
+  "version": "2"
+}

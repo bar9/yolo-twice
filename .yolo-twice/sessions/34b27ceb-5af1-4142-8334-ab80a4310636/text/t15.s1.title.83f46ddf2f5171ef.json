@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T20:45:43.992Z",
+  "granularity": "title",
+  "hash": "83f46ddf2f5171ef",
+  "node": "t15.s1",
+  "text": "Rewrite absolute home paths to ~ in session files",
+  "version": "2"
+}

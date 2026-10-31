@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T21:44:52.370Z",
+  "granularity": "title",
+  "hash": "9fe164411b31dcc0",
+  "node": "t11",
+  "text": "Index refresh adds two fallback summaries leaking raw pasted markup",
+  "version": "2"
+}

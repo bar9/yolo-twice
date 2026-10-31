@@ -1,0 +1,9 @@
+{
+  "analyzer": "structural",
+  "created": "2026-10-31T20:26:45.338Z",
+  "granularity": "summary",
+  "hash": "4659fb27bdbf98ab",
+  "node": "t15",
+  "text": "[user.prompt] <pasted_content id=\"bba5\"> .yolo-twice contains my home folder ~ as absulute path instead of using ~ can we filter / replace tothe tilde version? goals - better protability to the team - no disclosure of user names and FS layout - less tokens constraint claude tools might need full paths, so the resume session command would need to reexpand the paths ? </pasted_content id=\"bba5\"> also chec on your comment on claude resume above. [assistant.thinking] [assistant.text] This is a new task, so I'll start the plan fresh. First I'll measure where absolute paths actually appear in `.yolo-twice/`, and check the `claude --resume` behaviour I flagged as unverified. [tool Bash] {\"command\":\"cd $PROJECT/.yolo-twice && python3 -I - <<'EOF'\\nimport os,re,json,collections\\npats={'project $PR…",
+  "version": "2"
+}

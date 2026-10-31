@@ -1,0 +1,9 @@
+{
+  "analyzer": "structural",
+  "created": "2026-10-31T22:13:06.037Z",
+  "granularity": "abstract",
+  "hash": "145b03dfce8ebd3d",
+  "node": "t75.s49",
+  "text": "[assistant.text] All three are fixed and committed (`5f4a6ce`, `742fcea`), and step 2 of the tour now looks clean. **Is there a spec?** Not that I know of; I didn't find a published list. The tags come from Claude Code and its IDE extensions, so I collected them from every transcript on this machin…",
+  "version": "2"
+}

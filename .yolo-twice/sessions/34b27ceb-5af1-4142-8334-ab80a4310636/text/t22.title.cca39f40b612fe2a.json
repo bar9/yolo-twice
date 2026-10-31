@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T22:02:59.193Z",
+  "granularity": "title",
+  "hash": "cca39f40b612fe2a",
+  "node": "t22",
+  "text": "Print link to session 34b27c in local yolo-twice viewer on port 9656",
+  "version": "2"
+}

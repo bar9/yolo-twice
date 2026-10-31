@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T20:27:07.557Z",
+  "granularity": "abstract",
+  "hash": "44580f6004dc0de0",
+  "node": "t29",
+  "text": "Replaced the page-wide Titles/Abstracts/Summaries/Full switch and the per-part −/+ with one Detail scale, Low · Medium · High · Raw, defined once in kinds.tsx (DETAIL) and used by both controls. A part that differs from the page level shows \"only here\" with a reset button, and choosing a page level clears every per-part override (useEffect in Zoom.tsx), so the two controls cannot disagree. Typecheck, the UI build, a Playwright check of the sync, and 57 bun tests pass; committed as 39a0d2c, not pushed.",
+  "version": "2"
+}

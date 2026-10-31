@@ -1,0 +1,9 @@
+{
+  "analyzer": "structural",
+  "created": "2026-10-31T20:27:05.430Z",
+  "granularity": "abstract",
+  "hash": "482d574326c68fe8",
+  "node": "t26",
+  "text": "[user.prompt] install claude UX plugin [assistant.thinking] [tool Bash] {\"command\":\"claude plugin marketplace list 2>&1 | head -20; claude plugin list 2>&1 | head -30\",\"description\":\"List marketplaces and installed plugins\"} [tool.result] Configured marketplaces: ❯ anthropic-plugin-directory Source…",
+  "version": "2"
+}

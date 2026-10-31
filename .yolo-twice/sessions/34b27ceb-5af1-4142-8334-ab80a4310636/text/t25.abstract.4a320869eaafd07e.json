@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T20:27:08.890Z",
+  "granularity": "abstract",
+  "hash": "4a320869eaafd07e",
+  "node": "t25",
+  "text": "Switched the double-click handlers to single click in Graph.tsx, Timeline.tsx, Zoom.tsx and the session table in App.tsx, removed the now-unused onSelect props, and added a ⤢ zoom-in button to reader rows (Zoom.tsx, styles.css) because a row click now expands instead. Typecheck and 57 unit tests pass, and the 30 Playwright checks in linked.mjs pass after their dblclick calls became click (one early failure came from a stale index, not this change). README.md and documentation/design.md wording is updated, and the work is committed as 33fac8e, not pushed.",
+  "version": "2"
+}

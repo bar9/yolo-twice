@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T20:26:53.485Z",
+  "granularity": "summary",
+  "hash": "708f267bf663e7e1",
+  "node": "t17.s76",
+  "text": "- `resume` rebuilds the transcript into gitignored `cache/resume/` and runs `claude --resume <file> --fork-session`, so each resume gets a new session id and never writes to `~/.claude` or the committed `sessions/<id>/`.\n- Paths are normalized on write: `$PROJECT` and `~` become placeholders, other home folders become `-~-`, login names become `<user>`. Resume expands them back. `redaction.paths: false` turns this off.\n- Effect here: `~` 435→0, bare `<user>` 88→0, session 2.25→2.21 MB; 45 unit tests and 30 browser checks pass.\n- Open: Roland's two sessions keep `~` until Roland pulls and restarts; `e-matthi-git` survives in one shell error; the `project.json` split and moving `source.json` to `cache/` is not done.",
+  "version": "2"
+}

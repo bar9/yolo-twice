@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T21:16:12.696Z",
+  "granularity": "abstract",
+  "hash": "933d5718affcc1ae",
+  "node": "t17.s76",
+  "text": "`yolo-twice resume` now rebuilds the transcript into the gitignored `cache/resume/` and runs `claude --resume <file> --fork-session`, so a teammate's resume gets its own session id and never writes into the committed `sessions/<id>/` folder, which had caused merge conflicts. Paths are rewritten on save (`$PROJECT`, `~`, `<project-slug>`, `<user>`) and `$PROJECT` and `~` are expanded back on resume, with `redaction.paths: false` in `config.json` as the off switch, and secret redaction now also covers tool descriptions and task summaries. On this repo, `~`, `-~-` and bare `<user>` counts dropped from 435, 151 and 88 to 0, the session shrank from 2.25 MB to 2.21 MB, and 45 unit tests and 30 browser checks pass; still open are Roland's two sessions, which keep `~` until he pulls, one `e-matthi-git` fragment the whole-word guard skips, and the `project.json` split.",
+  "version": "2"
+}
