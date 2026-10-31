@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Slider } from "@/components/ui/slider";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { ATTENTION, ATTENTION_LABEL, fmtDuration, fmtTime, type Attention, type AutoCommit, type Config, type StructureNode } from "./api";
+import { ATTENTION, ATTENTION_LABEL, fmtTime, type Attention, type AutoCommit, type Config, type StructureNode } from "./api";
 import { KIND } from "./kinds";
 import type { Layout } from "./state";
 import { Tip } from "./Tip";
@@ -15,12 +15,12 @@ const THEMES: { c: ThemeChoice; label: string; Icon: typeof Sun }[] = [
   { c: "dark", label: "Dark", Icon: Moon },
 ];
 
-/** Rough cost table per detent: summarization calls per turn, and how far the view lags the session. */
-const COST: Record<Attention, { callsPerTurn: number; lag: string }> = {
-  micro: { callsPerTurn: 3, lag: "seconds" },
-  attentive: { callsPerTurn: 1, lag: "about one turn" },
-  balanced: { callsPerTurn: 0.25, lag: "about one phase" },
-  yolo: { callsPerTurn: 0, lag: "only on demand" },
+/** Rough cost per detent (summarization calls per turn) and what the detent does, in words. */
+const COST: Record<Attention, { callsPerTurn: number; what: string }> = {
+  micro: { callsPerTurn: 3, what: "Summarizes as the session runs, every turn and phase within seconds." },
+  attentive: { callsPerTurn: 1, what: "Summarizes each turn when it ends." },
+  balanced: { callsPerTurn: 0.25, what: "Summarizes each phase when it ends." },
+  yolo: { callsPerTurn: 0, what: "Nothing is summarized in the background. A part is summarized when you open it, so calls happen only as you read." },
 };
 
 export interface Crumb {
@@ -196,8 +196,8 @@ export function Header(props: {
               <span>Yolo</span>
             </div>
             <p className="text-[12.5px] text-ink-2 num">
-              About {callsPerHour} calls an hour, summaries lag {COST[attention].lag}
-              {durationMs > 0 ? `. This session ran ${fmtDuration(durationMs)}.` : "."}
+              {COST[attention].what}
+              {COST[attention].callsPerTurn > 0 && ` ${callsPerHour < 1 ? "Less than one call" : `About ${callsPerHour} call${callsPerHour === 1 ? "" : "s"}`} an hour for this session.`}
             </p>
             {ac && (
               <div className="border-t pt-3">
