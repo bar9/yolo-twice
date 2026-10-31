@@ -1,4 +1,4 @@
-import { memo, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
+import { memo, useEffect, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { ToolCallView, ToolResultView } from "./ToolCall";
 import { JsonView } from "./Json";
 import { prettyJson } from "./toolview";
@@ -252,6 +252,64 @@ export const Zoom = memo(function Zoom(props: {
   useEffect(() => {
     if (!props.follow) lastTailed.current = undefined;
   }, [props.follow]);
+
+  // a change of detail (the page's, or one part's) keeps your place: the part in the middle of the pane
+  // keeps its title row where it was. It is measured while the old text is still on screen (here, in
+  // render), put back before the new text is painted, and held while summaries load in, until you scroll.
+  const placeKey = `${props.granularity}|${JSON.stringify(override)}`;
+  const lastPlaceKey = useRef(placeKey);
+  // where you are: inside a part, as a share of its height (that part's own text may change too);
+  // between parts, by the title row above the middle
+  const place = useRef<{ id: string; at: number; row?: boolean; until: number } | undefined>(undefined);
+  if (lastPlaceKey.current !== placeKey) {
+    lastPlaceKey.current = placeKey;
+    const pane = zoomRef.current?.closest<HTMLElement>(".pane-body");
+    if (pane && !props.follow) {
+      const r = pane.getBoundingClientRect();
+      const line = r.top + pane.clientHeight / 2;
+      let found: { id: string; at: number; row?: boolean } | undefined;
+      let above: { id: string; at: number; row?: boolean } | undefined;
+      // the deepest part spanning the middle (nodes nest, so the last one in document order)
+      for (const n of zoomRef.current!.querySelectorAll<HTMLElement>(".node:not(.root)")) {
+        const b = n.getBoundingClientRect();
+        if (b.top <= line && b.bottom >= line) found = { id: n.id, at: (line - b.top) / Math.max(b.height, 1) };
+        else if (!found && b.top <= line) above = { id: n.id, at: (n.querySelector(":scope > .row") ?? n).getBoundingClientRect().top - r.top, row: true };
+      }
+      const p = found ?? above;
+      place.current = p ? { ...p, until: Date.now() + 2500 } : undefined;
+    }
+  }
+  const keepPlace = () => {
+    const p = place.current;
+    const pane = zoomRef.current?.closest<HTMLElement>(".pane-body");
+    if (!p || !pane || Date.now() > p.until) return void (place.current = undefined);
+    const node = document.getElementById(p.id);
+    if (!node) return;
+    const r = pane.getBoundingClientRect();
+    const b = node.getBoundingClientRect();
+    const delta = p.row
+      ? (node.querySelector(":scope > .row") ?? node).getBoundingClientRect().top - r.top - p.at
+      : b.top + p.at * b.height - (r.top + pane.clientHeight / 2);
+    if (Math.abs(delta) > 1) pane.scrollTop += delta;
+  };
+  const keepPlaceRef = useRef(keepPlace);
+  keepPlaceRef.current = keepPlace;
+  useLayoutEffect(() => keepPlaceRef.current(), [placeKey]);
+  useEffect(() => {
+    const el = zoomRef.current;
+    const pane = el?.closest<HTMLElement>(".pane-body");
+    if (!el || !pane || typeof ResizeObserver === "undefined") return;
+    const ro = new ResizeObserver(() => keepPlaceRef.current());
+    ro.observe(el);
+    // your own scrolling takes over
+    const stop = () => (place.current = undefined);
+    const opts = { passive: true } as const;
+    for (const t of ["wheel", "touchstart", "pointerdown", "keydown"]) pane.addEventListener(t, stop, opts);
+    return () => {
+      ro.disconnect();
+      for (const t of ["wheel", "touchstart", "pointerdown", "keydown"]) pane.removeEventListener(t, stop);
+    };
+  }, []);
 
   // parts that arrive while you watch fade in; what was there when the page opened just shows
   const bornAt = useRef(Date.now() - 1000);
