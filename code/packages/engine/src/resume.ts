@@ -159,24 +159,34 @@ export interface ResumeResult {
 }
 
 /**
- * Rebuild the transcript into the gitignored cache and return the command that continues it.
- * `--fork-session` gives the continuation a new session id: the committed session never gets a
- * second writer, so resuming a teammate's session cannot cause merge conflicts in .yolo-twice.
- * Nothing is written to ~/.claude: Claude Code resumes straight from the transcript path.
+ * The session with the latest activity, by the time of its last event. Event time only: an ingest
+ * time would make an old session "current" just because it was pulled or rebuilt.
  */
-/** The session with the latest activity (by structure span); `lastActivity` overrides it with live ingest times. */
-export function lastActiveSession(store: Store, lastActivity?: Map<string, string>): string | undefined {
+export function lastActiveSession(store: Store): string | undefined {
   let best: { id: string; ts: string } | undefined;
   for (const id of store.listSessions()) {
-    const ts = lastActivity?.get(id) ?? store.readStructure(id)?.span.ts_last ?? "";
+    const ts = store.readStructure(id)?.span.ts_last ?? "";
     if (!best || ts > best.ts) best = { id, ts };
   }
   return best?.id;
 }
 
+/**
+ * Rebuild the transcript into the gitignored cache and return the command that continues it.
+ * `--fork-session` gives the continuation a new session id: the committed session never gets a
+ * second writer, so resuming a teammate's session cannot cause merge conflicts in .yolo-twice.
+ * Nothing is written to ~/.claude: Claude Code resumes straight from the transcript path.
+ */
 export function prepareResume(store: Store, projectRoot: string, session?: string, home = os.homedir()): ResumeResult {
   const ids = store.listSessions();
-  const id = session ? (ids.find((s) => s === session) ?? ids.find((s) => s.startsWith(session))) : lastActiveSession(store);
+  let id: string | undefined;
+  if (!session) id = lastActiveSession(store);
+  else if (ids.includes(session)) id = session;
+  else {
+    const matches = ids.filter((s) => s.startsWith(session));
+    if (matches.length > 1) throw new Error(`${session} matches ${matches.length} sessions: ${matches.join(", ")}; give more of the id`);
+    id = matches[0];
+  }
   if (!id) throw new Error(session ? `no session ${session} in .yolo-twice` : "no session in .yolo-twice to resume");
   const events = store.readEvents(id);
   if (events.length === 0) throw new Error(`session ${id} has no events in .yolo-twice`);

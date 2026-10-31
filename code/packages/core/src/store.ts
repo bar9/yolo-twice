@@ -124,7 +124,8 @@ export class Store {
     if (!fs.existsSync(dir)) return [];
     return fs
       .readdirSync(dir, { withFileTypes: true })
-      .filter((d) => d.isDirectory() && fs.existsSync(path.join(dir, d.name, "events.ndjson")))
+      // a folder whose name is not a usable id (e.g. a manual "x (copy)") is skipped, not a crash later
+      .filter((d) => d.isDirectory() && isSafeSessionId(d.name) && fs.existsSync(path.join(dir, d.name, "events.ndjson")))
       .map((d) => d.name)
       .sort();
   }

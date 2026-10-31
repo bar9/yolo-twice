@@ -48,7 +48,6 @@ export class ProjectRuntime {
   private indexedCount = new Map<string, number>();
   private summarizer: Summarizer;
   private readonly structural = new StructuralSummarizer();
-  lastActivity = new Map<string, string>(); // session -> ts of last ingest
   readonly autoCommit: AutoCommitter;
 
   constructor(
@@ -122,7 +121,6 @@ export class ProjectRuntime {
     }
     for (const id of changed) {
       this.broadcast("ingest", { session: id, appended: res.appended[id] ?? 0 });
-      this.lastActivity.set(id, new Date().toISOString());
       if (res.reset.includes(id)) this.indexedCount.delete(id);
       this.indexSession(id);
       const built = deriveSession(this.store, id);
@@ -146,9 +144,9 @@ export class ProjectRuntime {
     return cfg;
   }
 
-  /** Session with the latest activity (by structure span, falling back to ingest time). */
+  /** Session with the latest activity (by the time of its last event). */
   currentSession(): string | undefined {
-    return lastActiveSession(this.store, this.lastActivity);
+    return lastActiveSession(this.store);
   }
 
   /* ---------- semantic ---------- */

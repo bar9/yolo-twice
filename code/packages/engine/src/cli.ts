@@ -52,6 +52,7 @@ async function ensureEngine(): Promise<number> {
 
 async function register(p: number): Promise<{ root: string; sessions: number }> {
   const res = await fetch(`${localUrl(p)}/api/projects`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ cwd }) });
+  if (!res.ok) throw new Error(`engine could not register ${cwd}: ${res.status} ${await res.text()}`);
   return (await res.json()) as { root: string; sessions: number };
 }
 
@@ -180,11 +181,10 @@ async function main(): Promise<void> {
       if (!parsed.success) throw new Error("usage: yolo-twice mode <micro|attentive|balanced|yolo>");
       const root = findProjectRoot(cwd);
       const live = await liveEngine();
-      if (live) {
-        await register(live.port);
-        const res = await fetch(`${localUrl(live.port)}/api/config`, { method: "PUT", headers: { "content-type": "application/json" }, body: JSON.stringify({ project: root, attention: parsed.data }) });
-        if (!res.ok) throw new Error(`engine refused the mode change: ${res.status} ${await res.text()}`);
-      } else {
+      // through the engine when it serves this project, so open UIs follow; otherwise straight to local.json
+      const res = live ? await fetch(`${localUrl(live.port)}/api/config`, { method: "PUT", headers: { "content-type": "application/json" }, body: JSON.stringify({ project: root, attention: parsed.data }) }) : undefined;
+      if (res && !res.ok && res.status !== 404) throw new Error(`engine refused the mode change: ${res.status} ${await res.text()}`);
+      if (!res?.ok) {
         const store = new Store(root);
         store.ensure();
         store.writeLocalConfig({ attention: parsed.data });
@@ -224,9 +224,11 @@ async function main(): Promise<void> {
       const chunks: Buffer[] = [];
       for await (const c of process.stdin) chunks.push(c as Buffer);
       try {
-        // the port the running engine actually uses, not the default: `start --port` must reach the hooks too
+        // an explicit --port / YOLO_TWICE_PORT wins; else the port a live engine recorded at start; else the default
         const st = readEngineState();
-        await fetch(`${localUrl(st?.port ?? port, st?.host)}/hook`, { method: "POST", headers: { "content-type": "application/json" }, body: Buffer.concat(chunks).toString(), signal: AbortSignal.timeout(2000) });
+        const live = st && pidAlive(st.pid) ? st : undefined;
+        const explicit = flag("port") ?? process.env.YOLO_TWICE_PORT;
+        await fetch(explicit || !live ? `${localUrl(port)}/hook` : `${localUrl(live.port, live.host)}/hook`, { method: "POST", headers: { "content-type": "application/json" }, body: Buffer.concat(chunks).toString(), signal: AbortSignal.timeout(2000) });
       } catch {
         /* engine down: silent */
       }

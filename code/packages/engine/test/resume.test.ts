@@ -70,6 +70,12 @@ describe("resume", () => {
       // rebuilding is idempotent
       const again = prepareResume(store, "/home/bob/clone", FIXTURE_SESSION, "/home/bob");
       expect(fs.readFileSync(again.transcript, "utf8")).toBe(text);
+      // a prefix that fits two sessions is refused, not resolved to the first
+      const twin = path.join(store.dir, "sessions", `${FIXTURE_SESSION.slice(0, 4)}-twin`);
+      fs.mkdirSync(twin, { recursive: true });
+      fs.copyFileSync(store.eventsFile(FIXTURE_SESSION), path.join(twin, "events.ndjson"));
+      expect(() => prepareResume(store, "/home/bob/clone", FIXTURE_SESSION.slice(0, 4), "/home/bob")).toThrow(/matches 2 sessions/);
+      expect(prepareResume(store, "/home/bob/clone", FIXTURE_SESSION.slice(0, 8), "/home/bob").session).toBe(FIXTURE_SESSION);
     } finally {
       if (prev === undefined) delete process.env.CLAUDE_CONFIG_DIR; else process.env.CLAUDE_CONFIG_DIR = prev;
       fx.cleanup();
