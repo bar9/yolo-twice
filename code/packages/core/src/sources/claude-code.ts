@@ -25,8 +25,9 @@ export interface SubagentMeta {
  * .yolo-twice indexes rebuild once instead of mixing old and new event shapes.
  *   2: mid-turn messages (queued_command attachments) become user prompts;
  *      background task notifications become system events instead of user prompts
+ *   3: paths are written portably ($PROJECT, ~) and the login name as <user>; data strings are redacted too
  */
-export const NORMALIZER_VERSION = 2;
+export const NORMALIZER_VERSION = 3;
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 

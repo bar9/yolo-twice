@@ -120,6 +120,8 @@ export const Config = z.object({
   redaction: z.object({
     extra_rules: z.array(RedactionRule),
     max_text_chars: z.number(),
+    /** Write paths as $PROJECT/… and ~/…, and the login name as <user>. */
+    paths: z.boolean().default(true),
   }),
   analyzers: z.object({
     semantic: z.boolean(),
@@ -132,7 +134,7 @@ export const DEFAULT_CONFIG: Config = {
   version: 1,
   attention: "balanced",
   sources: ["claude-code"],
-  redaction: { extra_rules: [], max_text_chars: 8000 },
+  redaction: { extra_rules: [], max_text_chars: 8000, paths: true },
   analyzers: { semantic: true, model: "haiku" },
 };
 

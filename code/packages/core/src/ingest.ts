@@ -1,4 +1,6 @@
 import fs from "node:fs";
+import os from "node:os";
+import { anonymizePaths, mapStrings, type PathContext } from "./anonymize.js";
 import { claudeProjectDir } from "./paths.js";
 import { BUILTIN_RULES, compileExtraRules, redact, truncate, type RedactRule } from "./redact.js";
 import type { Event, FileCursor, SourceState } from "./schema.js";
@@ -13,6 +15,8 @@ export interface IngestOptions {
   originDir?: string;
   /** Only ingest this session. */
   session?: string;
+  /** Override home and login name for path anonymization (tests). Root is always `cwd`. */
+  paths?: Partial<Omit<PathContext, "root">>;
 }
 
 export interface IngestResult {
@@ -21,11 +25,23 @@ export interface IngestResult {
   reset: string[];
 }
 
-function applyRedaction(ev: Event, rules: RedactRule[], maxChars: number): Event {
-  const r = redact(ev.text, rules);
-  const text = truncate(r.text, maxChars);
-  const out: Event = { ...ev, text };
-  if (r.count > 0) out.redacted = { count: r.count, rules: r.rules };
+/**
+ * Everything user-written that reaches .yolo-twice passes here: secrets are redacted, then
+ * machine paths are made portable and anonymous. `data` strings get the same treatment as
+ * the text (tool descriptions, task summaries).
+ */
+function applyRedaction(ev: Event, rules: RedactRule[], maxChars: number, paths: PathContext | undefined): Event {
+  let count = 0;
+  const hit = new Set<string>();
+  const clean = (s: string) => {
+    const r = redact(s, rules);
+    count += r.count;
+    r.rules.forEach((x) => hit.add(x));
+    return paths ? anonymizePaths(r.text, paths) : r.text;
+  };
+  const out: Event = { ...ev, text: truncate(clean(ev.text), maxChars) };
+  if (ev.data) out.data = mapStrings(ev.data, clean);
+  if (count > 0) out.redacted = { count, rules: [...hit] };
   return out;
 }
 
@@ -49,6 +65,11 @@ export function ingestProject(opts: IngestOptions): IngestResult {
   const config = store.readConfig();
   const rules = [...BUILTIN_RULES, ...compileExtraRules(config.redaction.extra_rules)];
   const originDir = opts.originDir ?? claudeProjectDir(opts.cwd);
+  const pathCtx: PathContext | undefined = config.redaction.paths
+    ? { root: opts.cwd, home: opts.paths?.home ?? os.homedir(), user: opts.paths?.user ?? safeUser() }
+    : undefined;
+  // the cursor keeps where the source lives, written portably too
+  const originStored = pathCtx ? anonymizePaths(originDir, pathCtx) : originDir;
   const files = discoverSessionFiles(originDir).filter((f) => !opts.session || f.session === opts.session);
 
   const result: IngestResult = { changed: [], appended: {}, reset: [] };
@@ -57,14 +78,14 @@ export function ingestProject(opts: IngestOptions): IngestResult {
 
   // one writer per session at a time: cursor read, append and cursor write happen under the lock
   for (const [session, sessionFiles] of bySession) store.withSessionLock(session, () => {
-    let state: SourceState = store.readSourceState(session) ?? { agent: "claude-code", session, origin_dir: originDir, files: {} };
+    let state: SourceState = store.readSourceState(session) ?? { agent: "claude-code", session, origin_dir: originStored, files: {} };
     let appended = 0;
 
     // events written by an older normalizer -> rebuild that session from scratch
     if (Object.keys(state.files).length > 0 && state.normalizer !== NORMALIZER_VERSION) {
       store.resetSession(session);
       result.reset.push(session);
-      state = { agent: "claude-code", session, origin_dir: originDir, files: {} };
+      state = { agent: "claude-code", session, origin_dir: originStored, files: {} };
     }
 
     // detect replaced or truncated source files -> rebuild that session from scratch
@@ -77,7 +98,7 @@ export function ingestProject(opts: IngestOptions): IngestResult {
         if (replaced) {
           store.resetSession(session);
           result.reset.push(session);
-          state = { agent: "claude-code", session, origin_dir: originDir, files: {} };
+          state = { agent: "claude-code", session, origin_dir: originStored, files: {} };
         }
       }
     }
@@ -108,7 +129,7 @@ export function ingestProject(opts: IngestOptions): IngestResult {
         });
         for (const ev of evs) {
           lastTs = ev.ts;
-          events.push(applyRedaction(ev, rules, config.redaction.max_text_chars));
+          events.push(applyRedaction(ev, rules, config.redaction.max_text_chars, pathCtx));
         }
       }
 
@@ -171,4 +192,12 @@ export function ingestProject(opts: IngestOptions): IngestResult {
 
 export function sessionFilesFor(cwd: string, originDir?: string): SessionFile[] {
   return discoverSessionFiles(originDir ?? claudeProjectDir(cwd));
+}
+
+function safeUser(): string | undefined {
+  try {
+    return os.userInfo().username;
+  } catch {
+    return undefined;
+  }
 }
