@@ -12,6 +12,7 @@ import xml from "highlight.js/lib/languages/xml";
 import yaml from "highlight.js/lib/languages/yaml";
 import { ExternalLink, FileText, Scissors } from "lucide-react";
 import type { Event } from "./api";
+import { JsonView } from "./Json";
 import { richText } from "./kinds";
 import { langForPath, parseInput, prettyJson, splitFences, splitGutter, splitHeredocs, type Lang } from "./toolview";
 
@@ -171,12 +172,18 @@ function Fields({ fields, cut }: { fields: Record<string, unknown>; cut: React.R
     <div className="tool-call">
       <dl className="tool-fields">
         {entries.map(([k, v]) => {
-          const s = typeof v === "string" ? v : JSON.stringify(v, null, 2);
-          const block = typeof v !== "string" ? (s?.length ?? 0) > 60 : s.includes("\n") || s.length > 120;
+          if (typeof v !== "string")
+            return (
+              <div key={k} className={v !== null && typeof v === "object" ? "block" : ""}>
+                <dt>{k}</dt>
+                <dd>{v !== null && typeof v === "object" ? <JsonView value={v} /> : <code>{String(v)}</code>}</dd>
+              </div>
+            );
+          const block = v.includes("\n") || v.length > 120;
           return (
             <div key={k} className={block ? "block" : ""}>
               <dt>{k}</dt>
-              <dd>{block ? <Code text={s} lang={typeof v === "string" ? (k === "function" || k === "code" ? "javascript" : "plaintext") : "json"} /> : <code>{s}</code>}</dd>
+              <dd>{block ? <Code text={v} lang={k === "function" || k === "code" ? "javascript" : "plaintext"} /> : <code>{v}</code>}</dd>
             </div>
           );
         })}
@@ -189,6 +196,11 @@ function Fields({ fields, cut }: { fields: Record<string, unknown>; cut: React.R
 /** A tool result, shaped by what it is: file contents with their gutter, JSON pretty, markdown with fenced code. */
 export function ToolResultView({ event, call }: { event: Event; call?: Event }) {
   const text = event.text || "";
+  const json = useMemo(() => {
+    if (call?.tool?.name === "Read") return undefined;
+    const pretty = prettyJson(text);
+    return pretty ? { value: JSON.parse(pretty) as unknown, source: pretty } : undefined;
+  }, [text, call]);
   const parts = useMemo((): { kind: "text" | "code"; text: string; lang: Lang; start?: number }[] => {
     const name = call?.tool?.name;
     if (name === "Read") {
@@ -202,7 +214,7 @@ export function ToolResultView({ event, call }: { event: Event; call?: Event }) 
   }, [text, call]);
   return (
     <div className={`tool-result ${event.data?.is_error ? "error" : ""}`}>
-      {parts.map((p, i) => (p.kind === "code" ? <Code key={i} text={p.text} lang={p.lang} start={p.start} /> : <p key={i} className="tool-text">{p.text.trim()}</p>))}
+      {json ? <JsonView value={json.value} source={json.source} /> : parts.map((p, i) => (p.kind === "code" ? <Code key={i} text={p.text} lang={p.lang} start={p.start} /> : <p key={i} className="tool-text">{p.text.trim()}</p>))}
     </div>
   );
 }

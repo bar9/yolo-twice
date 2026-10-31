@@ -1,5 +1,7 @@
 import { memo, useEffect, useMemo, useRef, useState } from "react";
 import { ToolCallView, ToolResultView } from "./ToolCall";
+import { JsonView } from "./Json";
+import { prettyJson } from "./toolview";
 import { Bot, ChevronRight, Coins, Focus, Image, Minus, Plus, RotateCcw, Search, TriangleAlert, Undo2, Wrench } from "lucide-react";
 import { ancestors, api, fmtDuration, fmtTime, fmtTokens, walk, type Event, type Granularity, type ImageRef, type StructureNode } from "./api";
 import { DETAIL_LABEL, DETAIL_ORDER, eventKind, KIND, KindIcon, kindStyle, nodeKind, richText } from "./kinds";
@@ -393,6 +395,12 @@ function Images({ session, refs }: { session: string; refs: ImageRef[] }) {
   );
 }
 
+/** Any other record: JSON rendered as a document, everything else as it was written. */
+function RawText({ text }: { text: string }) {
+  const pretty = useMemo(() => prettyJson(text), [text]);
+  return pretty ? <JsonView value={JSON.parse(pretty)} source={pretty} /> : <pre>{text}</pre>;
+}
+
 const PROSE = new Set(["user.prompt", "assistant.text", "compaction"]);
 
 /** Raw events of a step (L3) in append order: words as prose, tool input and output as code. */
@@ -429,7 +437,7 @@ function Events({ node, events, calls, query, matches }: { node: StructureNode; 
             ) : e.kind === "tool.result" ? (
               <ToolResultView event={e} call={e.tool?.call_id ? calls.get(e.tool.call_id) : undefined} />
             ) : (
-              <pre>{text}</pre>
+              <RawText text={text} />
             )}
             <Images session={e.session} refs={(e.data?.images ?? []) as ImageRef[]} />
           </div>

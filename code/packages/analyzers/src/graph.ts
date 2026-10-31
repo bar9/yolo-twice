@@ -196,3 +196,121 @@ export function projectToMermaid(sessions: ProjectSessionRef[], direction: "TD" 
   }
   return [...lines, ...edges, ...CLASS_DEFS, ...classes].join("\n") + "\n";
 }
+
+/* ---------- structured flow: the same graph as data, for node-based renderers ---------- */
+
+/** How a box is drawn; mirrors the mermaid classes. */
+export type FlowClass = "session" | "phase" | "turn" | "branch" | "subagent" | "tool" | "error" | "text" | "prompt" | "thinking";
+
+export interface FlowNode {
+  /** Unique within the graph. Equals the structure id, except for subagent boxes (`box:<id>`). */
+  id: string;
+  /** The structure id a click on this box focuses. */
+  ref: string;
+  label: string;
+  cls: FlowClass;
+  /** Groups (phases, subagent boxes) contain other nodes. */
+  group?: boolean;
+  /** The group this node sits in. */
+  parent?: string;
+  node?: StructureNode;
+}
+
+export interface FlowEdge {
+  id: string;
+  source: string;
+  target: string;
+  kind: "seq" | "rewind" | "spawn";
+}
+
+export interface FlowGraph {
+  /** Identifies what the graph is drawn for; a new root means a new view. */
+  root: string;
+  nodes: FlowNode[];
+  edges: FlowEdge[];
+}
+
+function stepClass(step: StructureNode): FlowClass {
+  const kind = step.meta?.step_kind ?? "step";
+  if (kind === "tool") return "tool";
+  if (kind === "tool-error") return "error";
+  if (kind === "subagent") return "subagent";
+  if (kind === "prompt" || kind === "command" || kind === "queued") return "prompt";
+  return kind === "thinking" ? "thinking" : "text";
+}
+
+const turnClass = (t: StructureNode): FlowClass => (t.meta?.branch ? "branch" : "turn");
+
+class FlowBuilder {
+  nodes: FlowNode[] = [];
+  edges: FlowEdge[] = [];
+  node(n: StructureNode, cls: FlowClass, parent?: string, label = n.label): string {
+    this.nodes.push({ id: n.id, ref: n.id, label, cls, parent, node: n });
+    return n.id;
+  }
+  edge(source: string, target: string, kind: FlowEdge["kind"] = "seq") {
+    this.edges.push({ id: `${source}->${target}`, source, target, kind });
+  }
+  /** Turns in order (rewinds get a rewind edge), subagents hanging off their turn. */
+  turns(turns: StructureNode[], from: string | undefined, parent?: string): string | undefined {
+    let prev = from;
+    for (const turn of turns) {
+      const tid = this.node(turn, turnClass(turn), parent);
+      if (prev) this.edge(prev, tid, turn.meta?.branch ? "rewind" : "seq");
+      prev = tid;
+      for (const step of turn.children) {
+        if (step.meta?.step_kind !== "subagent") continue;
+        this.edge(tid, this.node(step, "subagent", parent), "spawn");
+      }
+    }
+    return prev;
+  }
+  /** Steps in sequence; a subagent with steps of its own becomes a box holding its chain. */
+  steps(parentNode: StructureNode, from: string | undefined, parent?: string): string | undefined {
+    let prev = from;
+    for (const step of parentNode.children) {
+      const cls = stepClass(step);
+      let id: string;
+      if (step.meta?.step_kind === "subagent" && step.children.length) {
+        const box = `box:${step.id}`;
+        this.nodes.push({ id: box, ref: step.id, label: step.label, cls: "subagent", group: true, parent, node: step });
+        id = this.node(step, cls, box);
+        this.steps(step, id, box);
+      } else id = this.node(step, cls, parent);
+      if (prev) this.edge(prev, id);
+      prev = id;
+    }
+    return prev;
+  }
+}
+
+/** The graph for whatever node is in focus, one level of detail below it (see focusMermaid). */
+export function focusFlow(node: StructureNode): FlowGraph {
+  const b = new FlowBuilder();
+  if (node.kind === "session") {
+    let prev: string | undefined = b.node(node, "session");
+    for (const phase of node.children) {
+      b.nodes.push({ id: phase.id, ref: phase.id, label: phase.label, cls: "phase", group: true, node: phase });
+      prev = b.turns(phase.children, prev, phase.id);
+    }
+  } else if (node.kind === "phase") {
+    b.turns(node.children, undefined);
+  } else {
+    const rid = b.node(node, node.kind === "turn" ? turnClass(node) : "subagent");
+    b.steps(node, rid);
+  }
+  return { root: node.id, nodes: b.nodes, edges: b.edges };
+}
+
+/** The project root: sessions in chronological order, ids `s:<id>`. */
+export function projectFlow(sessions: ProjectSessionRef[]): FlowGraph {
+  const b = new FlowBuilder();
+  let prev: string | undefined;
+  for (const s of sessions) {
+    const id = `s:${s.id}`;
+    b.nodes.push({ id, ref: id, label: s.label || s.id, cls: "session" });
+    if (prev) b.edge(prev, id);
+    prev = id;
+  }
+  return { root: "project", nodes: b.nodes, edges: b.edges };
+}

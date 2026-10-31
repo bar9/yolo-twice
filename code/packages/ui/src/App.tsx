@@ -1,5 +1,5 @@
 import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
-import { focusMermaid, projectToMermaid } from "@yolo-twice/analyzers/graph";
+import { focusFlow, projectFlow, type FlowGraph } from "@yolo-twice/analyzers/graph";
 import { SearchIndex, type FilterCode } from "@yolo-twice/analyzers/search";
 import { useDefaultLayout } from "react-resizable-panels";
 import { ArrowDown, ArrowUp, BookOpenText, Clock, Coins, ListTree, TriangleAlert, Wrench } from "lucide-react";
@@ -351,8 +351,7 @@ export function App() {
     let ticks: Tick[] = [];
     let tlStart = 0;
     let tlEnd = 0;
-    let mermaid = "";
-    let graphIds: string[] = [];
+    let flow: FlowGraph = { root: "", nodes: [], edges: [] };
     let dim = new Set<string>();
     let hits = new Map<string, number>();
     let matchCount = 0;
@@ -375,8 +374,7 @@ export function App() {
         const e = events.get(id);
         return e ? [{ id, ts: Date.parse(e.ts), kind: e.kind }] : [];
       });
-      mermaid = focusMermaid(scope.graphRoot);
-      graphIds = [...walk(scope.graphRoot)].map((n) => n.id);
+      flow = focusFlow(scope.graphRoot);
       dim = scope.dim;
       hits = scope.hits;
       matchCount = scope.matches.size;
@@ -394,13 +392,12 @@ export function App() {
       for (const h of visibleHits) hits.set(sessionNode(h.session), (hits.get(sessionNode(h.session)) ?? 0) + 1);
       const active = Boolean(dq.trim()) || dk.length > 0;
       for (const b of bars) if ((active && visibleHits.length > 0 && !hits.has(b.id)) || (projectWindow && (b.end < tlStart + projectWindow[0] * 1000 || b.start > tlStart + projectWindow[1] * 1000))) dim.add(b.id);
-      mermaid = projectToMermaid(ordered.map((s) => ({ id: s.id, label: s.label })));
-      graphIds = bars.map((b) => b.id);
+      flow = projectFlow(ordered.map((s) => ({ id: s.id, label: s.label })));
       matchCount = visibleHits.length;
     }
-    return { bars, ticks, tlStart, tlEnd, mermaid, graphIds, dim, hits, matchCount, tools, scopeLabel, projectWindow };
+    return { bars, ticks, tlStart, tlEnd, flow, dim, hits, matchCount, tools, scopeLabel, projectWindow };
   }, [scope, events, tree, searchIndex, sessionId, sessions, projectHits, projectTools, view.window, dq, dk]);
-  const { bars, ticks, tlStart, tlEnd, mermaid, graphIds, dim, hits, matchCount, tools, scopeLabel, projectWindow } = vm;
+  const { bars, ticks, tlStart, tlEnd, flow, dim, hits, matchCount, tools, scopeLabel, projectWindow } = vm;
 
   // how busy the agent was across the tape: events per time bucket
   const wave = useMemo(() => {
@@ -485,7 +482,7 @@ export function App() {
   );
   const graphPane = (
     <section className="pane right">
-      <Graph mermaid={mermaid} ids={graphIds} selected={sel} follow={view.follow} hover={hover} dim={dim} hits={hits} onFocus={focusOn} onHover={hoverAt} onUserMove={onGraphMove} head={graphHead} />
+      <Graph flow={flow} selected={sel} follow={view.follow} hover={hover} dim={dim} hits={hits} onFocus={focusOn} onHover={hoverAt} onUserMove={onGraphMove} head={graphHead} />
     </section>
   );
 

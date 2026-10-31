@@ -416,53 +416,54 @@ button.crumb:hover { background: var(--sheet-2); color: var(--ink); }
 /* ---------- graph: the map ---------- */
 
 .graph-wrap { position: relative; flex: 1; min-height: 0; overflow: hidden; }
-.graph {
-  position: absolute; inset: 0; overflow: hidden; cursor: grab; touch-action: none; outline: none;
-  --pele-bg: transparent;
-  --pele-fg: var(--ink);
-  --pele-muted: var(--ink-2);
-  --pele-line: var(--rule-strong);
-  --pele-surface: var(--sheet);
-  --pele-surface-alt: var(--sheet-2);
-  --pele-border: var(--rule-strong);
-  --pele-accent: var(--k-you);
-  --pele-font: var(--font-ui);
-  --pele-font-mono: var(--font-code);
-  --pele-radius: 10px;
-  background-image: radial-gradient(circle at 1px 1px, color-mix(in srgb, var(--ink-3) 35%, transparent) 1px, transparent 0);
-  background-size: 22px 22px;
+.graph-wrap:focus-visible { box-shadow: inset 0 0 0 2px var(--ring); outline: none; }
+
+/* React Flow, themed onto the palette */
+.flow .react-flow {
+  --xy-background-color: transparent;
+  --xy-edge-label-background-color: var(--paper);
+  --xy-edge-label-color: var(--k-rewind);
+  --xy-minimap-background-color: var(--sheet);
+  --xy-minimap-mask-background-color: color-mix(in srgb, var(--paper) 72%, transparent);
+  --xy-minimap-node-background-color: var(--sheet-2);
+  font-family: var(--font-ui);
 }
-.graph.panning { cursor: grabbing; }
-.graph:focus-visible { box-shadow: inset 0 0 0 2px var(--ring); }
-.graph svg { position: absolute; left: 0; top: 0; max-width: none !important; transform-origin: 0 0; }
-.graph.animate svg { transition: transform .28s cubic-bezier(.2, .7, .2, 1); }
-@media (prefers-reduced-motion: reduce) { .graph.animate svg { transition: none; } }
-.graph .pele-node { --k: var(--ink-3); transition: opacity .15s; }
-.graph .pele-node > :is(rect, polygon, path, circle, ellipse) { fill: var(--sheet); stroke: color-mix(in srgb, var(--k) 70%, var(--rule)); stroke-width: 1.25; }
-.graph .pele-node .pele-label { fill: var(--ink); }
-.graph .pele-node.turn, .graph .pele-node.prompt { --k: var(--k-you); }
-.graph .pele-node.turn > :is(rect, polygon, path) { fill: color-mix(in srgb, var(--k-you) 8%, var(--sheet)); }
-.graph .pele-node.branch { --k: var(--k-rewind); }
-.graph .pele-node.branch > :is(rect, polygon, path) { fill: color-mix(in srgb, var(--k-rewind) 9%, var(--sheet)); stroke-dasharray: 4 3; }
-.graph .pele-node.subagent { --k: var(--k-agent); }
-.graph .pele-node.subagent > :is(rect, polygon, path) { fill: color-mix(in srgb, var(--k-agent) 8%, var(--sheet)); }
-.graph .pele-node.tool { --k: var(--k-tool); }
-.graph .pele-node.error { --k: var(--k-error); }
-.graph .pele-node.error > :is(rect, polygon, path) { fill: color-mix(in srgb, var(--k-error) 8%, var(--sheet)); }
-.graph .pele-node.text { --k: var(--k-text); }
-.graph .pele-node.thinking { --k: var(--k-think); }
-.graph .pele-node.thinking > :is(rect, polygon, path) { stroke-dasharray: 3 3; fill: transparent; }
-.graph .pele-node.thinking .pele-label { fill: var(--ink-3); }
-.graph .pele-node.phase { --k: var(--ink-2); }
-.graph .pele-node.session > :is(rect, polygon, path) { fill: var(--ink); stroke: var(--ink); }
-.graph .pele-node.session .pele-label { fill: var(--paper); font-weight: 600; }
-.graph .pele-cluster > rect { fill: color-mix(in srgb, var(--sheet) 70%, transparent); fill-opacity: 1; stroke: var(--rule-strong); }
-.graph .pele-cluster .pele-label, .graph .pele-cluster text { fill: var(--ink-2); font-weight: 600; }
-.graph .is-dim { opacity: .22; }
-.graph .has-hit > :is(rect, polygon, path) { stroke: var(--mark) !important; stroke-width: 3 !important; }
-.graph .is-hover > :is(rect, polygon, path) { stroke: var(--ink) !important; stroke-width: 2 !important; }
-.graph .is-selected > :is(rect, polygon, path) { stroke: var(--ink) !important; stroke-width: 3 !important; }
-.graph .is-selected.pele-node > :is(rect, polygon, path) { filter: drop-shadow(0 4px 10px rgb(16 20 30 / .18)); }
+.flow .react-flow__pane { cursor: grab; }
+.flow .react-flow__pane.dragging { cursor: grabbing; }
+.flow .react-flow__node { cursor: pointer; }
+.flow .react-flow__node-group { background: none; border: 0; padding: 0; }
+.flow .react-flow__minimap { border: 1px solid var(--rule); border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgb(16 20 30 / .08); }
+.flow .react-flow__edge-textbg { fill: var(--paper); }
+.flow .react-flow__edge-text { font-size: 11px; font-weight: 600; fill: var(--k-rewind); }
+.flow .react-flow__edge.is-dim { opacity: .22; }
+
+/* node blocks */
+.flow .base-node { --k: var(--ink-3); border-color: color-mix(in srgb, var(--k) 45%, var(--rule)); border-left: 3px solid var(--k); }
+.flow .base-node:hover, .flow .base-node.is-hover { border-color: color-mix(in srgb, var(--k) 80%, var(--rule)); box-shadow: 0 4px 14px rgb(16 20 30 / .10); }
+.flow .base-node .flow-icon { display: grid; place-items: center; width: 18px; height: 18px; border-radius: 5px; color: var(--k); background: color-mix(in srgb, var(--k) 14%, transparent); flex: none; }
+.flow .base-node .flow-title { color: var(--k); font-size: 10.5px; }
+.flow .base-node .flow-badge { flex: none; max-width: 48%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 1px 6px; border-radius: 999px; font-family: var(--font-code); font-size: 10.5px; color: var(--ink-2); background: var(--sheet-2); border: 1px solid var(--rule); }
+.flow .base-node.cls-turn, .flow .base-node.cls-prompt { background: color-mix(in srgb, var(--k-you) 5%, var(--sheet)); }
+.flow .base-node.cls-branch { background: color-mix(in srgb, var(--k-rewind) 7%, var(--sheet)); border-style: dashed; border-left-style: solid; }
+.flow .base-node.cls-subagent { background: color-mix(in srgb, var(--k-agent) 6%, var(--sheet)); }
+.flow .base-node.cls-error { background: color-mix(in srgb, var(--k-error) 6%, var(--sheet)); }
+.flow .base-node.cls-thinking { background: transparent; border-style: dashed; border-left-style: solid; }
+.flow .base-node.cls-thinking .base-node-content, .flow .base-node.cls-thinking p { color: var(--ink-2); font-style: italic; }
+.flow .flow-session { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.flow .flow-session header { color: color-mix(in srgb, var(--paper) 70%, transparent); }
+.flow .base-handle { opacity: 0; }
+.flow .base-node.is-dim, .flow .labeled-group.is-dim { opacity: .22; }
+.flow .base-node.has-hit { box-shadow: 0 0 0 3px var(--mark); }
+.flow .base-node.is-selected { box-shadow: 0 0 0 2px var(--ink), 0 6px 18px rgb(16 20 30 / .18); }
+.flow .base-node.is-selected.has-hit { box-shadow: 0 0 0 2px var(--ink), 0 0 0 5px var(--mark); }
+
+/* group frames: phases and subagent runs */
+.flow .labeled-group { --k: var(--ink-3); border-color: color-mix(in srgb, var(--k) 40%, var(--rule-strong)); background: color-mix(in srgb, var(--k) 3%, color-mix(in srgb, var(--sheet) 55%, transparent)); transition: border-color .15s, opacity .15s; }
+.flow .labeled-group-tab { color: var(--ink-2); background: color-mix(in srgb, var(--k) 10%, var(--sheet-2)); }
+.flow .labeled-group-tab svg { color: var(--k); }
+.flow .labeled-group:hover, .flow .labeled-group.is-hover { border-color: var(--k); }
+.flow .labeled-group.is-selected { border-style: solid; border-color: var(--ink); }
+.flow .labeled-group.has-hit { border-color: var(--mark); border-style: solid; }
 
 .graph-head { background: var(--paper); }
 .graph-where { display: flex; align-items: center; gap: 10px; min-width: 0; font-size: 13px; color: var(--ink-2); }
@@ -547,3 +548,40 @@ button.crumb:hover { background: var(--sheet-2); color: var(--ink); }
 .event.match { box-shadow: 0 0 0 1px var(--rule), inset 3px 0 0 var(--mark); }
 ::highlight(yt-search) { background-color: var(--mark-soft); color: inherit; }
 .search-note { margin: 0 0 16px; padding: 8px 12px; border-radius: 8px; background: var(--mark-soft); color: var(--ink); font-size: 13px; }
+
+/* ---------- rendered JSON: raw records as a document ---------- */
+.json-view { position: relative; font-family: var(--font-ui); font-size: 13px; line-height: 1.5; border: 1px solid var(--rule); border-radius: 8px; background: var(--sheet); padding: 8px 10px; padding-right: 70px; min-width: 0; }
+.json-view .json-view { border: 0; padding: 0; background: none; }
+.json-toggle { position: absolute; top: 6px; right: 6px; display: inline-flex; align-items: center; gap: 4px; height: 22px; padding: 0 7px; border-radius: 6px; font-size: 11px; color: var(--ink-2); border: 1px solid var(--rule); background: var(--sheet); z-index: 1; }
+.json-toggle:hover { color: var(--ink); border-color: var(--rule-strong); }
+.json-view:has(> .code) { padding: 0; }
+.json-view > .code { margin: 0; }
+.json-obj, .json-list { display: grid; gap: 2px; min-width: 0; }
+.json-row { display: grid; grid-template-columns: minmax(80px, max-content) minmax(0, 1fr); column-gap: 12px; align-items: baseline; min-width: 0; padding: 1px 0; }
+.json-row.block { grid-template-columns: minmax(0, 1fr); }
+.json-row.block > .json-val { padding-left: 14px; margin-left: 5px; border-left: 1px solid var(--rule); margin-top: 2px; margin-bottom: 4px; }
+.json-key { color: var(--ink-2); font-weight: 500; font-size: 12.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 260px; }
+.json-key button { display: inline-flex; align-items: center; gap: 4px; color: inherit; font: inherit; }
+.json-key button:hover { color: var(--ink); }
+.json-caret { transition: transform .12s; color: var(--ink-3); }
+.json-row.open > .json-key .json-caret { transform: rotate(90deg); }
+.json-sum { color: var(--ink-3); font-weight: 400; margin-left: 4px; }
+.json-idx { color: var(--ink-3); font-variant-numeric: tabular-nums; font-family: var(--font-code); font-size: 11.5px; }
+.json-val { min-width: 0; overflow-wrap: anywhere; }
+.json-str { color: var(--ink); white-space: pre-wrap; }
+.json-num { color: var(--k-you); font-family: var(--font-code); font-size: 12.5px; font-variant-numeric: tabular-nums; }
+.json-bool { display: inline-block; padding: 0 6px; border-radius: 999px; font-size: 11.5px; font-weight: 600; }
+.json-bool.yes { color: var(--k-tool); background: color-mix(in srgb, var(--k-tool) 12%, transparent); }
+.json-bool.no { color: var(--ink-2); background: var(--sheet-2); }
+.json-null { color: var(--ink-3); font-style: italic; }
+.json-path { font-family: var(--font-code); font-size: 12px; padding: 0 4px; border-radius: 4px; background: var(--sheet-2); }
+.json-link { color: var(--k-you); text-decoration: underline; text-underline-offset: 2px; }
+.json-text p { white-space: pre-wrap; margin: 0 0 6px; }
+.json-text .code { margin: 4px 0 8px; }
+.json-chips { display: flex; flex-wrap: wrap; gap: 4px; }
+.json-chips li { padding: 0 7px; border-radius: 6px; border: 1px solid var(--rule); background: var(--sheet-2); font-size: 12.5px; }
+.json-table-wrap { overflow-x: auto; border: 1px solid var(--rule); border-radius: 6px; margin: 2px 0 4px; }
+.json-table { border-collapse: collapse; font-size: 12.5px; width: 100%; }
+.json-table th { text-align: left; font-weight: 600; color: var(--ink-2); background: var(--sheet-2); padding: 4px 8px; border-bottom: 1px solid var(--rule); white-space: nowrap; }
+.json-table td { padding: 3px 8px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+.json-table tr:last-child td { border-bottom: 0; }
