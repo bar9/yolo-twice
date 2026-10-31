@@ -1,0 +1,9 @@
+{
+  "analyzer": "structural",
+  "created": "2026-10-31T10:52:33.114Z",
+  "granularity": "abstract",
+  "hash": "34568052d7e79fde",
+  "node": "t16",
+  "text": "[user.prompt] [Request interrupted by user] [assistant.text] No response requested.",
+  "version": "1"
+}

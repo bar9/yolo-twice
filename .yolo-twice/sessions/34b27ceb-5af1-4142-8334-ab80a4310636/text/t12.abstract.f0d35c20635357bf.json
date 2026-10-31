@@ -1,0 +1,9 @@
+{
+  "analyzer": "structural",
+  "created": "2026-10-31T10:52:22.901Z",
+  "granularity": "abstract",
+  "hash": "f0d35c20635357bf",
+  "node": "t12",
+  "text": "[user.prompt] also commit the .yolo-twice folder. [tool Bash] {\"command\":\"git status --short --untracked-files=all .yolo-twice; echo \\\"--- tracked ---\\\"; git ls-files .yolo-twice; echo \\\"--- on disk ---\\\"; find .yolo-twice -type f | sort; echo \\\"--- ignored ---\\\"; git status --short --ignored .yolo…",
+  "version": "1"
+}

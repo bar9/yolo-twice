@@ -1,0 +1,9 @@
+{
+  "analyzer": "structural",
+  "created": "2026-10-31T10:52:15.867Z",
+  "granularity": "title",
+  "hash": "566006d2f1ed5f64",
+  "node": "t10",
+  "text": "why do we need bun and node? can we do with only one?",
+  "version": "1"
+}

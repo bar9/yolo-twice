@@ -1,0 +1,9 @@
+{
+  "analyzer": "structural",
+  "created": "2026-10-31T10:52:25.536Z",
+  "granularity": "abstract",
+  "hash": "06f5e918718050c6",
+  "node": "t13",
+  "text": "[user.prompt] the graph search and timeline seems to disconnected tools. make them interact with each other. ie when I filter on the timeline it should affct the graph, somminz into the graph highlight the timeilne. search should be scoped on the current focus. reset scope functionality. more searc…",
+  "version": "1"
+}
