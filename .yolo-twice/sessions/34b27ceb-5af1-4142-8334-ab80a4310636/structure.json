@@ -74845,7 +74845,8 @@
             {
               "children": [],
               "event_ids": [
-                "48c9bca8-2fea-4616-bd30-ee2ce5e44d87"
+                "48c9bca8-2fea-4616-bd30-ee2ce5e44d87",
+                "efebab43-b95a-473e-a0bf-434ce62accd1"
               ],
               "id": "t78.s17",
               "kind": "step",
@@ -74857,15 +74858,40 @@
               },
               "span": {
                 "first": "48c9bca8-2fea-4616-bd30-ee2ce5e44d87",
-                "last": "48c9bca8-2fea-4616-bd30-ee2ce5e44d87",
+                "last": "efebab43-b95a-473e-a0bf-434ce62accd1",
                 "ts_first": "2026-10-31T22:23:27.315Z",
-                "ts_last": "2026-10-31T22:23:27.315Z"
+                "ts_last": "2026-10-31T22:24:58.310Z"
               },
               "stats": {
-                "events": 1,
+                "events": 2,
                 "input_tokens": 474704,
                 "output_tokens": 206,
                 "tool_calls": 1
+              }
+            },
+            {
+              "children": [],
+              "event_ids": [
+                "0f0bccdd-6964-4d2d-a3e8-422c4ec3a1ca"
+              ],
+              "id": "t78.s18",
+              "kind": "step",
+              "label": "Merged (`c95cac7`). A pull had already started the merge of the 4 new commits o…",
+              "level": 3,
+              "meta": {
+                "step_kind": "text"
+              },
+              "span": {
+                "first": "0f0bccdd-6964-4d2d-a3e8-422c4ec3a1ca",
+                "last": "0f0bccdd-6964-4d2d-a3e8-422c4ec3a1ca",
+                "ts_first": "2026-10-31T22:25:02.532Z",
+                "ts_last": "2026-10-31T22:25:02.532Z"
+              },
+              "stats": {
+                "events": 1,
+                "input_tokens": 475100,
+                "output_tokens": 343,
+                "tool_calls": 0
               }
             }
           ],
@@ -74875,14 +74901,14 @@
           "level": 2,
           "span": {
             "first": "0bc5a7db-ecc0-4b17-a64e-4c4c18abfc74",
-            "last": "48c9bca8-2fea-4616-bd30-ee2ce5e44d87",
+            "last": "2c2383bf-b231-4eac-bfaa-1fc4ce4313d3",
             "ts_first": "2026-10-31T22:22:18.676Z",
-            "ts_last": "2026-10-31T22:23:27.315Z"
+            "ts_last": "2026-10-31T22:25:02.597Z"
           },
           "stats": {
-            "events": 22,
-            "input_tokens": 7558043,
-            "output_tokens": 7244,
+            "events": 24,
+            "input_tokens": 8033143,
+            "output_tokens": 7587,
             "tool_calls": 6
           }
         }
@@ -74896,14 +74922,14 @@
       },
       "span": {
         "first": "9a1e06b6-7641-43e0-b102-75f5528c2e8f",
-        "last": "48c9bca8-2fea-4616-bd30-ee2ce5e44d87",
+        "last": "2c2383bf-b231-4eac-bfaa-1fc4ce4313d3",
         "ts_first": "2026-10-31T19:48:44.665Z",
-        "ts_last": "2026-10-31T22:23:27.315Z"
+        "ts_last": "2026-10-31T22:25:02.597Z"
       },
       "stats": {
-        "events": 856,
-        "input_tokens": 171642396,
-        "output_tokens": 606879,
+        "events": 858,
+        "input_tokens": 172117496,
+        "output_tokens": 607222,
         "tool_calls": 268
       },
       "text": {
@@ -74917,15 +74943,15 @@
   "level": 0,
   "span": {
     "first": "4a81e520-87a7-4e2f-a80f-43d7e5a0cdd7",
-    "last": "48c9bca8-2fea-4616-bd30-ee2ce5e44d87",
+    "last": "2c2383bf-b231-4eac-bfaa-1fc4ce4313d3",
     "ts_first": "2026-10-31T08:19:31.745Z",
-    "ts_last": "2026-10-31T22:23:27.315Z"
+    "ts_last": "2026-10-31T22:25:02.597Z"
   },
   "stats": {
     "cost_usd": 107.66112520000001,
-    "events": 4023,
-    "input_tokens": 860328841,
-    "output_tokens": 3290279,
+    "events": 4025,
+    "input_tokens": 860803941,
+    "output_tokens": 3290622,
     "tool_calls": 1215
   },
   "text": {
