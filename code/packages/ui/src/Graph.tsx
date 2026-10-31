@@ -1,6 +1,7 @@
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { mount, register } from "pele/core";
 import flowchart from "pele/diagrams/flowchart";
+import type { FilterCode } from "@yolo-twice/analyzers/search";
 import { KIND, kindStyle, type Kind } from "./kinds";
 import { Maximize, Minus, Plus, Type } from "lucide-react";
 
@@ -21,18 +22,24 @@ const MAX = 2.5;
 const READABLE = 0.72;
 const PAD = 28;
 
-/** Which kinds the graph shows, with their icon and colour. */
-export function Legend({ kinds }: { kinds: Kind[] }) {
+/** The filter each legend kind stands for (the same codes as the filter chips). */
+const KIND_CODE: Partial<Record<Kind, FilterCode>> = { you: "u", text: "a", think: "h", tool: "t", error: "e", agent: "s", compaction: "c", command: "c", rewind: "r" };
+
+/** Which kinds the graph shows, with their icon and colour; a click shows only that kind, like its chip. */
+export function Legend({ kinds, active, onToggle }: { kinds: Kind[]; active: FilterCode[]; onToggle: (code: FilterCode) => void }) {
   if (!kinds.length) return null;
   return (
-    <div className="legend" aria-label="Legend">
+    <div className="legend" role="group" aria-label="Legend and filter">
       {kinds.map((k) => {
         const Icon = KIND[k].icon;
+        const code = KIND_CODE[k];
+        if (!code) return null;
+        const on = active.includes(code);
         return (
-          <span key={k} style={kindStyle(k)}>
+          <button key={k} style={kindStyle(k)} className={on ? "on" : ""} aria-pressed={on} onClick={() => onToggle(code)} title={on ? `Showing ${KIND[k].label.toLowerCase()}: click to clear` : `Highlight only ${KIND[k].label.toLowerCase()}`}>
             <Icon aria-hidden />
             {KIND[k].label}
-          </span>
+          </button>
         );
       })}
     </div>

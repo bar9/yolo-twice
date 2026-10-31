@@ -481,7 +481,7 @@ export function App() {
           <Network size={15} aria-hidden />
           <span>{graphTitle}</span>
         </span>
-        <Legend kinds={legend} />
+        <Legend kinds={legend} active={view.k} onToggle={(c) => setView({ k: view.k.includes(c) ? view.k.filter((x) => x !== c) : [...view.k, c] })} />
       </div>
       <Graph mermaid={mermaid} ids={graphIds} selected={sel} follow={view.follow} hover={hover} dim={dim} hits={hits} onFocus={focusOn} onHover={hoverAt} onUserMove={onGraphMove} />
     </section>

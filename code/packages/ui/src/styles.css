@@ -439,8 +439,10 @@ button.crumb:hover { background: var(--sheet-2); color: var(--ink); }
 .graph-tools button { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 7px; color: var(--ink-2); }
 .graph-tools button:hover { background: var(--sheet-2); color: var(--ink); }
 .graph-tools .zoom-level { font-size: 11px; text-align: center; color: var(--ink-3); padding: 2px 0; font-variant-numeric: tabular-nums; }
-.legend { display: flex; gap: 12px; min-width: 0; flex: 0 1 auto; overflow: hidden; font-size: 12px; color: var(--ink-2); }
-.legend span { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; flex: none; }
+.legend { display: flex; gap: 2px; min-width: 0; flex: 0 1 auto; overflow: hidden; font-size: 12px; color: var(--ink-2); }
+.legend button { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; flex: none; height: 24px; padding: 0 7px; border-radius: 999px; color: var(--ink-2); border: 1px solid transparent; }
+.legend button:hover { color: var(--ink); background: var(--sheet-2); }
+.legend button.on { color: var(--ink); border-color: color-mix(in srgb, var(--k) 55%, transparent); background: color-mix(in srgb, var(--k) 12%, var(--sheet)); }
 .legend svg { width: 13px; height: 13px; color: var(--k); }
 
 /* ---------- catch me up ---------- */
