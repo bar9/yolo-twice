@@ -62,6 +62,8 @@ export const Graph = memo(function Graph(props: {
   hits: Map<string, number>;
   onFocus: (id: string) => void;
   onHover: (h: HoverInfo | undefined) => void;
+  /** The user moved the view: further down (towards the newest) or up, and whether the bottom is now in view. */
+  onUserMove?: (down: boolean, atTail: boolean) => void;
 }) {
   const host = useRef<HTMLDivElement>(null);
   const view = useRef({ scale: 1, x: PAD, y: PAD, w: 0, h: 0 });
@@ -183,11 +185,16 @@ export const Graph = memo(function Graph(props: {
     }
   }, [props.selected, props.hover, props.dim, props.hits, idMap, props.mermaid]);
 
-  // bring the selection into view: centred while following, otherwise only when it is off screen
+  // bring the selection into view: centred while following, otherwise only when it is off screen;
+  // switching follow off (the user moved away) must not pull the view back
+  const lastSel = useRef<string | undefined>(undefined);
   useEffect(() => {
     const el = host.current;
     if (!el || !props.selected) return;
     const sel = props.selected;
+    const same = lastSel.current === sel;
+    lastSel.current = sel;
+    if (same && !props.follow) return;
     const t = setTimeout(() => {
       let target: Element | undefined;
       let best = -1;
@@ -225,6 +232,13 @@ export const Graph = memo(function Graph(props: {
     return () => ro.disconnect();
   }, [home]);
 
+  const moved = (down: boolean) => {
+    const el = host.current;
+    if (!el || !props.onUserMove) return;
+    const v = view.current;
+    props.onUserMove(down, v.y + v.h * v.scale <= el.clientHeight - 8);
+  };
+
   const idAt = (target: EventTarget) => {
     const g = (target as Element).closest?.<SVGGElement>(".pele-node, .pele-cluster");
     return g ? idMap.get(g.dataset.id ?? "") : undefined;
@@ -247,6 +261,7 @@ export const Graph = memo(function Graph(props: {
             v.y -= e.shiftKey ? 0 : e.deltaY;
             clamp();
             apply();
+            if (!e.shiftKey && e.deltaY) moved(e.deltaY > 0);
           }
         }}
         onPointerDown={(e) => {
@@ -277,6 +292,7 @@ export const Graph = memo(function Graph(props: {
             v.y += dy;
             clamp();
             apply();
+            if (Math.abs(dy) > 1) moved(dy < 0);
           }
         }}
         onPointerUp={() => {

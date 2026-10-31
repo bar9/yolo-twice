@@ -1,4 +1,4 @@
-import { memo, useEffect, useState } from "react";
+import { memo, useEffect, useRef, useState } from "react";
 import { Bot, ChevronRight, Coins, Focus, Image, Minus, Plus, RotateCcw, Search, TriangleAlert, Undo2, Wrench } from "lucide-react";
 import { ancestors, api, fmtDuration, fmtTime, fmtTokens, walk, type Event, type Granularity, type ImageRef, type StructureNode } from "./api";
 import { DETAIL_LABEL, DETAIL_ORDER, eventKind, KIND, KindIcon, kindStyle, nodeKind, richText } from "./kinds";
@@ -56,9 +56,14 @@ export const Zoom = memo(function Zoom(props: {
 
   const toggle = (id: string) => setOpen((o) => ({ ...o, [id]: !(o[id] ?? id === props.root.id) }));
 
-  // a selection made elsewhere (graph, timeline, search) opens the path to the node and scrolls to it
+  // a selection made elsewhere (graph, timeline, search) opens the path to the node and scrolls to it;
+  // switching follow off (the user scrolled up) must not scroll back
+  const lastSel = useRef<string | undefined>(undefined);
   useEffect(() => {
     if (!props.selected) return;
+    const same = lastSel.current === props.selected;
+    lastSel.current = props.selected;
+    if (same && !props.follow) return;
     const path = ancestors(props.root, props.selected);
     if (props.follow) path.push(props.selected);
     if (path.length) setOpen((o) => ({ ...o, ...Object.fromEntries(path.map((id) => [id, true])) }));

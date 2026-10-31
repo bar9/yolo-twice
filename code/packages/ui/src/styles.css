@@ -165,8 +165,14 @@ button.crumb:hover { background: var(--sheet-2); color: var(--ink); }
 .follow.on { color: var(--rec); border-color: color-mix(in srgb, var(--rec) 45%, var(--rule)); background: var(--rec-soft); }
 .follow.on svg { animation: rec-pulse 1.6s ease-in-out infinite; }
 @keyframes rec-pulse { 50% { opacity: .35; } }
-.unseen { background: var(--rec); color: #fff; border-color: var(--rec); }
-.unseen:hover { background: color-mix(in srgb, var(--rec) 88%, #000); color: #fff; }
+.panes { position: relative; }
+.unseen.jump {
+  position: absolute; left: 50%; bottom: 22px; translate: -50% 0; z-index: 20;
+  display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 14px 0 11px; border-radius: 999px;
+  background: var(--rec); color: #fff; font-weight: 600; font-size: 13.5px; font-variant-numeric: tabular-nums;
+  box-shadow: 0 8px 24px -8px color-mix(in srgb, var(--rec) 70%, transparent);
+}
+.unseen.jump:hover { background: color-mix(in srgb, var(--rec) 88%, #000); }
 
 /* ---------- search and filters ---------- */
 

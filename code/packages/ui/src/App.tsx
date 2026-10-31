@@ -1,8 +1,8 @@
-import { useCallback, useDeferredValue, useEffect, useMemo, useState } from "react";
+import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { focusMermaid, projectToMermaid } from "@yolo-twice/analyzers/graph";
 import { SearchIndex, type FilterCode } from "@yolo-twice/analyzers/search";
 import { useDefaultLayout } from "react-resizable-panels";
-import { BookOpenText, Clock, Coins, ListTree, Network, TriangleAlert, Wrench } from "lucide-react";
+import { ArrowDown, BookOpenText, Clock, Coins, ListTree, Network, TriangleAlert, Wrench } from "lucide-react";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { api, fmtDuration, fmtTime, fmtTokens, setProject, storage, store, type Attention, type AutoCommit, type Config, type Event, type Granularity, type ProjectIndex, type SearchHit, type StructureNode } from "./api";
@@ -206,6 +206,40 @@ export function App() {
   useEffect(() => setSeen(0), [sessionId]);
   const unseen = !view.follow && seen > 0 ? Math.max(0, total - seen) : 0;
 
+  /* ---------- scroll lock, like a terminal: up locks, down to the newest follows again ---------- */
+
+  // only scrolling right after the user's own input counts; the panes' own follow scrolling never does
+  const userInput = useRef(0);
+  const quietUntil = useRef(0);
+  const lastTop = useRef(0);
+  const [locked, setLocked] = useState(false);
+  const markUser = useCallback(() => (userInput.current = Date.now()), []);
+  useEffect(() => {
+    if (view.follow) setLocked(false);
+  }, [view.follow]);
+  useEffect(() => setLocked(false), [sessionId]);
+  const scrollLock = useCallback(() => {
+    if (!view.follow) return;
+    setView({ follow: false }, { push: false });
+    setLocked(true);
+  }, [view.follow, setView]);
+  const scrollTail = useCallback(() => {
+    if (view.follow || !sessionId || Date.now() < quietUntil.current) return;
+    quietUntil.current = Date.now() + 900; // the jump to the newest node is not the user scrolling
+    setView({ follow: true }, { push: false });
+  }, [view.follow, sessionId, setView]);
+  const onReaderScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const el = e.currentTarget;
+    const prev = lastTop.current;
+    lastTop.current = el.scrollTop;
+    if (Date.now() - userInput.current > 700 || Date.now() < quietUntil.current) return;
+    // the reader keeps 45vh of room below the last node; inside that room counts as the bottom
+    const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight <= innerHeight * 0.45 + 32;
+    if (el.scrollTop < prev - 2) scrollLock();
+    else if (el.scrollTop > prev && atBottom) scrollTail();
+  };
+  const onGraphMove = useCallback((down: boolean, atTail: boolean) => (down ? atTail && scrollTail() : scrollLock()), [scrollLock, scrollTail]);
+
   /* ---------- project scope (no session in focus) ---------- */
 
   useEffect(() => {
@@ -402,7 +436,7 @@ export function App() {
   /* ---------- render ---------- */
 
   const readerPane = (
-    <section className="pane left" onWheel={(e) => e.deltaY < 0 && view.follow && setView({ follow: false }, { push: false })}>
+    <section className="pane left">
       <div className="pane-head">
         <div className="seg" role="tablist" aria-label="Reader">
           <button className={reader === "outline" ? "on" : ""} onClick={() => setReader("outline")} role="tab" aria-selected={reader === "outline"}>
@@ -414,7 +448,14 @@ export function App() {
         </div>
         {sessionId && reader === "outline" && <LengthSwitch value={view.z} overrides={overrides} onChange={(z) => setView({ z })} />}
       </div>
-      <div className={`pane-body ${layout === "read" ? "reading" : ""}`}>
+      <div
+        className={`pane-body ${layout === "read" ? "reading" : ""}`}
+        onScroll={onReaderScroll}
+        onWheel={(e) => (markUser(), e.deltaY < 0 && scrollLock())}
+        onTouchMove={markUser}
+        onPointerDown={markUser}
+        onKeyDown={markUser}
+      >
         {sessionId ? (
           !scope ? (
             <p className="empty">Loading the session…</p>
@@ -442,7 +483,7 @@ export function App() {
         </span>
         <Legend kinds={legend} />
       </div>
-      <Graph mermaid={mermaid} ids={graphIds} selected={sel} follow={view.follow} hover={hover} dim={dim} hits={hits} onFocus={focusOn} onHover={hoverAt} />
+      <Graph mermaid={mermaid} ids={graphIds} selected={sel} follow={view.follow} hover={hover} dim={dim} hits={hits} onFocus={focusOn} onHover={hoverAt} onUserMove={onGraphMove} />
     </section>
   );
 
@@ -457,7 +498,6 @@ export function App() {
         onSessionRoot={() => act({ focus: undefined, window: undefined })}
         onCrumb={(id) => act({ focus: id, window: undefined })}
         follow={view.follow}
-        unseen={unseen}
         onFollow={(follow) => setView({ follow }, { push: false })}
         layout={view.layout}
         onLayout={(l) => setView({ layout: l }, { push: false })}
@@ -511,6 +551,12 @@ export function App() {
           <div className="flex-1 min-w-0">{readerPane}</div>
         ) : (
           <div className="flex-1 min-w-0">{graphPane}</div>
+        )}
+        {sessionId && !view.follow && (locked || unseen > 0) && (
+          <button className="unseen jump" onClick={() => setView({ follow: true }, { push: false })} title="Jump to the newest events and keep following (End)">
+            <ArrowDown size={15} aria-hidden />
+            {unseen > 0 ? `${unseen} new` : "Latest"}
+          </button>
         )}
       </div>
       {card && <HoverCard info={card} tree={tree} sessions={sessions} hits={hits} />}

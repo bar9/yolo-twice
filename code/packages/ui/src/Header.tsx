@@ -48,7 +48,6 @@ export function Header(props: {
   onPin: (pinned: boolean) => void;
   onReset: () => void;
   follow: boolean;
-  unseen: number;
   onFollow: (follow: boolean) => void;
   layout: Layout;
   onLayout: (l: Layout) => void;
@@ -138,11 +137,6 @@ export function Header(props: {
           {props.follow ? "Following" : "Follow"}
         </Button>
       </Tip>
-      {!props.follow && props.unseen > 0 && (
-        <Button size="sm" className="unseen" onClick={() => props.onFollow(true)} title="Jump to the newest events and keep following">
-          {props.unseen} new
-        </Button>
-      )}
 
       <ToggleGroup type="single" variant="outline" size="sm" value={props.layout} onValueChange={(v) => v && props.onLayout(v as Layout)} aria-label="Views" className="hide-narrow">
         <ToggleGroupItem value="read" aria-label="Text only" title="Text only">
