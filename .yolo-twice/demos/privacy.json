@@ -15,7 +15,7 @@
     },
     {
       "view": "34b27c/t15?z=f&x=t15.s4",
-      "caption": "Claude counted every leak. Then masked them: $PROJECT, ~.",
+      "caption": "The agent counted every leak. Then masked them: $PROJECT, ~.",
       "do": [{ "point": "t15.s4" }, { "open": "t15.s4" }, { "wait": 2000 }, { "point": "t15.s12" }, { "open": "t15.s12" }],
       "wait": 3000
     },
