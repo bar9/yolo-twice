@@ -39,6 +39,7 @@ describe("auto-commit", () => {
 
     const st = ac.get();
     expect(st.enabled).toBe(true);
+    expect(Date.parse(st.next!) - Date.now()).toBeGreaterThan(55_000);
     expect(st.lastCommit?.files).toBe(2);
     expect(git("show", "--name-only", "--format=", "HEAD").split("\n").sort()).toEqual([".yolo-twice/.gitignore", ".yolo-twice/sessions/s1/events.ndjson"]);
     expect(git("diff", "--cached", "--name-only")).toBe("app.ts");
@@ -49,7 +50,9 @@ describe("auto-commit", () => {
     const head = git("rev-parse", "HEAD");
     await ac.tick();
     expect(git("rev-parse", "HEAD")).toBe(head);
-    expect(ac.set(false).enabled).toBe(false);
+    const off = ac.set(false);
+    expect(off.enabled).toBe(false);
+    expect(off.next).toBeUndefined();
   });
 
   test("skips outside a git repository", async () => {

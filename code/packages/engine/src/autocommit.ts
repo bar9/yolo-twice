@@ -13,6 +13,8 @@ export interface AutoCommitStatus {
   intervalMs: number;
   lastCommit?: { ts: string; sha: string; files: number };
   lastCheck?: string;
+  /** When the next check runs, while enabled. */
+  next?: string;
   /** Why the last tick did not commit (no repo, merge in progress, git error). */
   skipped?: string;
 }
@@ -53,14 +55,21 @@ export class AutoCommitter {
   set(enabled: boolean): AutoCommitStatus {
     clearInterval(this.timer);
     this.timer = undefined;
-    this.status = { ...this.status, enabled, skipped: undefined };
+    this.status = { ...this.status, enabled, skipped: undefined, next: enabled ? this.nextAt() : undefined };
     if (enabled) {
-      this.timer = setInterval(() => void this.tick(), this.status.intervalMs);
+      this.timer = setInterval(() => {
+        this.status = { ...this.status, next: this.nextAt() };
+        void this.tick();
+      }, this.status.intervalMs);
       this.timer.unref();
       void this.tick();
     }
     this.onChange(this.get());
     return this.get();
+  }
+
+  private nextAt(): string {
+    return new Date(Date.now() + this.status.intervalMs).toISOString();
   }
 
   stop(): void {

@@ -18,6 +18,7 @@ export interface AutoCommit {
   intervalMs: number;
   lastCommit?: { ts: string; sha: string; files: number };
   lastCheck?: string;
+  next?: string;
   skipped?: string;
 }
 

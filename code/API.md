@@ -23,7 +23,7 @@ most recently registered project is used. All JSON uses the types from `@yolo-tw
 | GET | `/api/search` | `project`, `q`, `session?`, `k?`, `from?`, `to?`, `limit?` (default 50) | `{ hits: SearchHit[], tools: string[] }`. `k` is a comma list of filter codes (`u` user prompts, `a` assistant text, `h` thinking, `t` tool calls, `t:Name` one tool, `e` tool errors, `s` subagents, `c` compactions and commands; codes are OR'd). `from`/`to` are ISO timestamps. Without `session` the whole project is searched. An empty `q` with a filter lists matching events in order; an empty `q` without a filter returns no hits. `tools` lists tool names seen, most used first |
 | GET | `/api/config` | `project` | `Config` |
 | PUT | `/api/config` | `{ project, attention }` | `Config` (persisted to `.yolo-twice/config.json`, broadcast on the stream) |
-| GET | `/api/autocommit` | `project` | `{ enabled, intervalMs, lastCommit?: { ts, sha, files }, lastCheck?, skipped? }` |
+| GET | `/api/autocommit` | `project` | `{ enabled, intervalMs, lastCommit?: { ts, sha, files }, lastCheck?, next?, skipped? }` (`next`: when the next check runs, while enabled) |
 | PUT | `/api/autocommit` | `{ project, enabled }` | same shape. Opt-in: commits only `.yolo-twice` (`git commit --only`, staged work stays staged) right away and every 10 min when it changed; skips during merges, rebases and on a detached HEAD. Engine memory only, off after every engine restart. Broadcast as `autocommit` |
 | GET | `/api/stream` | `project` | Server-Sent Events, see below |
 | POST | `/hook` | Claude Code hook JSON (`session_id`, `transcript_path`, `cwd`, `hook_event_name`, …) | `{}` within 50 ms; ingestion is scheduled, never awaited |

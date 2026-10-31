@@ -112,7 +112,7 @@ export function Header(props: {
       <span className="spacer" />
       {ac && (
         <button className={`autocommit ${ac.enabled ? "on" : ""} ${ac.enabled && ac.skipped ? "warn" : ""}`} onClick={() => props.onAutoCommit(!ac.enabled)} aria-pressed={ac.enabled} title={acTitle}>
-          {ac.enabled ? `⟳ auto-commit${ac.lastCommit ? ` · ${fmtTime(ac.lastCommit.ts).slice(0, 5)}` : ""}` : "auto-commit"}
+          {ac.enabled ? `⟳ auto-commit${ac.next ? ` · next ${fmtTime(ac.next).slice(0, 5)}` : ""}` : "auto-commit"}
         </button>
       )}
       <label className="slider">
