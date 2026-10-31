@@ -1,4 +1,4 @@
-import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
 import {
   Background,
   BackgroundVariant,
@@ -35,6 +35,12 @@ const H_SESSION = 60;
 /** Room inside a group frame: sides/bottom, and the top for its label tab. */
 const GP = 16;
 const GHEAD = 34;
+
+/** What the reader needs from the map to scroll along with it (Split view). */
+export interface GraphApi {
+  /** Pan so the box holding this part sits at the reading line; does nothing when it already does. */
+  reveal(id: string): void;
+}
 
 export interface HoverInfo {
   id: string;
@@ -242,7 +248,13 @@ interface Props {
   onUserMove?: (down: boolean, atTail: boolean) => void;
   /** Left side of the graph's bar: where you are and what the boxes are. */
   head?: React.ReactNode;
+  /** The user panned the map: the part now at its reading line, for the reader to scroll to. */
+  onView?: (id: string) => void;
+  api?: React.Ref<GraphApi>;
 }
+
+/** Where a part is read in either pane: 40% down the map, a third down the reader. */
+const READ_LINE = 0.4;
 
 /**
  * The map: the focused part of the session as React Flow node blocks on a pannable, zoomable canvas.
@@ -264,17 +276,22 @@ function FlowMap(props: Props) {
   const laid = useMemo(() => lay(props.flow), [props.flow]);
   const flowById = useMemo(() => new Map(props.flow.nodes.map((n) => [n.id, n])), [props.flow]);
 
-  // the box that stands for the selection: the selection itself, or the deepest drawn node holding it (ids nest: t5 > t5.s2)
-  const selBox = useMemo(() => {
-    const sel = props.selected;
-    if (!sel) return undefined;
-    let best: FlowNode | undefined;
-    for (const n of props.flow.nodes) {
-      if (!(n.ref === sel || sel.startsWith(`${n.ref}.`))) continue;
-      if (!best || n.ref.length > best.ref.length || (n.ref.length === best.ref.length && best.group && !n.group)) best = n;
-    }
-    return best?.id;
-  }, [props.selected, props.flow]);
+  // the box that stands for a part: the part itself, or the deepest drawn node holding it (ids nest: t5 > t5.s2),
+  // so a step selected or hovered in the reader lights up its turn on the map
+  const boxOf = useCallback(
+    (id: string | undefined) => {
+      if (!id) return undefined;
+      let best: FlowNode | undefined;
+      for (const n of props.flow.nodes) {
+        if (!(n.ref === id || id.startsWith(`${n.ref}.`))) continue;
+        if (!best || n.ref.length > best.ref.length || (n.ref.length === best.ref.length && best.group && !n.group)) best = n;
+      }
+      return best;
+    },
+    [props.flow],
+  );
+  const selBox = useMemo(() => boxOf(props.selected)?.id, [boxOf, props.selected]);
+  const hoverBox = useMemo(() => boxOf(props.hover)?.id, [boxOf, props.hover]);
 
   const nodes = useMemo((): Node<BoxData>[] => {
     const depth = (n: FlowNode): number => (n.parent ? 1 + depth(flowById.get(n.parent)!) : 0);
@@ -285,7 +302,7 @@ function FlowMap(props: Props) {
       const p = n.parent ? laid.rects.get(n.parent) : undefined;
       const state = cn(
         n.id === selBox && "is-selected",
-        n.ref === props.hover && "is-hover",
+        n.id === hoverBox && "is-hover",
         props.dim.has(n.ref) && "is-dim",
         (props.hits.get(n.ref) ?? 0) > 0 && "has-hit",
       );
@@ -306,7 +323,7 @@ function FlowMap(props: Props) {
         },
       ];
     });
-  }, [props.flow, laid, flowById, selBox, props.hover, props.dim, props.hits]);
+  }, [props.flow, laid, flowById, selBox, hoverBox, props.dim, props.hits]);
 
   const edges = useMemo(
     (): Edge[] =>
@@ -400,17 +417,66 @@ function FlowMap(props: Props) {
     return () => ro.disconnect();
   }, [home]);
 
+  // scroll sync: the reader asks the map to show a part; the map reports the part at its reading line
+  useImperativeHandle(
+    props.api,
+    () => ({
+      reveal(id) {
+        const box = boxOf(id);
+        const el = host.current;
+        const r = box && laid.rects.get(box.id);
+        if (!ready || !el || !r) return;
+        const v = rf.getViewport();
+        // a group (a phase) lines up by its top, a box by its middle
+        const anchor = box.group ? r.y : r.y + r.h / 2;
+        const y = el.clientHeight * READ_LINE - anchor * v.zoom;
+        const left = r.x * v.zoom + v.x;
+        const x = left >= 0 && left + r.w * v.zoom <= el.clientWidth ? v.x : el.clientWidth / 2 - (r.x + r.w / 2) * v.zoom;
+        if (Math.abs(y - v.y) < 2 && x === v.x) return;
+        void rf.setViewport({ x, y, zoom: v.zoom }, { duration: 200 });
+      },
+    }),
+    [boxOf, laid, ready, rf],
+  );
+  const atLine = useCallback(
+    (v: Viewport) => {
+      const el = host.current;
+      if (!el) return undefined;
+      const ly = (el.clientHeight * READ_LINE - v.y) / v.zoom;
+      const lx = (el.clientWidth / 2 - v.x) / v.zoom;
+      let best: FlowNode | undefined;
+      let dist = Infinity;
+      for (const n of props.flow.nodes) {
+        const r = n.group ? undefined : laid.rects.get(n.id);
+        if (!r) continue;
+        const d = Math.max(0, Math.abs(r.y + r.h / 2 - ly) - r.h / 2) + 0.25 * Math.max(0, Math.abs(r.x + r.w / 2 - lx) - r.w / 2);
+        if (d < dist) (best = n), (dist = d);
+      }
+      return best?.ref;
+    },
+    [props.flow, laid],
+  );
+
   const prevY = useRef<number | undefined>(undefined);
+  const viewFrame = useRef(0);
   const onMove = useCallback(
     (e: MouseEvent | TouchEvent | null, v: Viewport) => {
       const el = host.current;
       const before = prevY.current;
       prevY.current = v.y;
-      if (!e || !el || before === undefined || !props.onUserMove || Math.abs(v.y - before) < 1) return;
+      if (!e || !el) return;
+      if (props.onView) {
+        cancelAnimationFrame(viewFrame.current);
+        viewFrame.current = requestAnimationFrame(() => {
+          const id = atLine(v);
+          if (id) props.onView?.(id);
+        });
+      }
+      if (before === undefined || !props.onUserMove || Math.abs(v.y - before) < 1) return;
       const b = laid.bounds;
       props.onUserMove(v.y < before, v.y + (b.y + b.h) * v.zoom <= el.clientHeight - 8);
     },
-    [laid, props.onUserMove],
+    [laid, props.onUserMove, props.onView, atLine],
   );
 
   const hoverNode = (e: React.MouseEvent, n: Node<BoxData>) => props.onHover({ id: n.data.flow.ref, x: e.clientX, y: e.clientY });

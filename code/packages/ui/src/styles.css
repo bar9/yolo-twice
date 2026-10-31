@@ -283,6 +283,8 @@ button.crumb:hover { background: var(--sheet-2); color: var(--ink); }
   border-radius: 8px; cursor: pointer;
 }
 .node > .row:hover, .node.hover > .row { background: var(--sheet-2); }
+/* hovered in the map: the reader marks the same part */
+.node.hover > .row { box-shadow: inset 2px 0 0 var(--ink-3); }
 .node.selected > .row { background: color-mix(in srgb, var(--k-you) 9%, var(--sheet)); box-shadow: inset 2px 0 0 var(--ink); }
 .node.dim > .row { opacity: .38; transition: opacity .12s; }
 .node.dim > .row:hover { opacity: 1; }

@@ -9,7 +9,7 @@ import { api, fmtDuration, fmtTime, fmtTokens, setProject, storage, store, type 
 import { Header } from "./Header";
 import { FilterBar } from "./FilterBar";
 import { Timeline, type Bar, type Tick } from "./Timeline";
-import { Graph, type HoverInfo } from "./Graph";
+import { Graph, type GraphApi, type HoverInfo } from "./Graph";
 import { Results, Zoom, type ZoomApi } from "./Zoom";
 import { CHIPS } from "./FilterBar";
 import { Help, type HelpTab } from "./Help";
@@ -242,11 +242,50 @@ export function App() {
     const prev = lastTop.current;
     lastTop.current = el.scrollTop;
     if (Date.now() - userInput.current > 700 || Date.now() < quietUntil.current) return;
+    syncMapToReader(el);
     // the reader keeps 45vh of room below the last node; inside that room counts as the bottom
     const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight <= innerHeight * 0.45 + 32;
     if (el.scrollTop < prev - 2) scrollLock();
     else if (el.scrollTop > prev && atBottom) scrollTail();
   };
+
+  /* ---------- scroll sync (Split view): both panes show the part at their reading line ---------- */
+  // only the pane the user moves leads; the other follows by program, which its own handler ignores
+  const graphApi = useRef<GraphApi>(null);
+  const readerBody = useRef<HTMLDivElement>(null);
+  const synced = useRef<string | undefined>(undefined);
+  const syncFrame = useRef(0);
+  const syncMapToReader = (el: HTMLElement) => {
+    if (layout !== "split" || !sessionId) return;
+    cancelAnimationFrame(syncFrame.current);
+    syncFrame.current = requestAnimationFrame(() => {
+      // the last row that starts above the reader's reading line, a third of the way down
+      const line = el.getBoundingClientRect().top + el.clientHeight / 3;
+      let id: string | undefined;
+      for (const row of el.querySelectorAll<HTMLElement>(".zoom .node:not(.root) > .row")) {
+        if (row.getBoundingClientRect().top > line) break;
+        id = row.parentElement!.id.slice("node-".length);
+      }
+      if (!id || id === synced.current) return;
+      synced.current = id;
+      graphApi.current?.reveal(id);
+    });
+  };
+  const syncReaderToMap = useRef((_id: string) => {});
+  syncReaderToMap.current = (id: string) => {
+    const el = readerBody.current;
+    if (layout !== "split" || !sessionId || !el || id === synced.current) return;
+    synced.current = id;
+    // the part's row, or its closest ancestor the reader shows (a closed phase, a folded run)
+    let at: string | undefined = id;
+    let node: HTMLElement | null = null;
+    while (at && !(node = document.getElementById(`node-${at}`))) at = scope?.parent.get(at);
+    const row = node?.querySelector<HTMLElement>(":scope > .row") ?? node;
+    if (!row) return;
+    // a little above the line, so the reader counts it as the part being read
+    el.scrollTop += row.getBoundingClientRect().top - el.getBoundingClientRect().top - el.clientHeight / 3 + 8;
+  };
+  const onGraphView = useCallback((id: string) => syncReaderToMap.current(id), []);
   const onGraphMove = useCallback((down: boolean, atTail: boolean) => (down ? atTail && scrollTail() : scrollLock()), [scrollLock, scrollTail]);
 
   /* ---------- project scope (no session in focus) ---------- */
@@ -528,6 +567,7 @@ export function App() {
         {sessionId && reader === "outline" && <LengthSwitch value={view.z} overrides={overrides} onChange={(z) => setView({ z })} />}
       </div>
       <div
+        ref={readerBody}
         className={`pane-body ${layout === "read" ? "reading" : ""}`}
         onScroll={onReaderScroll}
         onWheel={(e) => (markUser(), e.deltaY < 0 && scrollLock())}
@@ -568,7 +608,7 @@ export function App() {
   );
   const graphPane = (
     <section className="pane right" data-tour="map">
-      <Graph flow={flow} selected={sel} follow={view.follow} hover={hover} dim={dim} hits={hits} onFocus={graphFocus} onHover={hoverAt} onUserMove={onGraphMove} head={graphHead} />
+      <Graph flow={flow} selected={sel} follow={view.follow} hover={hover} dim={dim} hits={hits} onFocus={graphFocus} onHover={hoverAt} onUserMove={onGraphMove} onView={onGraphView} api={graphApi} head={graphHead} />
     </section>
   );
 
