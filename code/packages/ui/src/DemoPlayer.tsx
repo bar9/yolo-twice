@@ -132,7 +132,7 @@ export function useDemo(host: DemoHost) {
     remember({ name: d.name, step: i });
     h.current.settle();
     h.current.setView(() => stepView(s.view, h.current.project), { push: false });
-    if (framed) parent.postMessage({ yt: "step", step: i, steps: d.script.steps.length }, "*");
+    if (framed) parent.postMessage({ yt: "step", step: i, steps: d.script.steps.length, caption: s.caption }, "*");
     void perform(s.do ?? [], alive).then(async (ok) => {
       const last = i === d.script.steps.length - 1;
       if (!ok || !s.wait || (last && !d.script.loop)) return;

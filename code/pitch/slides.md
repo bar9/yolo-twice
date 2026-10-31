@@ -30,21 +30,21 @@ Hi, we are yolo-twice. The name: YOLO, "you only live once", is also the nicknam
 
 <div class="kicker">01 · The scene</div>
 
-# A review question after a long AI session
+# Did we just leak everything?
 
 <div class="pr">
   <div class="pr-head">
     <span class="pr-state">Open</span>
-    <span class="pr-title">Add a newsletter sign-up <span class="dim">#142</span></span>
-    <span class="pr-meta"><span>written with an AI agent</span><span class="add">+286</span><span class="del">−9</span></span>
+    <span class="pr-title">Commit the AI sessions <span class="dim">#37</span></span>
+    <span class="pr-meta"><span>24 hours of AI work</span><span class="add">+37 files</span></span>
   </div>
   <div v-click class="comment">
     <div class="who"><span class="avatar">MR</span> Reviewer</div>
-    <p>Why do people have to confirm their email twice? And who decided to drop the spam protection ???</p>
+    <p>Wait. Are our API keys in here?</p>
   </div>
   <div v-click class="comment reply">
     <div class="who"><span class="avatar">YOU</span> Author</div>
-    <p>Good question. The AI did that at some point this afternoon. Let me scroll back…</p>
+    <p>Uh… Claude dealt with that. Somewhere. Let me scroll.</p>
   </div>
 </div>
 
@@ -52,9 +52,9 @@ Hi, we are yolo-twice. The name: YOLO, "you only live once", is also the nicknam
 <IncomingCall :active="$clicks >= 3" :sound="$renderContext === 'slide'" avatar="./assets/silo-avatar.png" />
 
 <!--
-A common situation. Someone from the running club works with an AI agent all afternoon on the club website; the result is a new newsletter sign-up. A reviewer asks two perfectly reasonable questions: why the double confirmation, and where the spam protection went. The author was there, sort of: approved things, went for coffee, came back. The answer is recorded somewhere; finding it takes time.
+We built yolo-twice for 24 hours with an AI agent, and committed every session. The reviewer: are our API keys in here? The author: Claude dealt with that. Somewhere.
 
-[click] And then the tech lead calls: "Can you explain the newsletter change before we merge?" (The ringtone plays in the audience window only.)
+[click] And then the tech lead calls: "Are you crazy? You have been pushing your whole internal development context for the last 24 hours?" (The ringtone plays in the audience window only.)
 -->
 
 ---
@@ -172,12 +172,24 @@ class: text-center
 </div>
 
 <!--
-Switch to the demo, straight from the wall of text, and answer the reviewer's two questions with the session that produced the pull request.
-1. Open the project: the session "Add a newsletter sign-up" sits in the repo next to the website (.yolo-twice/sessions).
-2. Read its one-line summary, then the turn list.
-3. "Why confirm the email twice?" Open the first turn, switch to the map: the helper agent's frame holds the research on consent rules; the next Claude step explains why it chose double opt-in. (If Claude chose differently in the recording, ask the question to match.)
-4. "Who dropped the spam protection?" Search "CAPTCHA", filter You: it was the club member, in turn 3, with the reason (members found it annoying, and the mailing tool already filters spam).
-5. Copy the link to that step: it opens the same view for a colleague.
+One command installs it. Next slide: the real product, live. We click through it.
+-->
+
+---
+layout: full
+clicks: 5
+---
+
+<LiveDemo src="http://localhost:9656/yolo-twice" script="privacy" poster="./assets/ui-split.png" />
+
+<!--
+The live product, stepped by our clicks (.yolo-twice/demos/privacy.json). Needs the engine: /yolo-twice:yolo-twice.
+1. Yes. 24 hours of AI work, in the repo.
+2. [click] We asked first. One word finds it: "disclosure", our own prompt.
+3. [click] The agent counted every leak. Then masked them: $PROJECT, ~.
+4. [click] A scan alarm. False: it caught its own pattern.
+5. [click] Before the push: 0 secrets, 0 home paths.
+6. [click] The whole fix. One map.
 -->
 
 ---

@@ -10,7 +10,7 @@
  *   in   { yt: "demo", name, step }     load the project's script (once) and show that step
  *        { yt: "demo", script, step }   the same with a script the page keeps itself
  *   out  { yt: "ready" }                the UI is up and listening
- *        { yt: "step", step, steps }    a step was shown
+ *        { yt: "step", step, steps, caption }  a step was shown (the deck can show the caption)
  *        { yt: "nav", dir }             PageDown / PageUp pressed inside the frame: the deck decides
  */
 import { parseUrl, type ViewState } from "./state";
