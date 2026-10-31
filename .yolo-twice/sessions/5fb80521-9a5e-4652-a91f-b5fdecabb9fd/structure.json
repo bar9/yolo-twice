@@ -1,0 +1,138 @@
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": [],
+              "event_ids": [
+                "8f3c3162-c589-4871-8957-5f3fe3248f7a"
+              ],
+              "id": "t1.s1",
+              "kind": "step",
+              "label": "yolo-twice:yolo-twice /yolo-twice:yolo-twice",
+              "level": 3,
+              "meta": {
+                "step_kind": "prompt"
+              },
+              "span": {
+                "first": "8f3c3162-c589-4871-8957-5f3fe3248f7a",
+                "last": "8f3c3162-c589-4871-8957-5f3fe3248f7a",
+                "ts_first": "2026-10-31T10:22:57.048Z",
+                "ts_last": "2026-10-31T10:22:57.048Z"
+              },
+              "stats": {
+                "events": 1,
+                "input_tokens": 0,
+                "output_tokens": 0,
+                "tool_calls": 0
+              }
+            },
+            {
+              "children": [],
+              "event_ids": [
+                "03249471-99d6-4a64-958a-6bbbd47617b1",
+                "6f1e3730-fda9-4fae-9004-951a640c7498"
+              ],
+              "id": "t1.s2",
+              "kind": "step",
+              "label": "Bash: Run yolo-twice launcher",
+              "level": 3,
+              "meta": {
+                "step_kind": "tool",
+                "tool": "Bash"
+              },
+              "span": {
+                "first": "03249471-99d6-4a64-958a-6bbbd47617b1",
+                "last": "6f1e3730-fda9-4fae-9004-951a640c7498",
+                "ts_first": "2026-10-31T10:23:00.346Z",
+                "ts_last": "2026-10-31T10:23:03.119Z"
+              },
+              "stats": {
+                "events": 2,
+                "input_tokens": 40953,
+                "output_tokens": 116,
+                "tool_calls": 1
+              }
+            },
+            {
+              "children": [],
+              "event_ids": [
+                "99dde5b2-c9de-4d95-b947-9ac23d0c60cf"
+              ],
+              "id": "t1.s3",
+              "kind": "step",
+              "label": "The yolo-twice insights UI is running. Open it at http://127.0.0.1:9656/?projec…",
+              "level": 3,
+              "meta": {
+                "step_kind": "text"
+              },
+              "span": {
+                "first": "99dde5b2-c9de-4d95-b947-9ac23d0c60cf",
+                "last": "99dde5b2-c9de-4d95-b947-9ac23d0c60cf",
+                "ts_first": "2026-10-31T10:23:05.088Z",
+                "ts_last": "2026-10-31T10:23:05.088Z"
+              },
+              "stats": {
+                "events": 1,
+                "input_tokens": 41142,
+                "output_tokens": 88,
+                "tool_calls": 0
+              }
+            }
+          ],
+          "id": "t1",
+          "kind": "turn",
+          "label": "yolo-twice:yolo-twice /yolo-twice:yolo-twice",
+          "level": 2,
+          "span": {
+            "first": "8f3c3162-c589-4871-8957-5f3fe3248f7a",
+            "last": "3af641c2-9b17-4e33-9346-f9c647ba1c4b",
+            "ts_first": "2026-10-31T10:22:57.048Z",
+            "ts_last": "2026-10-31T10:23:05.141Z"
+          },
+          "stats": {
+            "duration_ms": 8359,
+            "events": 4,
+            "input_tokens": 82095,
+            "output_tokens": 204,
+            "tool_calls": 1
+          }
+        }
+      ],
+      "id": "p1",
+      "kind": "phase",
+      "label": "yolo-twice:yolo-twice /yolo-twice:yolo-twice",
+      "level": 1,
+      "span": {
+        "first": "8f3c3162-c589-4871-8957-5f3fe3248f7a",
+        "last": "3af641c2-9b17-4e33-9346-f9c647ba1c4b",
+        "ts_first": "2026-10-31T10:22:57.048Z",
+        "ts_last": "2026-10-31T10:23:05.141Z"
+      },
+      "stats": {
+        "events": 4,
+        "input_tokens": 82095,
+        "output_tokens": 204,
+        "tool_calls": 1
+      }
+    }
+  ],
+  "id": "s:5fb80521-9a5e-4652-a91f-b5fdecabb9fd",
+  "kind": "session",
+  "label": "Yolo-twice insights UI",
+  "level": 0,
+  "span": {
+    "first": "8f3c3162-c589-4871-8957-5f3fe3248f7a",
+    "last": "3af641c2-9b17-4e33-9346-f9c647ba1c4b",
+    "ts_first": "2026-10-31T10:22:57.048Z",
+    "ts_last": "2026-10-31T10:23:05.141Z"
+  },
+  "stats": {
+    "events": 4,
+    "input_tokens": 82095,
+    "output_tokens": 204,
+    "tool_calls": 1
+  }
+}

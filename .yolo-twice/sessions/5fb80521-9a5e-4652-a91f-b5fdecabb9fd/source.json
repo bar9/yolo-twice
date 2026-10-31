@@ -1,0 +1,15 @@
+{
+  "agent": "claude-code",
+  "files": {
+    "5fb80521-9a5e-4652-a91f-b5fdecabb9fd.jsonl": {
+      "bytes": 349005,
+      "head_hash": "2fb92828de67927bacb406df38bef3164b8e956b4fb5be4e60f50eb0de4f6767",
+      "last_ts": "2026-10-31T10:23:05.141Z",
+      "lines": 46,
+      "mtime_ms": 1793442185217.9238,
+      "size": 349005
+    }
+  },
+  "origin_dir": "/home/bar9/.claude/projects/-home-bar9-yolo-twice",
+  "session": "5fb80521-9a5e-4652-a91f-b5fdecabb9fd"
+}
