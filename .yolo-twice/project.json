@@ -4,11 +4,11 @@
     {
       "agent": "claude-code",
       "cost_usd": 43.12544080000003,
-      "events": 922,
+      "events": 1009,
       "id": "34b27ceb-5af1-4142-8334-ab80a4310636",
       "label": "Yolo-twice insights tool for Claude Code",
       "ts_first": "2026-10-31T08:19:31.745Z",
-      "ts_last": "2026-10-31T10:46:31.508Z"
+      "ts_last": "2026-10-31T10:51:54.768Z"
     },
     {
       "agent": "claude-code",

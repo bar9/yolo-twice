@@ -1,9 +1,0 @@
-{
-  "analyzer": "structural",
-  "created": "2026-10-31T10:20:59.655Z",
-  "granularity": "abstract",
-  "hash": "a734590d05b467ff",
-  "node": "s:34b27ceb-5af1-4142-8334-ab80a4310636",
-  "text": "[user.prompt] <pasted_content id=\"bba5\"> we are creating \"yolo-twice\" a tool to help individuals and teams get insights into long running claude code sessions. The basic idea is to inspect and visualize long running conversations on the fly as they evolve and present different levels of abstraction…",
-  "version": "1"
-}

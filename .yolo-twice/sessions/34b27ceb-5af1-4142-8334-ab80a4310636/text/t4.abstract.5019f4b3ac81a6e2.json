@@ -1,0 +1,9 @@
+{
+  "analyzer": "structural",
+  "created": "2026-10-31T10:52:01.573Z",
+  "granularity": "abstract",
+  "hash": "5019f4b3ac81a6e2",
+  "node": "t4",
+  "text": "[user.prompt] <ide_opened_file>The user opened the file $PROJECT/README.md in the IDE. This may or may not be related to the current task.</ide_opened_file> fix the license [assistant.thinking] [tool Bash] {\"command\":\"cat license.txt; echo \\\"--- git authors ---\\\"; git log --format='%an <%ae>' | sor…",
+  "version": "1"
+}

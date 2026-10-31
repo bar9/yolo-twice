@@ -1,0 +1,9 @@
+{
+  "analyzer": "structural",
+  "created": "2026-10-31T10:51:55.545Z",
+  "granularity": "title",
+  "hash": "9be474bc8814fdd6",
+  "node": "t2",
+  "text": "consider tradeof near realtime updates ( costly in CPU and tokens) vs low frequ…",
+  "version": "1"
+}

@@ -1,8 +1,8 @@
 {
   "analyzer": "structural",
-  "created": "2026-10-31T10:22:31.056Z",
+  "created": "2026-10-31T10:51:56.809Z",
   "granularity": "abstract",
-  "hash": "7a028e9364eb0bc9",
+  "hash": "4320ae2674a815d9",
   "node": "t2",
   "text": "[user.prompt] consider tradeof near realtime updates ( costly in CPU and tokens) vs low frequency. Can we give the user the choice, ie slider \"micro management\" <---> \"yolo\" [assistant.thinking] [assistant.text] Good question, and it exposes something the design glossed over: not all layers cost th…",
   "version": "1"
