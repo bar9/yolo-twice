@@ -36,6 +36,8 @@ flowchart TD
     direction TD
     t24["can we add images the useer pasted in the prompt to the rep…"]
     t25["replace doulble click by simple cick. it's a web app"]
+    t26["install claude UX plugin"]
+    t27>"/reload-plugins"]
   end
   s_34b27ceb_5af1_4142_8334_ab80a4310636 --> t1
   t1 --> t2
@@ -65,6 +67,8 @@ flowchart TD
   t22 --> t23
   t23 --> t24
   t24 --> t25
+  t25 --> t26
+  t26 --> t27
   classDef session fill:#1f2937,color:#fff,stroke:#111;
   classDef phase fill:#e5e7eb,stroke:#9ca3af;
   classDef turn fill:#dbeafe,stroke:#60a5fa;
@@ -103,3 +107,5 @@ flowchart TD
   class t23 turn;
   class t24 turn;
   class t25 turn;
+  class t26 turn;
+  class t27 turn;
