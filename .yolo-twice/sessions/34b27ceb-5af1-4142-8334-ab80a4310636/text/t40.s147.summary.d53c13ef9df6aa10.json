@@ -1,0 +1,9 @@
+{
+  "analyzer": "structural",
+  "created": "2026-10-31T16:40:34.734Z",
+  "granularity": "summary",
+  "hash": "d53c13ef9df6aa10",
+  "node": "t40.s147",
+  "text": "[assistant.text] The UI now works like a product. There's a new ? button in the header, next to Settings, that opens a Help window, and there's a guided tour built with react-joyride, which you linked. The running instance is already rebuilt from the final commit (2c04d8d); reload the tab to see it. All tests pass, and nothing is pushed. **Order in Help, most useful first.** The window has three tabs: 1. **Guide** (opens by default): - a \"Take the tour\" button at the top; - a short seven-point manual: reading at any detail level, zooming in and out, search and filters, Read/Split/Map, following live, Catch me up, and how sessions are saved with the code. 2. **Keyboard:** all the shortcuts. As you suggested, they moved here from the settings menu. The `?` key opens Help straight on this ta…",
+  "version": "2"
+}

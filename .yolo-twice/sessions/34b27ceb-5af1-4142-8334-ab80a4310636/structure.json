@@ -47137,6 +47137,9 @@
                 "input_tokens": 253549,
                 "output_tokens": 1102,
                 "tool_calls": 0
+              },
+              "text": {
+                "summary": "[assistant.text] The UI now works like a product. There's a new ? button in the header, next to Settings, that opens a Help window, and there's a guided tour built with react-joyride, which you linked. The running instance is already rebuilt from the final commit (2c04d8d); reload the tab to see it. All tests pass, and nothing is pushed. **Order in Help, most useful first.** The window has three tabs: 1. **Guide** (opens by default): - a \"Take the tour\" button at the top; - a short seven-point manual: reading at any detail level, zooming in and out, search and filters, Read/Split/Map, following live, Catch me up, and how sessions are saved with the code. 2. **Keyboard:** all the shortcuts. As you suggested, they moved here from the settings menu. The `?` key opens Help straight on this ta…"
               }
             }
           ],
@@ -47157,7 +47160,7 @@
             "tool_calls": 65
           },
           "text": {
-            "summary": "[assistant.text] I've changed the wording, and the same words now appear everywhere this feature shows up: - **The button** says what it does next: **\"Hide filtered\"** while everything is shown, **\"Show filtered\"** while the filtered parts are folded away. The icon changes with it (fold or unfold). The tooltip says the button affects both the text and the graph. - **Folded lines in the text** read \"⋯ 35 filtered\". Clicking one shows those filtered parts. - **Folded boxes in the graph** read \"⋯ 2 filtered\". Because the label now names the action, the button no longer looks \"pressed\"; that styling would have contradicted it. I reran the folding checks in a browser with the new labels, and folding, unfolding and hovering behave as before. All 63 tests pass. Committed as a84fde2, not pushed. …"
+            "summary": "[assistant.text] The UI now works like a product. There's a new ? button in the header, next to Settings, that opens a Help window, and there's a guided tour built with react-joyride, which you linked. The running instance is already rebuilt from the final commit (2c04d8d); reload the tab to see it. All tests pass, and nothing is pushed. **Order in Help, most useful first.** The window has three tabs: 1. **Guide** (opens by default): - a \"Take the tour\" button at the top; - a short seven-point manual: reading at any detail level, zooming in and out, search and filters, Read/Split/Map, following live, Catch me up, and how sessions are saved with the code. 2. **Keyboard:** all the shortcuts. As you suggested, they moved here from the settings menu. The `?` key opens Help straight on this ta…"
           }
         },
         {
@@ -47309,26 +47312,706 @@
           "text": {
             "summary": "Each level's popover text now states its behaviour: Micro management summarizes every turn and phase within seconds, Attentive at each turn end, Balanced at each phase end, and Yolo summarizes nothing in the background, only when a part is opened. The hourly estimate reads \"Less than one call an hour\" when it rounds to zero, and the session-length sentence was dropped. The current setting is Yolo, so that text shows. The slider was not moved during testing because it changes the real engine setting. Committed as c5b52f5, not pushed; reload the tab to see it."
           }
+        },
+        {
+          "children": [
+            {
+              "children": [],
+              "event_ids": [
+                "73f06858-837f-4921-89d0-85c5d26928b4"
+              ],
+              "id": "t42.s1",
+              "kind": "step",
+              "label": "syntax highlted blocks shall display the language, dont take too much screen sp…",
+              "level": 3,
+              "meta": {
+                "step_kind": "prompt"
+              },
+              "span": {
+                "first": "73f06858-837f-4921-89d0-85c5d26928b4",
+                "last": "73f06858-837f-4921-89d0-85c5d26928b4",
+                "ts_first": "2026-10-31T16:43:19.069Z",
+                "ts_last": "2026-10-31T16:43:19.069Z"
+              },
+              "stats": {
+                "events": 1,
+                "input_tokens": 0,
+                "output_tokens": 0,
+                "tool_calls": 0
+              }
+            },
+            {
+              "children": [],
+              "event_ids": [
+                "7ac859f8-01a7-45ac-bf70-f9591062885c"
+              ],
+              "id": "t42.s2",
+              "kind": "step",
+              "label": "thinking (hidden)",
+              "level": 3,
+              "meta": {
+                "step_kind": "thinking"
+              },
+              "span": {
+                "first": "7ac859f8-01a7-45ac-bf70-f9591062885c",
+                "last": "7ac859f8-01a7-45ac-bf70-f9591062885c",
+                "ts_first": "2026-10-31T16:43:21.033Z",
+                "ts_last": "2026-10-31T16:43:21.033Z"
+              },
+              "stats": {
+                "events": 1,
+                "input_tokens": 262537,
+                "output_tokens": 285,
+                "tool_calls": 0
+              }
+            },
+            {
+              "children": [],
+              "event_ids": [
+                "5885e140-dc1a-40e5-9e2e-16106df07cd0"
+              ],
+              "id": "t42.s3",
+              "kind": "step",
+              "label": "Let me see how code blocks render today.",
+              "level": 3,
+              "meta": {
+                "step_kind": "text"
+              },
+              "span": {
+                "first": "5885e140-dc1a-40e5-9e2e-16106df07cd0",
+                "last": "5885e140-dc1a-40e5-9e2e-16106df07cd0",
+                "ts_first": "2026-10-31T16:43:21.333Z",
+                "ts_last": "2026-10-31T16:43:21.333Z"
+              },
+              "stats": {
+                "events": 1,
+                "input_tokens": 262537,
+                "output_tokens": 285,
+                "tool_calls": 0
+              }
+            },
+            {
+              "children": [],
+              "event_ids": [
+                "e836933b-a028-4d49-a4a2-4987ac8db998",
+                "de28b886-a7dd-4e50-a0f2-1323e8643b92"
+              ],
+              "id": "t42.s4",
+              "kind": "step",
+              "label": "Bash: Read the Code component and its styles",
+              "level": 3,
+              "meta": {
+                "step_kind": "tool",
+                "tool": "Bash"
+              },
+              "span": {
+                "first": "e836933b-a028-4d49-a4a2-4987ac8db998",
+                "last": "de28b886-a7dd-4e50-a0f2-1323e8643b92",
+                "ts_first": "2026-10-31T16:43:22.670Z",
+                "ts_last": "2026-10-31T16:43:22.806Z"
+              },
+              "stats": {
+                "events": 2,
+                "input_tokens": 262537,
+                "output_tokens": 285,
+                "tool_calls": 1
+              }
+            },
+            {
+              "children": [],
+              "event_ids": [
+                "954d0b9e-cbbe-4964-b13b-2eb2f85fdf51"
+              ],
+              "id": "t42.s5",
+              "kind": "step",
+              "label": "thinking (hidden)",
+              "level": 3,
+              "meta": {
+                "step_kind": "thinking"
+              },
+              "span": {
+                "first": "954d0b9e-cbbe-4964-b13b-2eb2f85fdf51",
+                "last": "954d0b9e-cbbe-4964-b13b-2eb2f85fdf51",
+                "ts_first": "2026-10-31T16:43:30.957Z",
+                "ts_last": "2026-10-31T16:43:30.957Z"
+              },
+              "stats": {
+                "events": 1,
+                "input_tokens": 263810,
+                "output_tokens": 1790,
+                "tool_calls": 0
+              }
+            },
+            {
+              "children": [],
+              "event_ids": [
+                "8858bd1f-4815-4364-b39e-59071b8e9423"
+              ],
+              "id": "t42.s6",
+              "kind": "step",
+              "label": "thinking: I'll pin a small language tag to the code block's top-right…",
+              "level": 3,
+              "meta": {
+                "step_kind": "thinking"
+              },
+              "span": {
+                "first": "8858bd1f-4815-4364-b39e-59071b8e9423",
+                "last": "8858bd1f-4815-4364-b39e-59071b8e9423",
+                "ts_first": "2026-10-31T16:43:30.973Z",
+                "ts_last": "2026-10-31T16:43:30.973Z"
+              },
+              "stats": {
+                "events": 1,
+                "input_tokens": 263810,
+                "output_tokens": 1790,
+                "tool_calls": 0
+              }
+            },
+            {
+              "children": [],
+              "event_ids": [
+                "d2a377db-4820-4bcd-b015-dd926bb8fd7b",
+                "9ecf3f30-26a1-4cb7-aefe-65c97306ef19"
+              ],
+              "id": "t42.s7",
+              "kind": "step",
+              "label": "Bash: Add a compact language tag to code blocks",
+              "level": 3,
+              "meta": {
+                "step_kind": "tool",
+                "tool": "Bash"
+              },
+              "span": {
+                "first": "d2a377db-4820-4bcd-b015-dd926bb8fd7b",
+                "last": "9ecf3f30-26a1-4cb7-aefe-65c97306ef19",
+                "ts_first": "2026-10-31T16:43:38.633Z",
+                "ts_last": "2026-10-31T16:43:55.372Z"
+              },
+              "stats": {
+                "events": 2,
+                "input_tokens": 263810,
+                "output_tokens": 1790,
+                "tool_calls": 1
+              },
+              "text": {
+                "title": "Map languages to short tags; corner badge fades on hover"
+              }
+            },
+            {
+              "children": [],
+              "event_ids": [
+                "7465b8a1-05aa-4a80-9b0e-7a6eb6f625b9"
+              ],
+              "id": "t42.s8",
+              "kind": "step",
+              "label": "thinking (hidden)",
+              "level": 3,
+              "meta": {
+                "step_kind": "thinking"
+              },
+              "span": {
+                "first": "7465b8a1-05aa-4a80-9b0e-7a6eb6f625b9",
+                "last": "7465b8a1-05aa-4a80-9b0e-7a6eb6f625b9",
+                "ts_first": "2026-10-31T16:43:58.113Z",
+                "ts_last": "2026-10-31T16:43:58.113Z"
+              },
+              "stats": {
+                "events": 1,
+                "input_tokens": 265703,
+                "output_tokens": 858,
+                "tool_calls": 0
+              }
+            },
+            {
+              "children": [],
+              "event_ids": [
+                "be0ffbbd-8e26-48b5-b2ff-3da7a8b825a2"
+              ],
+              "id": "t42.s9",
+              "kind": "step",
+              "label": "Builds cleanly. Now a look at real blocks, at High detail in a turn with tool c…",
+              "level": 3,
+              "meta": {
+                "step_kind": "text"
+              },
+              "span": {
+                "first": "be0ffbbd-8e26-48b5-b2ff-3da7a8b825a2",
+                "last": "be0ffbbd-8e26-48b5-b2ff-3da7a8b825a2",
+                "ts_first": "2026-10-31T16:43:58.121Z",
+                "ts_last": "2026-10-31T16:43:58.121Z"
+              },
+              "stats": {
+                "events": 1,
+                "input_tokens": 265703,
+                "output_tokens": 858,
+                "tool_calls": 0
+              }
+            },
+            {
+              "children": [],
+              "event_ids": [
+                "e97db7a6-0fe3-4cd5-926e-6f7fbe9383ef",
+                "7e6b2d66-9abe-48bf-bed1-4a3044ea667e"
+              ],
+              "id": "t42.s10",
+              "kind": "step",
+              "label": "Bash: Check language tags render on real code blocks",
+              "level": 3,
+              "meta": {
+                "step_kind": "tool",
+                "tool": "Bash"
+              },
+              "span": {
+                "first": "e97db7a6-0fe3-4cd5-926e-6f7fbe9383ef",
+                "last": "7e6b2d66-9abe-48bf-bed1-4a3044ea667e",
+                "ts_first": "2026-10-31T16:44:03.937Z",
+                "ts_last": "2026-10-31T16:44:09.931Z"
+              },
+              "stats": {
+                "events": 2,
+                "input_tokens": 265703,
+                "output_tokens": 858,
+                "tool_calls": 1
+              },
+              "text": {
+                "title": "Bash: Check language tags render on real code blocks"
+              }
+            },
+            {
+              "children": [],
+              "event_ids": [
+                "1477cf95-0489-4ffa-8ff6-cb4c67deca82"
+              ],
+              "id": "t42.s11",
+              "kind": "step",
+              "label": "thinking (hidden)",
+              "level": 3,
+              "meta": {
+                "step_kind": "thinking"
+              },
+              "span": {
+                "first": "1477cf95-0489-4ffa-8ff6-cb4c67deca82",
+                "last": "1477cf95-0489-4ffa-8ff6-cb4c67deca82",
+                "ts_first": "2026-10-31T16:44:12.415Z",
+                "ts_last": "2026-10-31T16:44:12.415Z"
+              },
+              "stats": {
+                "events": 1,
+                "input_tokens": 266673,
+                "output_tokens": 525,
+                "tool_calls": 0
+              }
+            },
+            {
+              "children": [],
+              "event_ids": [
+                "6e84c067-c907-4471-a254-7e43f3d838f5"
+              ],
+              "id": "t42.s12",
+              "kind": "step",
+              "label": "Nothing rendered there; that turn may not show its steps open. I'll try Raw det…",
+              "level": 3,
+              "meta": {
+                "step_kind": "text"
+              },
+              "span": {
+                "first": "6e84c067-c907-4471-a254-7e43f3d838f5",
+                "last": "6e84c067-c907-4471-a254-7e43f3d838f5",
+                "ts_first": "2026-10-31T16:44:12.424Z",
+                "ts_last": "2026-10-31T16:44:12.424Z"
+              },
+              "stats": {
+                "events": 1,
+                "input_tokens": 266673,
+                "output_tokens": 525,
+                "tool_calls": 0
+              }
+            },
+            {
+              "children": [],
+              "event_ids": [
+                "97d477b3-5f39-4874-b01c-8369ccf4b70d",
+                "1ef08fd4-57aa-4f55-82a4-e883a04c78b8"
+              ],
+              "id": "t42.s13",
+              "kind": "step",
+              "label": "Bash: Retry language tag check on turns at Raw detail",
+              "level": 3,
+              "meta": {
+                "step_kind": "tool",
+                "tool": "Bash"
+              },
+              "span": {
+                "first": "97d477b3-5f39-4874-b01c-8369ccf4b70d",
+                "last": "1ef08fd4-57aa-4f55-82a4-e883a04c78b8",
+                "ts_first": "2026-10-31T16:44:15.543Z",
+                "ts_last": "2026-10-31T16:44:29.951Z"
+              },
+              "stats": {
+                "events": 2,
+                "input_tokens": 266673,
+                "output_tokens": 525,
+                "tool_calls": 1
+              },
+              "text": {
+                "title": "Language tag check finds no code blocks on any sampled turn"
+              }
+            },
+            {
+              "children": [],
+              "event_ids": [
+                "e04c28a0-30f9-41e3-89a0-848bc12813b9"
+              ],
+              "id": "t42.s14",
+              "kind": "step",
+              "label": "thinking (hidden)",
+              "level": 3,
+              "meta": {
+                "step_kind": "thinking"
+              },
+              "span": {
+                "first": "e04c28a0-30f9-41e3-89a0-848bc12813b9",
+                "last": "e04c28a0-30f9-41e3-89a0-848bc12813b9",
+                "ts_first": "2026-10-31T16:44:31.495Z",
+                "ts_last": "2026-10-31T16:44:31.495Z"
+              },
+              "stats": {
+                "events": 1,
+                "input_tokens": 267252,
+                "output_tokens": 631,
+                "tool_calls": 0
+              }
+            },
+            {
+              "children": [],
+              "event_ids": [
+                "c69e971b-bb7c-4df3-8728-5d9b57ff2f6b"
+              ],
+              "id": "t42.s15",
+              "kind": "step",
+              "label": "Still nothing. Let me check what the page actually shows at that URL.",
+              "level": 3,
+              "meta": {
+                "step_kind": "text"
+              },
+              "span": {
+                "first": "c69e971b-bb7c-4df3-8728-5d9b57ff2f6b",
+                "last": "c69e971b-bb7c-4df3-8728-5d9b57ff2f6b",
+                "ts_first": "2026-10-31T16:44:31.503Z",
+                "ts_last": "2026-10-31T16:44:31.503Z"
+              },
+              "stats": {
+                "events": 1,
+                "input_tokens": 267252,
+                "output_tokens": 631,
+                "tool_calls": 0
+              }
+            },
+            {
+              "children": [],
+              "event_ids": [
+                "67ac95aa-973b-4231-a891-cdcfca66648f",
+                "303cea7c-07d8-4048-82b3-9d457f711083"
+              ],
+              "id": "t42.s16",
+              "kind": "step",
+              "label": "Bash: Debug what renders on a Raw turn page",
+              "level": 3,
+              "meta": {
+                "step_kind": "tool",
+                "tool": "Bash"
+              },
+              "span": {
+                "first": "67ac95aa-973b-4231-a891-cdcfca66648f",
+                "last": "303cea7c-07d8-4048-82b3-9d457f711083",
+                "ts_first": "2026-10-31T16:44:36.096Z",
+                "ts_last": "2026-10-31T16:44:43.020Z"
+              },
+              "stats": {
+                "events": 2,
+                "input_tokens": 267252,
+                "output_tokens": 631,
+                "tool_calls": 1
+              }
+            },
+            {
+              "children": [],
+              "event_ids": [
+                "8ae1edb3-a7c7-4d2f-98cc-660096e1d5c7"
+              ],
+              "id": "t42.s17",
+              "kind": "step",
+              "label": "thinking (hidden)",
+              "level": 3,
+              "meta": {
+                "step_kind": "thinking"
+              },
+              "span": {
+                "first": "8ae1edb3-a7c7-4d2f-98cc-660096e1d5c7",
+                "last": "8ae1edb3-a7c7-4d2f-98cc-660096e1d5c7",
+                "ts_first": "2026-10-31T16:44:45.203Z",
+                "ts_last": "2026-10-31T16:44:45.203Z"
+              },
+              "stats": {
+                "events": 1,
+                "input_tokens": 268138,
+                "output_tokens": 939,
+                "tool_calls": 0
+              }
+            },
+            {
+              "children": [],
+              "event_ids": [
+                "f04770b4-f52e-472f-8d35-2ee7cce6c0f5"
+              ],
+              "id": "t42.s18",
+              "kind": "step",
+              "label": "The steps start closed. I'll open a few Bash steps by clicking them.",
+              "level": 3,
+              "meta": {
+                "step_kind": "text"
+              },
+              "span": {
+                "first": "f04770b4-f52e-472f-8d35-2ee7cce6c0f5",
+                "last": "f04770b4-f52e-472f-8d35-2ee7cce6c0f5",
+                "ts_first": "2026-10-31T16:44:45.208Z",
+                "ts_last": "2026-10-31T16:44:45.208Z"
+              },
+              "stats": {
+                "events": 1,
+                "input_tokens": 268138,
+                "output_tokens": 939,
+                "tool_calls": 0
+              }
+            },
+            {
+              "children": [],
+              "event_ids": [
+                "0d560122-a76c-4ead-9f24-dd93a8b50b88",
+                "2436a05a-b197-414a-819f-f7956584f9b0"
+              ],
+              "id": "t42.s19",
+              "kind": "step",
+              "label": "Bash: Open steps and check language tags",
+              "level": 3,
+              "meta": {
+                "step_kind": "tool",
+                "tool": "Bash"
+              },
+              "span": {
+                "first": "0d560122-a76c-4ead-9f24-dd93a8b50b88",
+                "last": "2436a05a-b197-414a-819f-f7956584f9b0",
+                "ts_first": "2026-10-31T16:44:51.442Z",
+                "ts_last": "2026-10-31T16:45:01.680Z"
+              },
+              "stats": {
+                "events": 2,
+                "input_tokens": 268138,
+                "output_tokens": 939,
+                "tool_calls": 1
+              }
+            },
+            {
+              "children": [],
+              "event_ids": [
+                "028d6be2-b844-46fb-82ad-c9a3168e040c",
+                "ae997079-933c-4116-b4cf-02edc449fa0f"
+              ],
+              "id": "t42.s20",
+              "kind": "step",
+              "label": "Read: /tmp/claude-1000/<project-slug>/34b27ceb-5af1-4142-8334-ab80a4310636/…",
+              "level": 3,
+              "meta": {
+                "step_kind": "tool",
+                "tool": "Read"
+              },
+              "span": {
+                "first": "028d6be2-b844-46fb-82ad-c9a3168e040c",
+                "last": "ae997079-933c-4116-b4cf-02edc449fa0f",
+                "ts_first": "2026-10-31T16:45:03.905Z",
+                "ts_last": "2026-10-31T16:45:03.971Z"
+              },
+              "stats": {
+                "events": 2,
+                "input_tokens": 269136,
+                "output_tokens": 227,
+                "tool_calls": 1
+              }
+            },
+            {
+              "children": [],
+              "event_ids": [
+                "153d5904-a385-4432-8f1b-dbf9f1e92702",
+                "8e878a7d-7d0b-47a7-a06c-06f40657a422"
+              ],
+              "id": "t42.s21",
+              "kind": "step",
+              "label": "Read: /tmp/claude-1000/<project-slug>/34b27ceb-5af1-4142-8334-ab80a4310636/…",
+              "level": 3,
+              "meta": {
+                "step_kind": "tool",
+                "tool": "Read"
+              },
+              "span": {
+                "first": "153d5904-a385-4432-8f1b-dbf9f1e92702",
+                "last": "8e878a7d-7d0b-47a7-a06c-06f40657a422",
+                "ts_first": "2026-10-31T16:45:04.653Z",
+                "ts_last": "2026-10-31T16:45:04.720Z"
+              },
+              "stats": {
+                "events": 2,
+                "input_tokens": 269136,
+                "output_tokens": 227,
+                "tool_calls": 1
+              }
+            },
+            {
+              "children": [],
+              "event_ids": [
+                "ea6cf2ba-c7e4-4387-8dbd-27b48e3e5ac8"
+              ],
+              "id": "t42.s22",
+              "kind": "step",
+              "label": "thinking (hidden)",
+              "level": 3,
+              "meta": {
+                "step_kind": "thinking"
+              },
+              "span": {
+                "first": "ea6cf2ba-c7e4-4387-8dbd-27b48e3e5ac8",
+                "last": "ea6cf2ba-c7e4-4387-8dbd-27b48e3e5ac8",
+                "ts_first": "2026-10-31T16:45:06.537Z",
+                "ts_last": "2026-10-31T16:45:06.537Z"
+              },
+              "stats": {
+                "events": 1,
+                "input_tokens": 269825,
+                "output_tokens": 362,
+                "tool_calls": 0
+              }
+            },
+            {
+              "children": [],
+              "event_ids": [
+                "bae976d4-cf30-46d9-b484-9215d778f8f9"
+              ],
+              "id": "t42.s23",
+              "kind": "step",
+              "label": "Both placements work: the tag sits in the corner of a block without a caption, …",
+              "level": 3,
+              "meta": {
+                "step_kind": "text"
+              },
+              "span": {
+                "first": "bae976d4-cf30-46d9-b484-9215d778f8f9",
+                "last": "bae976d4-cf30-46d9-b484-9215d778f8f9",
+                "ts_first": "2026-10-31T16:45:06.546Z",
+                "ts_last": "2026-10-31T16:45:06.546Z"
+              },
+              "stats": {
+                "events": 1,
+                "input_tokens": 269825,
+                "output_tokens": 362,
+                "tool_calls": 0
+              }
+            },
+            {
+              "children": [],
+              "event_ids": [
+                "95591253-1d3d-4dc4-bdb9-8b618258861b",
+                "692bb600-e623-4b63-97c0-33f9962710c4"
+              ],
+              "id": "t42.s24",
+              "kind": "step",
+              "label": "Bash: Run tests and commit the language tags",
+              "level": 3,
+              "meta": {
+                "step_kind": "tool",
+                "tool": "Bash"
+              },
+              "span": {
+                "first": "95591253-1d3d-4dc4-bdb9-8b618258861b",
+                "last": "692bb600-e623-4b63-97c0-33f9962710c4",
+                "ts_first": "2026-10-31T16:45:08.179Z",
+                "ts_last": "2026-10-31T16:45:11.995Z"
+              },
+              "stats": {
+                "events": 2,
+                "input_tokens": 269825,
+                "output_tokens": 362,
+                "tool_calls": 1
+              }
+            },
+            {
+              "children": [],
+              "event_ids": [
+                "b4a36f1a-6ad1-41f3-83a8-f920664cbbaf"
+              ],
+              "id": "t42.s25",
+              "kind": "step",
+              "label": "Highlighted code blocks now show their language as a small tag, without adding …",
+              "level": 3,
+              "meta": {
+                "step_kind": "text"
+              },
+              "span": {
+                "first": "b4a36f1a-6ad1-41f3-83a8-f920664cbbaf",
+                "last": "b4a36f1a-6ad1-41f3-83a8-f920664cbbaf",
+                "ts_first": "2026-10-31T16:45:15.749Z",
+                "ts_last": "2026-10-31T16:45:15.749Z"
+              },
+              "stats": {
+                "events": 1,
+                "input_tokens": 270304,
+                "output_tokens": 323,
+                "tool_calls": 0
+              },
+              "text": {
+                "summary": "Uncaptioned code blocks get the tag in the top-right corner over the code. Captioned blocks show it at the right end of the caption line. Tags use short names (bash, python, ts, js, json, css, xml, diff, md, yaml), and plain text gets none. On hover the tag fades so it never hides the end of a long first line. Checked on real Bash, Python and JS blocks from this session; unit tests pass. Committed as 5d0720c, not pushed. Still open: whether to add the search-field keyboard behaviour (Enter widens when nothing matches, ↑/↓ move the selection, Esc keeps the search term)."
+              }
+            }
+          ],
+          "id": "t42",
+          "kind": "turn",
+          "label": "syntax highlted blocks shall display the language, dont take too much screen sp…",
+          "level": 2,
+          "span": {
+            "first": "73f06858-837f-4921-89d0-85c5d26928b4",
+            "last": "b489b686-b24e-4126-823d-47919a2dd04f",
+            "ts_first": "2026-10-31T16:43:19.069Z",
+            "ts_last": "2026-10-31T16:45:15.796Z"
+          },
+          "stats": {
+            "events": 34,
+            "input_tokens": 6400390,
+            "output_tokens": 16947,
+            "tool_calls": 9
+          },
+          "text": {
+            "abstract": "[user.prompt] syntax highlted blocks shall display the language, dont take too much screen space [assistant.thinking] [assistant.text] Let me see how code blocks render today. [tool Bash] {\"command\":\"sed -n 20,50p ToolCall.tsx; grep -n \\\"^\\\\.code\\\\b\\\\|^\\\\.code \\\\|\\\\.code-cap\\\\|figcaption\\\\|\\\\.code\\…",
+            "summary": "Uncaptioned code blocks get the tag in the top-right corner over the code. Captioned blocks show it at the right end of the caption line. Tags use short names (bash, python, ts, js, json, css, xml, diff, md, yaml), and plain text gets none. On hover the tag fades so it never hides the end of a long first line. Checked on real Bash, Python and JS blocks from this session; unit tests pass. Committed as 5d0720c, not pushed. Still open: whether to add the search-field keyboard behaviour (Enter widens when nothing matches, ↑/↓ move the selection, Esc keeps the search term).",
+            "title": "Language tag check finds no code blocks on any sampled turn"
+          }
         }
       ],
       "id": "p3",
       "kind": "phase",
-      "label": "can we add images the useer pasted in the prompt to the repo and UI (+17 turns)",
+      "label": "can we add images the useer pasted in the prompt to the repo and UI (+18 turns)",
       "level": 1,
       "meta": {
         "boundary": "compaction"
       },
       "span": {
         "first": "b02c4f46-d69e-4c3a-b3d8-5049c25887c9",
-        "last": "1e5e88ec-4ae9-4497-aa2e-c5081173463c",
+        "last": "b489b686-b24e-4126-823d-47919a2dd04f",
         "ts_first": "2026-10-31T12:32:19.020Z",
-        "ts_last": "2026-10-31T16:34:47.593Z"
+        "ts_last": "2026-10-31T16:45:15.796Z"
       },
       "stats": {
-        "events": 1324,
-        "input_tokens": 239610339,
-        "output_tokens": 926918,
-        "tool_calls": 405
+        "events": 1358,
+        "input_tokens": 246010729,
+        "output_tokens": 943865,
+        "tool_calls": 414
       },
       "text": {
         "abstract": "[user.prompt] can we add images the useer pasted in the prompt to the repo and UI [assistant.thinking] [tool Bash] {\"command\":\"f=~/.claude/projects/<project-slug>/34b27ceb-5af1-4142-8334-ab80a4310636.jsonl; grep -n '\\\"type\\\":\\\"image\\\"' $f | cut -c1-12 | head; grep '\\\"type\\\":\\\"image\\\"' $f | tail -1 …",
@@ -47343,16 +48026,16 @@
   "level": 0,
   "span": {
     "first": "4a81e520-87a7-4e2f-a80f-43d7e5a0cdd7",
-    "last": "1e5e88ec-4ae9-4497-aa2e-c5081173463c",
+    "last": "b489b686-b24e-4126-823d-47919a2dd04f",
     "ts_first": "2026-10-31T08:19:31.745Z",
-    "ts_last": "2026-10-31T16:34:47.593Z"
+    "ts_last": "2026-10-31T16:45:15.796Z"
   },
   "stats": {
     "cost_usd": 54.034477400000036,
-    "events": 2564,
-    "input_tokens": 525240187,
-    "output_tokens": 2186763,
-    "tool_calls": 781
+    "events": 2598,
+    "input_tokens": 531640577,
+    "output_tokens": 2203710,
+    "tool_calls": 790
   },
   "text": {
     "abstract": "Built the yolo-twice monorepo under code/: an engine daemon on 127.0.0.1:9656 ingests Claude Code JSONL into a committed per-session .yolo-twice folder, and a React UI links a timeline, reader, filter bar and graph through a short deep-link URL with follow mode. To keep the repo portable and private, paths were rewritten to $PROJECT, ~ and <user>, the project index and cursors moved to a gitignored cache, and resume now rebuilds the transcript and runs claude --resume <file> --fork-session. Claude summaries had silently fallen back to raw text because --bare skipped the login, so switching to disableAllHooks fixed them; 57 tests pass, the Pages deck is live, and pasted-image capture into the repo and UI was in progress at the end.",

@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T16:44:46.174Z",
+  "granularity": "title",
+  "hash": "d59961b26d24b47b",
+  "node": "t42.s13",
+  "text": "Language tag check finds no code blocks on any sampled turn",
+  "version": "2"
+}

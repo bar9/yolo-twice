@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T16:45:23.243Z",
+  "granularity": "summary",
+  "hash": "c62f1c6d88819e29",
+  "node": "t42.s25",
+  "text": "Uncaptioned code blocks get the tag in the top-right corner over the code. Captioned blocks show it at the right end of the caption line. Tags use short names (bash, python, ts, js, json, css, xml, diff, md, yaml), and plain text gets none. On hover the tag fades so it never hides the end of a long first line. Checked on real Bash, Python and JS blocks from this session; unit tests pass. Committed as 5d0720c, not pushed. Still open: whether to add the search-field keyboard behaviour (Enter widens when nothing matches, ↑/↓ move the selection, Esc keeps the search term).",
+  "version": "2"
+}
