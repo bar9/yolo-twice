@@ -1,0 +1,25 @@
+{
+  "name": "yolo-twice-monorepo",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "packages/*",
+    "site",
+    "pitch"
+  ],
+  "scripts": {
+    "build": "bun run --filter '@yolo-twice/*' build",
+    "test": "bun test",
+    "typecheck": "tsc -b packages/core packages/analyzers packages/engine",
+    "cli": "bun run packages/engine/src/cli.ts",
+    "dev:ui": "bun run --filter @yolo-twice/ui dev"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.9.0"
+  },
+  "engines": {
+    "node": ">=20",
+    "bun": ">=1.2"
+  }
+}

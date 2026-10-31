@@ -19,7 +19,7 @@ Demo on 1 Nov is a vertical slice; the architecture is designed for the full vis
 | Deadline | Demo slice on 1 Nov, continue afterwards |
 | Pitch features | Semantic zoom, live flow graph, shareable project history. Cross-agent later |
 | Event source | Claude Code hooks trigger ingestion; the session JSONL is the source of truth; file watcher as fallback |
-| Stack | Node/TypeScript monorepo (pnpm workspaces) |
+| Stack | TypeScript monorepo under `code/`, bun for workspaces, tests and dev; the shipped engine runs on Node 20 or newer |
 | Primary user | Developer reviewing their own sessions; team sharing is a later layer on the same data |
 | `.yolo-twice` content | Redacted raw events plus derived data, so it is safe to commit |
 | LLM analysis | Headless `claude -p` through the user's subscription, hash-cached, never blocking the UI |
@@ -56,13 +56,14 @@ flowchart LR
 | Package | Responsibility | Owner |
 |---|---|---|
 | `packages/core` | Event schema, source adapters (claude-code now, opencode later), redaction, cursor-based incremental reader, `.yolo-twice` store | A |
-| `packages/engine` | Daemon: HTTP API, SSE stream, `/hook` endpoint, watcher fallback, analyzer queue, pid/port lifecycle, CLI (`yolo-twice start|stop|status|index`) | A |
+| `packages/engine` | npm package `yolo-twice`: one daemon per machine on `127.0.0.1:9656`, HTTP API, SSE stream, `/hook` endpoint, watcher fallback, analyzer queue, lifecycle in `~/.yolo-twice/`, CLI (`yolo-twice start|open|stop|status|index|mode|hook`) | A |
 | `packages/analyzers` | Structural tree (L0 to L4), full-text search, semantic phase summaries and cluster labels via `claude -p`, cost rollups | B |
 | `packages/ui` | Vite + React web app: zoom view (stretchtext on two axes), flow graph rendered from mermaid text with pele, timeline, search, live updates over SSE | C |
 | `plugin/` | Claude Code plugin: `plugin.json`, `commands/yolo-twice.md`, `hooks/hooks.json`, `bin/yolo-twice` | D |
-| `site/` and `assets/pitch/` | VitePress site and Slidev deck, mermaid blocks rendered with pele at build time, deployed to GitHub Pages by one Actions workflow | D |
+| `site/` and `pitch/` (under `code/`) | VitePress site and Slidev deck, mermaid blocks rendered with pele at build time, deployed to GitHub Pages by one Actions workflow; the exported deck goes to `assets/` | D |
 | `README.md` | Getting started, single-command install, a humble comparison with existing tools and credits | D |
-| `fixtures/` | Two or three real sessions, redacted, so B and C can develop without the engine running | D |
+| `fixtures/` | A synthetic Claude Code project folder (one session with tool calls, a rewind branch, a subagent, a compaction and seeded fake secrets) that every test and the UI mock run against | D |
+| `API.md` | The HTTP, SSE and CLI contract the engine implements and the UI codes against | all |
 
 ## 3. Live pipeline
 
@@ -74,7 +75,7 @@ sequenceDiagram
   participant S as .yolo-twice
   participant UI as Web UI
   CC->>H: UserPromptSubmit / PostToolUse / SubagentStop / PostCompact / Stop
-  H->>E: POST /hook {session_id, transcript_path, agent_id, hook_event_name}
+  H->>E: curl POST /hook {session_id, transcript_path, cwd, hook_event_name}
   E->>E: debounce 300 ms per transcript
   E->>S: read new lines from cursor, normalize, redact, append events.ndjson
   E->>S: update structure.json (structural levels, no LLM)
@@ -85,9 +86,11 @@ sequenceDiagram
 ```
 
 The transcript file lags the live conversation, so every hook triggers a re-read from the
-cursor and the next hook or watcher event picks up anything missed. Hooks of type `http` post
-straight to the engine; if the engine is not running the hook fails silently and the watcher
-catches up when `/yolo-twice` starts it.
+cursor and the next hook or watcher event picks up anything missed. The plugin ships command
+hooks (a two-line shell script that posts the hook JSON with curl and always exits 0) rather
+than Claude Code's `http` hooks, because an `http` hook prints an error into the transcript
+whenever the engine is down. One engine serves every project on the machine, which is what
+lets the hook target a fixed port.
 
 ## 4. Data model
 
@@ -178,20 +181,22 @@ GitHub as-is. If interactivity outgrows SVG, `@xyflow/react` is the fallback.
 
 ```
 .yolo-twice/
-  config.json                    # schema version, sources, redaction rules, enabled analyzers
-  engine.json                    # pid, port, started at   (gitignored)
-  cache/                         # search index, temp      (gitignored)
+  config.json                    # schema version, attention, redaction rules, enabled analyzers
+  cache/                         # interim summaries, temp (gitignored)
   sessions/<session-id>/
     source.json                  # origin path, agent, cursor {bytes, lines, size, mtime, head hash}
-    events.ndjson                # redacted normalized events, append-only
+    events.ndjson                # redacted normalized events, append-only in arrival order
     structure.json               # L0 to L3 tree with available granularities per node
     graph.mmd                    # flow graph as mermaid text, rendered with pele everywhere
     text/<node>.<gran>.<hash>.json   # title / abstract / summary per node, keyed by input hash + analyzer version
     semantic/<input-hash>.json   # phase labels and cluster results
   project.json                   # L-1: session list and project digest
   annotations/                   # user notes, later
-  .gitignore                     # engine.json, cache/
+  .gitignore                     # cache/
 ```
+
+Engine runtime state (`engine.json` with pid and port, `projects.json`, `engine.log`) lives in
+`~/.yolo-twice/`, never in the repo.
 
 Rules that make stop, resume and re-run safe:
 
@@ -202,8 +207,8 @@ Rules that make stop, resume and re-run safe:
    name and version. Existing key means skip. This is what makes `claude -p` affordable.
 4. Files are written atomically (temp file then rename) with sorted keys and stable
    formatting, so git diffs are small and merges are sane.
-5. `/yolo-twice` is idempotent: it checks `engine.json`, probes the port, and reuses a healthy
-   engine instead of starting a second one.
+5. `/yolo-twice` is idempotent: it checks `~/.yolo-twice/engine.json`, probes the port, and
+   reuses a healthy engine instead of starting a second one.
 6. Redaction runs before anything is written: API keys, tokens, JWTs, private keys, env
    values and configurable patterns are replaced with `[redacted:<rule>]`; tool results above a
    size limit keep head and tail plus a hash. The original stays in `~/.claude` untouched.
@@ -244,16 +249,23 @@ Design rules:
 - `claude -p` jobs run with concurrency one and a per-hour token budget derived from the
   detent; when the budget is exhausted the engine degrades to the next lazier mode and says so
   in the UI.
+- The call is `claude -p --bare --no-session-persistence --tools "" --max-turns 1
+  --output-format json --json-schema …`: `--bare` skips hooks so our own hooks never recurse,
+  `--no-session-persistence` keeps the summarizer out of `~/.claude/projects`, and the schema
+  returns clean text. When the CLI is missing or fails, a structural head-and-tail summarizer
+  answers instead and the artifact says so.
 
 ## 7. Plugin and install
 
 ```
-plugin/
+code/plugin/
   .claude-plugin/plugin.json
   commands/yolo-twice.md       # runs !`${CLAUDE_PLUGIN_ROOT}/bin/yolo-twice $ARGUMENTS` and prints the URL
   hooks/hooks.json             # SessionStart, UserPromptSubmit, PostToolUse, SubagentStart, SubagentStop,
-                               # PreCompact, PostCompact, Stop, SessionEnd -> http://127.0.0.1:<port>/hook
-  bin/yolo-twice               # thin wrapper: npx -y yolo-twice@<pinned> "$@"
+                               # PreCompact, PostCompact, Stop, SessionEnd -> bin/yolo-twice-hook
+  bin/yolo-twice-hook          # sh: curl the hook JSON to 127.0.0.1:9656/hook, 2 s timeout, always exit 0
+  bin/yolo-twice               # sh: find the engine (env override, repo dev layout, marketplace clone,
+                               # finally npx -y yolo-twice@latest) and run it
 ```
 
 The slash command uses the command file's inline shell execution, so `/yolo-twice` starts the
@@ -271,19 +283,16 @@ claude plugin install yolo-twice --marketplace bar9/yolo-twice
 Requires Node 22 or newer. A standalone binary (Node SEA or `bun build --compile`) is a
 post-hackathon item.
 
-## 8. Interfaces to freeze in hour one
+## 8. Frozen interfaces
 
-- `packages/core/schema/event.schema.json` and `structure.schema.json` (zod, exported types)
+- Types: `code/packages/core/src/schema.ts` (zod schemas and TypeScript types for `Event`,
+  `StructureNode`, `Config`, `SourceState`, `ProjectIndex`)
 - `.yolo-twice` layout above
-- HTTP API: `GET /api/sessions`, `GET /api/sessions/:id/events?after=<id>`,
-  `GET /api/sessions/:id/structure`, `GET /api/sessions/:id/semantic`,
-  `GET /api/search?q=&session=`, `GET /api/stream` (SSE: `events`, `structure`, `semantic`),
-  `GET|PUT /api/config` (attention detent), `POST /api/sessions/:id/semantic/request` (lazy summary for visible nodes),
-  `GET /api/sessions/:id/digest?since=<event-id>` (catch me up),
-  `POST /hook`, `GET /health`
-- Fixtures in `code/fixtures/<session>/` in exactly the `.yolo-twice/sessions/<id>/` shape
+- HTTP, SSE and CLI: `code/API.md`
+- Fixture: `code/fixtures/raw/projects/-tmp-yolo-demo/` is a synthetic Claude Code project
+  folder; `code/fixtures/helper.ts` copies it into a temp dir for a test
 
-With these frozen, the four tracks run in parallel against fixtures and meet at integration.
+With these frozen, the tracks run in parallel against the fixture and meet at integration.
 
 ## 9. Hackathon timeline
 
@@ -330,6 +339,12 @@ attention slider; the architecture diagram; the one-line install; roadmap.
 
 ## 11. Verification
 
+Status 31 Oct: core and analyzers have 16 passing tests (`bun test` in `code/`) covering
+normalization, redaction, truncation, idempotency, cursor resume, source replacement, the
+structure tree with branch and subagent nesting, mermaid rendering through pele, the derive
+pipeline's determinism, search and the semantic cache. A smoke run over this repository's own
+live session ingested 261 events in 71 ms and derived the tree in 20 ms.
+
 - Unit: normalizer against fixtures; idempotency test runs `index` twice and asserts identical bytes; resume test truncates the cursor and asserts identical output.
 - Slider test: index a fixture in micro mode and in yolo mode with a mocked `claude -p`; assert the committed `sessions/` output is byte-identical and only `cache/` differs.
 - Redaction test seeds fake keys and tokens into a fixture and asserts none reach `events.ndjson`.
@@ -344,3 +359,5 @@ attention slider; the architecture diagram; the one-line install; roadmap.
 - Format drift between Claude Code versions: pin to the record `version` field, tolerate unknown types.
 - Privacy: redaction is mandatory before write; cache and engine state are gitignored by default.
 - Scope: cross-agent support stays out of the demo.
+- Distribution: until the `yolo-twice` package is published to npm, the plugin's launcher
+  finds the engine in the repo checkout or in the marketplace clone under `~/.claude/plugins/`.
