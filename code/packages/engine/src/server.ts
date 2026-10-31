@@ -268,6 +268,8 @@ export class Engine {
         const rt = this.register(cwd);
         this.broadcast(rt.root, "hook", { hook_event_name: body.hook_event_name, session_id: body.session_id });
         const activity = activityFrom(body);
+        // the turn's milestones go to the log (tool calls are too many), so a wrong "working" can be traced
+        if (!/ToolUse$/.test(body.hook_event_name ?? "")) this.log(`hook ${body.hook_event_name} ${body.session_id?.slice(0, 8) ?? "-"}${activity ? ` -> ${activity}` : ""}`);
         if (activity && body.session_id) {
           const a = { session_id: body.session_id, activity, ts: new Date().toISOString() };
           if (!this.activity.has(rt.root)) this.activity.set(rt.root, new Map());

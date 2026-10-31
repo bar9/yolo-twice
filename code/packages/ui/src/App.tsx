@@ -301,7 +301,17 @@ export function App() {
     return last?.kind === "user.prompt" && last.text?.startsWith("[Request interrupted") ? last.ts : undefined;
   }, [events]);
   const told = sessionId ? activity[sessionId] : undefined;
-  const claude = live === "live" && told && told.activity !== "idle" && !(interruptedAt && interruptedAt > told.ts) ? told.activity : undefined;
+  // a claim needs news: an event or a hook within the last 10 minutes; a hook that never came (a lost Stop)
+  // must not keep "working" up through an hour of silence
+  const [now, setNow] = useState(() => Date.now());
+  const claimed = !!told && told.activity !== "idle";
+  useEffect(() => {
+    if (!claimed) return;
+    const t = setInterval(() => setNow(Date.now()), 15_000);
+    return () => clearInterval(t);
+  }, [claimed]);
+  const news = Math.max(told ? Date.parse(told.ts) : 0, structure ? Date.parse(structure.span.ts_last) : 0);
+  const claude = live === "live" && told && told.activity !== "idle" && !(interruptedAt && interruptedAt > told.ts) && Math.max(now, Date.now()) - news < 10 * 60_000 ? told.activity : undefined;
   const working = view.follow && claude && structure ? { state: claude, lastEvent: structure.span.ts_last } : undefined;
   const onGraphMove = useCallback((down: boolean, atTail: boolean) => (down ? atTail && scrollTail() : scrollLock()), [scrollLock, scrollTail]);
 
