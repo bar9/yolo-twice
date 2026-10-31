@@ -681,10 +681,15 @@ a.link:hover { text-decoration-color: currentColor; }
 .flow .base-node.is-fresh { animation: enter .4s ease-out; }
 .working { display: flex; align-items: center; gap: 10px; margin: 16px 0 0 6px; font-size: 13px; color: var(--ink-2); animation: enter .4s ease-out; }
 .working .dots { display: inline-flex; gap: 4px; }
-.working .dots i { width: 6px; height: 6px; border-radius: 50%; background: var(--rec); animation: dot 1.3s ease-in-out infinite; }
-.working .dots i:nth-child(2) { animation-delay: .16s; }
-.working .dots i:nth-child(3) { animation-delay: .32s; }
-@keyframes dot { 0%, 80%, 100% { opacity: .25; transform: scale(.75); } 40% { opacity: 1; transform: scale(1); } }
+/* the dots pulse by colour and brightness, one after the other (no movement, so reduced motion keeps it) */
+.working .dots i { width: 7px; height: 7px; border-radius: 50%; background: var(--rec); animation: dot 1.8s ease-in-out infinite; }
+.working .dots i:nth-child(2) { animation-delay: .3s; }
+.working .dots i:nth-child(3) { animation-delay: .6s; }
+@keyframes dot {
+  0%, 100% { opacity: .35; background: var(--rec); }
+  33% { opacity: 1; background: var(--k-agent); }
+  66% { opacity: .7; background: var(--k-you); }
+}
 .flow .base-node.is-selected.is-working { animation: working 2.2s ease-in-out infinite; }
 @keyframes working {
   0%, 100% { box-shadow: 0 0 0 2px var(--ink), 0 0 0 2px color-mix(in srgb, var(--rec) 50%, transparent); }
@@ -692,7 +697,12 @@ a.link:hover { text-decoration-color: currentColor; }
 }
 @media (prefers-reduced-motion: reduce) {
   .zoom .node.fresh, .flow .base-node.is-fresh, .working { animation: none; }
-  .working .dots i, .flow .base-node.is-selected.is-working { animation: none; }
+  /* no growing ring: the newest box's ring changes colour instead */
+  .flow .base-node.is-selected.is-working { animation: working-calm 2.2s ease-in-out infinite; }
+}
+@keyframes working-calm {
+  0%, 100% { box-shadow: 0 0 0 2px var(--ink), 0 0 0 4px color-mix(in srgb, var(--rec) 15%, transparent); }
+  50% { box-shadow: 0 0 0 2px var(--ink), 0 0 0 4px color-mix(in srgb, var(--rec) 70%, transparent); }
 }
 /* waiting for you: the dots hold still */
 .working.waiting .dots i { animation: none; opacity: .55; background: var(--ink-3); }
