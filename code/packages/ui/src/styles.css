@@ -674,6 +674,27 @@ a.link:hover { text-decoration-color: currentColor; }
 @keyframes invite-in { from { opacity: 0; transform: translateY(-4px); } }
 @media (prefers-reduced-motion: reduce) { .tour-invite { animation: none; } }
 
+/* ---------- scripted demos: the presenter's strip and a pointer the audience can follow ---------- */
+.demo-bar {
+  position: fixed; z-index: 45; left: 50%; bottom: 18px; transform: translateX(-50%); max-width: min(760px, calc(100vw - 32px));
+  display: flex; align-items: center; gap: 6px; padding: 6px 8px 6px 14px; border-radius: 999px;
+  background: var(--sheet); border: 1px solid var(--rule); box-shadow: 0 12px 34px rgb(7 10 42 / .2); font-size: 13px;
+}
+.demo-title { font-weight: 600; color: var(--ink); white-space: nowrap; margin-right: 4px; }
+.demo-count { color: var(--ink-2); min-width: 3.2em; text-align: center; }
+.demo-caption { margin: 0 6px; color: var(--ink-2); line-height: 1.35; min-width: 0; }
+.demo-btn { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; color: var(--ink-2); flex: none; }
+.demo-btn:hover:not(:disabled) { background: var(--sheet-2); color: var(--ink); }
+.demo-btn:disabled { opacity: .35; }
+.demo-pointer {
+  position: fixed; z-index: 60; left: 0; top: 0; width: 26px; height: 26px; margin: -13px 0 0 -13px; border-radius: 50%;
+  pointer-events: none; opacity: 0; border: 2.5px solid var(--rec); background: var(--rec-soft);
+  box-shadow: 0 0 0 6px color-mix(in srgb, var(--rec) 14%, transparent), 0 4px 14px rgb(7 10 42 / .25);
+  transition: opacity .25s ease-out;
+}
+.demo-pointer.on { opacity: 1; transition: opacity .25s ease-out, transform .5s cubic-bezier(.3, .7, .2, 1); }
+@media (prefers-reduced-motion: reduce) { .demo-pointer.on { transition: opacity .25s ease-out; } }
+
 /* ---------- live: new parts fade in, a working row and a soft pulse at the tail ---------- */
 /* a fade only: the follow slide already moves the page, a second motion would read as flicker */
 @keyframes enter { from { opacity: 0; } }

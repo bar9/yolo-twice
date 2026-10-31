@@ -242,6 +242,16 @@ export class Engine {
     });
 
     // which interface the engine listens on; set at start (--host) it is shown, not changed
+    // scripted demos live with the project's sessions: .yolo-twice/demos/<name>.json, played by the UI with ?demo=<name>
+    app.get("/api/demos/:name", (c) => {
+      const rt = need(c.req.query("project"));
+      const name = c.req.param("name");
+      if (!/^[\w-]+$/.test(name)) return c.json({ error: "a demo name is letters, digits, - and _" }, 400);
+      const file = path.join(rt.store.dir, "demos", `${name}.json`);
+      if (!fs.existsSync(file)) throw new NotFound("demo not found");
+      return c.body(fs.readFileSync(file, "utf8"), 200, { "content-type": "application/json" });
+    });
+
     app.get("/api/network", (c) => c.json(this.network()));
     app.put("/api/network", async (c) => {
       const body = (await c.req.json().catch(() => ({}))) as { host?: string };

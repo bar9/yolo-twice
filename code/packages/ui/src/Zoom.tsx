@@ -13,6 +13,10 @@ export interface ZoomApi {
   detail(id: string, dir: 1 | -1): void;
   /** Show one matching event: open its part (at Raw, if the match is not on screen yet) and scroll the passage to the middle. */
   reveal(part: string, event: string): void;
+  /** Open a part (and the path to it), or close it. */
+  open(id: string, open: boolean): void;
+  /** Every part back to closed and at the page's detail: a clean page, as a demo step expects. */
+  reset(): void;
 }
 /** How many matching steps a search opens at Raw; more would bury the page. */
 const AUTO_MAX = 30;
@@ -175,6 +179,15 @@ export const Zoom = memo(function Zoom(props: {
         if (!find()) setOverride((o) => (part === props.root.id ? o : { ...o, [part]: "full" }));
         // after the selection's own scroll (50 ms), so the passage, not the part's title, ends up in the middle
         setTimeout(() => find()?.scrollIntoView({ block: "center", behavior: "smooth" }), 140);
+      },
+      open(id: string, open: boolean) {
+        const path = open ? [...ancestors(props.root, id), id] : [id];
+        setOpen((o) => ({ ...o, ...Object.fromEntries(path.map((p) => [p, open])) }));
+      },
+      reset() {
+        // what a search opened stays open: it belongs to the query, which the next view may keep
+        setOpen({ [props.root.id]: true, ...Object.fromEntries([...autoOpen.current].map((id) => [id, true])) });
+        setOverride(Object.fromEntries([...autoRaw.current].map((id) => [id, "full" as Granularity])));
       },
     }),
     [props.root.id, props.granularity, props.onGranularity],

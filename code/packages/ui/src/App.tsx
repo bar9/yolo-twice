@@ -15,6 +15,8 @@ import { CHIPS } from "./FilterBar";
 import { Help, type HelpTab } from "./Help";
 import { TourInvite } from "./TourInvite";
 import { useKeyboard } from "./useKeyboard";
+import type { KeyActions } from "./keys";
+import { DemoBar, DemoPointer, useDemo } from "./DemoPlayer";
 import { useCtrlWheel } from "./wheelZoom";
 import { matchOrder, stepIn } from "./nav";
 import { useStream } from "./useStream";
@@ -553,7 +555,7 @@ export function App() {
   const [help, setHelp] = useState<{ open: boolean; tab: HelpTab }>({ open: false, tab: "guide" });
   const [touring, setTouring] = useState(false);
   const LAYOUTS: Layout[] = ["read", "split", "map"];
-  useKeyboard({
+  const keys: KeyActions = {
     move: (dir) => {
       const next = stepIn(order(), sel, dir);
       if (next) select(next);
@@ -587,7 +589,8 @@ export function App() {
     togglePin: () => sessionId && setView({ pinned: !view.pinned }),
     catchMeUp: () => void catchMeUp(),
     shortcuts: () => setHelp({ open: true, tab: "keys" }),
-  });
+  };
+  useKeyboard(keys);
   const path = scope ? scope.path.slice(1).map((n) => ({ id: n.id, label: n.label })) : [];
   const timelineWindow = scope ? scope.window : projectWindow;
   const layout: Layout = narrow && view.layout === "split" ? "read" : view.layout;
@@ -602,6 +605,28 @@ export function App() {
     },
     [layout],
   );
+  // scripted demos (Demo.tsx): each step is a whole view plus a few actions; this is what they reach
+  const demo = useDemo({
+    project: view.project,
+    setView,
+    keys,
+    settle: () => {
+      setHelp((h) => ({ ...h, open: false }));
+      setTouring(false);
+      setDigest(undefined);
+      setReader("outline");
+      setFoldRest(true);
+      setHover(undefined);
+      setCard(undefined);
+      setMatchAt(undefined);
+      zoomApi.current?.reset();
+      readerBody.current?.scrollTo({ top: 0 });
+    },
+    hover: setHover,
+    open: (id, open) => zoomApi.current?.open(id, open),
+    tab: (t) => setReader(t === "results" ? "results" : "outline"),
+    revealMap: (id) => graphApi.current?.reveal(id),
+  });
   const hoverAt = useCallback((h: HoverInfo | undefined) => (setHover(h?.id), setCard(h)), []);
   const setDetail = useCallback((z: Granularity) => setView({ z }), [setView]);
   const setWindow = useCallback((w: [number, number] | undefined) => act({ window: w }), [act]);
@@ -747,7 +772,9 @@ export function App() {
           <Tour run onEnd={() => setTouring(false)} />
         </Suspense>
       )}
-      {!touring && <TourInvite onStart={() => setTouring(true)} />}
+      {!touring && !demo.active && !demo.framed && <TourInvite onStart={() => setTouring(true)} />}
+      <DemoBar demo={demo} />
+      <DemoPointer at={demo.point} />
       {card && <HoverCard info={card} tree={tree} sessions={sessions} hits={hits} />}
       <Sheet open={digest !== undefined} onOpenChange={(o) => !o && setDigest(undefined)}>
         <SheetContent className="w-full sm:max-w-lg overflow-y-auto">

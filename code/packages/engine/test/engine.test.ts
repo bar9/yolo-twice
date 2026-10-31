@@ -112,6 +112,16 @@ describe("engine", () => {
     const ev = (await (await fetch(`${base}/api/sessions/${FIXTURE_SESSION}/events?${q}&after=u13&limit=100`)).json()) as { events: { id: string }[] };
     expect(ev.events.some((e) => e.id === "u99")).toBe(true);
   });
+  test("serves the project's demo scripts by name, and nothing outside them", async () => {
+    const dir = `${project}/.yolo-twice/demos`;
+    fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(`${dir}/pitch.json`, JSON.stringify({ steps: [{ view: "?v=m" }] }));
+    const res = await fetch(`${base}/api/demos/pitch?${q}`);
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ steps: [{ view: "?v=m" }] });
+    expect((await fetch(`${base}/api/demos/missing?${q}`)).status).toBe(404);
+    expect((await fetch(`${base}/api/demos/..%2Fconfig?${q}`)).status).toBe(400);
+  });
   test("a rebuilt session gets a fresh search index (same ids, new content)", async () => {
     const q = `project=${encodeURIComponent(project)}`;
     const file = mainFile(fx.originDir);

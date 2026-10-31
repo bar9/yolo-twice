@@ -1,0 +1,30 @@
+{
+  "title": "yolo-twice, built with yolo-twice",
+  "steps": [
+    {
+      "view": "34b27c?z=t",
+      "caption": "The session that built yolo-twice: a day of work, one line per chapter.",
+      "do": [{ "point": "p3" }]
+    },
+    {
+      "view": "34b27c/p3",
+      "caption": "Open a chapter: every turn in a sentence.",
+      "do": [{ "point": "t38" }]
+    },
+    {
+      "view": "34b27c/t38?z=s",
+      "caption": "One decision: merge the new graph branch, or rebuild it? The reasoning is kept.",
+      "do": [{ "point": "t38.s11" }, { "open": "t38.s11" }, { "wait": 1500 }, { "point": "t38.s17" }, { "open": "t38.s17" }]
+    },
+    {
+      "view": "34b27c/p3?v=m",
+      "caption": "The same chapter as a map.",
+      "do": [{ "point": "t38", "on": "map" }]
+    },
+    {
+      "view": "34b27c",
+      "caption": "Find anything, and step through the matches.",
+      "do": [{ "type": "docker" }, { "key": "n" }, { "wait": 900 }, { "key": "n" }]
+    }
+  ]
+}

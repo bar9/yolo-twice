@@ -84,6 +84,8 @@ export const api = {
     }),
   digest: (id: string, since: string | undefined) => json<{ since?: string; until: string; events: number; text: string }>(`/api/sessions/${id}/digest${qs({ since })}`),
   projects: () => json<{ root: string; key: string; name: string; sessions: number }[]>(`/api/projects`),
+  /** A scripted demo kept with the project (.yolo-twice/demos/<name>.json); demo.ts checks its shape. */
+  demo: (name: string) => json<unknown>(`/api/demos/${encodeURIComponent(name)}${qs({})}`),
   /** Filtered search; without `session` the whole project. `k` is the comma list of filter codes. */
   search: (q: string, opts: { session?: string; k?: string; limit?: number } = {}) =>
     json<{ hits: SearchHit[]; tools?: string[] }>(`/api/search${qs({ q, session: opts.session, k: opts.k, limit: opts.limit ?? 200 })}`),
