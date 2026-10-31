@@ -51,7 +51,7 @@ export function Zoom(props: {
     if (props.follow) path.push(props.selected);
     if (path.length) setOpen((o) => ({ ...o, ...Object.fromEntries(path.map((id) => [id, true])) }));
     // following: keep the tail at the bottom of the pane, like tail -f; otherwise center the selection
-    const t = setTimeout(() => document.getElementById(`node-${props.selected}`)?.scrollIntoView({ block: props.follow ? "end" : "center", behavior: props.follow ? "auto" : "smooth" }), 50);
+    const t = setTimeout(() => document.getElementById(`node-${props.selected}`)?.scrollIntoView({ block: "center", behavior: props.follow ? "auto" : "smooth" }), 50);
     return () => clearTimeout(t);
   }, [props.selected, props.root, props.follow]);
 

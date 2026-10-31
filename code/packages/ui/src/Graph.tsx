@@ -16,6 +16,8 @@ export function Graph(props: {
   /** Every structure id that may appear in the graph. */
   ids: string[];
   selected?: string;
+  /** Follow mode: keep the selected (newest) node in view, like the reader does. */
+  follow?: boolean;
   hover?: string;
   dim: Set<string>;
   hits: Map<string, number>;
@@ -70,6 +72,27 @@ export function Graph(props: {
       } else title?.remove();
     }
   }, [props.selected, props.hover, props.dim, props.hits, idMap, props.mermaid]);
+
+  // follow: after every re-render or new selection, bring the newest node into view.
+  // Prefer the exact node; otherwise the drawn node that contains it (t5 for t5.s2).
+  useEffect(() => {
+    const el = host.current;
+    if (!el || !props.follow || !props.selected) return;
+    const sel = props.selected;
+    let target: Element | undefined;
+    let best = -1;
+    for (const g of el.querySelectorAll<SVGGElement>(".pele-node, .pele-cluster")) {
+      const id = idMap.get(g.dataset.id ?? "");
+      if (!id || !(id === sel || sel.startsWith(`${id}.`))) continue;
+      if (id.length > best) {
+        best = id.length;
+        target = g;
+      }
+    }
+    // after pele has laid out the SVG
+    const t = setTimeout(() => target?.scrollIntoView({ block: "center", inline: "center", behavior: "auto" }), 30);
+    return () => clearTimeout(t);
+  }, [props.follow, props.selected, props.mermaid, idMap]);
 
   const idAt = (e: React.MouseEvent) => {
     const g = (e.target as Element).closest<SVGGElement>(".pele-node, .pele-cluster");

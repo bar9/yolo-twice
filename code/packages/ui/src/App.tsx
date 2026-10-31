@@ -401,7 +401,7 @@ export function App() {
             <span>graph of {scope ? (scope.graphRoot.kind === "session" ? "the session" : `${scope.graphRoot.kind} ${scope.graphRoot.label.slice(0, 40)}`) : "the project"}</span>
             <span className="muted">click selects · double click zooms in · Esc zooms out</span>
           </div>
-          <Graph mermaid={mermaid} ids={graphIds} selected={sel} hover={hover} dim={dim} hits={hits} onSelect={select} onFocus={focusOn} onHover={setHover} />
+          <Graph mermaid={mermaid} ids={graphIds} selected={sel} follow={view.follow} hover={hover} dim={dim} hits={hits} onSelect={select} onFocus={focusOn} onHover={setHover} />
         </section>
       </div>
     </div>

@@ -111,7 +111,8 @@ button:disabled { opacity: .5; cursor: default; }
 .seg { display: inline-flex; gap: 2px; }
 .seg button { border-radius: 4px; padding: 2px 8px; font-size: 12px; font-weight: 400; }
 
-.zoom { padding: 8px 12px 40px; }
+/* room below the last node, so follow mode can bring the newest one to the middle, not the edge */
+.zoom { padding: 8px 12px 45vh; }
 .node { border-left: 2px solid transparent; }
 .node.selected { border-left-color: var(--accent); background: color-mix(in srgb, var(--accent) 8%, transparent); }
 .node .row { display: flex; align-items: baseline; gap: 6px; padding: 3px 4px; cursor: pointer; border-radius: 4px; }
@@ -143,7 +144,7 @@ button:disabled { opacity: .5; cursor: default; }
 .spin { display: inline-block; width: 10px; height: 10px; border: 2px solid var(--line); border-top-color: var(--accent); border-radius: 50%; animation: spin .8s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-.graph { padding: 12px; overflow: auto; }
+.graph { padding: 12px 12px 45vh; overflow: auto; }
 .graph svg { max-width: 100%; height: auto; }
 .graph .pele-node, .graph .pele-cluster { transition: opacity .15s; }
 .graph .is-dim { opacity: .25; }
