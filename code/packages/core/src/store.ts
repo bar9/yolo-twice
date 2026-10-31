@@ -93,7 +93,7 @@ export class Store {
   }
 
   sessionDir(session: string): string {
-    return path.join(this.dir, "sessions", session);
+    return path.join(this.dir, "sessions", safeSessionId(session));
   }
 
   /** Pasted images of a session, named by content hash: the same image is stored once, rebuilds rewrite nothing. */
@@ -132,7 +132,7 @@ export class Store {
   /* ---- source cursor ---- */
   /** The ingestion cursor is machine state: it lives in the cache, not in the session folder. */
   sourceFile(session: string): string {
-    return path.join(this.dir, "cache", "sources", `${session}.json`);
+    return path.join(this.dir, "cache", "sources", `${safeSessionId(session)}.json`);
   }
 
   readSourceState(session: string): SourceState | undefined {
@@ -274,7 +274,7 @@ export class Store {
 
   /** Summaries of nodes still at the live tail: they change every turn, so they stay local. */
   openTextDir(session: string): string {
-    return path.join(this.dir, "cache", "text", session);
+    return path.join(this.dir, "cache", "text", safeSessionId(session));
   }
 
   writeSessionMeta(meta: SessionMeta): void {
@@ -316,4 +316,13 @@ export class Store {
   cacheDir(): string {
     return path.join(this.dir, "cache");
   }
+}
+
+/** A session id is one path segment: never a separator or `..`, so a request cannot leave the sessions folder. */
+export function isSafeSessionId(id: string): boolean {
+  return /^[\w.-]+$/.test(id) && id !== "." && id !== "..";
+}
+function safeSessionId(id: string): string {
+  if (!isSafeSessionId(id)) throw new Error(`invalid session id: ${JSON.stringify(id)}`);
+  return id;
 }

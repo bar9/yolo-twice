@@ -1,8 +1,22 @@
 #!/bin/sh
 # Forward the Claude Code hook JSON on stdin to the local yolo-twice engine. Never fails, never blocks.
+# Reach the engine where it actually runs (engine.json, written at start), so `start --port` works too.
+STATE="${YOLO_TWICE_HOME:-$HOME/.yolo-twice}/engine.json"
 PORT="${YOLO_TWICE_PORT:-9656}"
+HOST="127.0.0.1"
+if [ -r "$STATE" ]; then
+  P=$(sed -n 's/.*"port"[[:space:]]*:[[:space:]]*\([0-9][0-9]*\).*/\1/p' "$STATE" | head -n 1)
+  H=$(sed -n 's/.*"host"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$STATE" | head -n 1)
+  [ -n "$P" ] && PORT="$P"
+  case "$H" in
+    ""|0.0.0.0) ;;
+    ::) HOST="[::1]" ;;
+    *:*) HOST="[$H]" ;;
+    *) HOST="$H" ;;
+  esac
+fi
 if command -v curl >/dev/null 2>&1; then
-  curl -s -m 2 --data-binary @- -H 'content-type: application/json' "http://127.0.0.1:${PORT}/hook" >/dev/null 2>&1 || true
+  curl -s -m 2 --data-binary @- -H 'content-type: application/json' "http://${HOST}:${PORT}/hook" >/dev/null 2>&1 || true
 else
   cat >/dev/null
 fi

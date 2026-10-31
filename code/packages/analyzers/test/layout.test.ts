@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 import fs from "node:fs";
 import path from "node:path";
 import { ingestProject, Store } from "@yolo-twice/core";
-import { buildStructure, deriveProject, deriveSession, findNode, isOpenNode, summarizeNode, TextCache, type Summarizer } from "../src/index.js";
+import { buildStructure, decorate, deriveProject, deriveSession, findNode, isOpenNode, summarizeNode, TextCache, type Summarizer } from "../src/index.js";
 import { FIXTURE_CWD, FIXTURE_SESSION, tempFixture } from "../../../fixtures/helper.js";
 
 /** Every committed file below .yolo-twice, relative, excluding what .gitignore keeps out. */
@@ -116,6 +116,16 @@ describe("one writer per committed file", () => {
       expect(fs.readdirSync(store.openTextDir(FIXTURE_SESSION))).toEqual([expect.stringMatching(/^t4\.title\./)]);
       // both are visible to readers
       expect(cache.latest("t4").title?.text).toBe("turn:title");
+      // a step's summary never shows up as its turn's (file names share the "t1." prefix)
+      cache.put({ node: "t1.s1", granularity: "title", hash: "x", analyzer: "fake", version: 1, text: "step title", created: "9999-01-01T00:00:00.000Z" } as never);
+      expect(cache.latest("t1").title?.text).toBe("turn:title");
+      expect(cache.latest("t1.s1").title?.text).toBe("step title");
+      // re-decorating clears text a node has no artifact for (stale text from an older run)
+      const t2 = findNode(root, "t2")!;
+      t2.text = { title: "stale" };
+      decorate(root, cache);
+      expect(t2.text).toBeUndefined();
+      expect(t1.text?.title).toBe("turn:title");
       // a reset clears the local copies too
       store.resetSession(FIXTURE_SESSION);
       expect(fs.existsSync(store.openTextDir(FIXTURE_SESSION))).toBe(false);

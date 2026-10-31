@@ -12,7 +12,6 @@ export const ATTENTION_LABEL: Record<Attention, string> = {
   yolo: "yolo",
 };
 
-/** Auto-commit of .yolo-twice. Lives in engine memory only: off after every engine restart. */
 /** Which network interface the engine listens on (GET/PUT /api/network). */
 export interface NetworkInfo {
   host: string;
@@ -25,6 +24,7 @@ export interface NetworkInfo {
   container?: boolean;
 }
 
+/** Auto-commit of .yolo-twice. Lives in engine memory only: off after every engine restart. */
 export interface AutoCommit {
   enabled: boolean;
   intervalMs: number;

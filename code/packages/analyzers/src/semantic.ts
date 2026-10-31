@@ -195,16 +195,25 @@ export class TextCache {
 
   /** Latest artifact per granularity for a node, regardless of hash (used for display when input moved on). */
   latest(nodeId: string): Partial<Record<Granularity, TextArtifact>> {
-    const prefix = nodeId.replace(/[^A-Za-z0-9_.-]/g, "_") + ".";
-    const out: Partial<Record<Granularity, TextArtifact>> = {};
+    return this.latestAll().get(nodeId) ?? {};
+  }
+
+  /**
+   * Latest artifact per granularity for every node, in one pass over the folders. Grouped by the
+   * artifact's own `node` field: file-name prefixes are ambiguous (`t1.` also matches step `t1.s3`).
+   */
+  latestAll(): Map<string, Partial<Record<Granularity, TextArtifact>>> {
+    const out = new Map<string, Partial<Record<Granularity, TextArtifact>>>();
     for (const dir of this.dirs()) {
       if (!fs.existsSync(dir)) continue;
       for (const f of fs.readdirSync(dir)) {
-        if (!f.startsWith(prefix) || !f.endsWith(".json")) continue;
+        if (!f.endsWith(".json")) continue;
         const a = readJson<TextArtifact>(path.join(dir, f));
-        if (!a) continue;
-        const cur = out[a.granularity];
-        if (!cur || cur.created < a.created) out[a.granularity] = a;
+        if (!a?.node || !a.granularity) continue;
+        let byG = out.get(a.node);
+        if (!byG) out.set(a.node, (byG = {}));
+        const cur = byG[a.granularity];
+        if (!cur || cur.created < a.created) byG[a.granularity] = a;
       }
     }
     return out;
@@ -304,11 +313,14 @@ export async function summarizeNode(
 
 /** Attach the latest cached texts to every node (for serving). Mutates and returns the tree. */
 export function decorate(session: StructureNode, cache: TextCache): StructureNode {
+  const all = cache.latestAll();
   for (const n of walk(session)) {
-    const latest = cache.latest(n.id);
+    const latest = all.get(n.id) ?? {};
     const text: Partial<Record<Granularity, string>> = {};
     for (const g of ["title", "abstract", "summary"] as const) if (latest[g]) text[g] = latest[g]!.text;
+    // replace, never merge: text already on the node may be stale (structure.json is re-decorated in place)
     if (Object.keys(text).length) n.text = text;
+    else delete n.text;
   }
   return session;
 }
