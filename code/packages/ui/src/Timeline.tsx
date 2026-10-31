@@ -2,6 +2,7 @@ import { memo, useRef, useState } from "react";
 import { X } from "lucide-react";
 import { fmtDuration, fmtTime, walk, type StructureNode } from "./api";
 import { KIND, nodeKind } from "./kinds";
+import { useCtrlWheel } from "./wheelZoom";
 import type { HoverInfo } from "./Graph";
 
 export interface Bar {
@@ -52,6 +53,8 @@ export const Timeline = memo(function Timeline(props: {
   dim: Set<string>;
   hits: Map<string, number>;
   onFocus: (id: string) => void;
+  /** Ctrl + wheel down: widen the scope one level. */
+  onWiden: () => void;
   onWindow: (w: [number, number] | undefined) => void;
   onHover: (h: HoverInfo | undefined) => void;
 }) {
@@ -65,6 +68,13 @@ export const Timeline = memo(function Timeline(props: {
   const span = Math.max(props.end - props.start, 1000);
   const x = (t: number) => ((t - props.start) / span) * W;
   const sec = (px: number) => (px / W) * (span / 1000);
+
+  // Ctrl + wheel: up zooms into the block under the pointer (or the selected one), down widens
+  useCtrlWheel(svg, (dir, target) => {
+    if (dir < 0) return props.onWiden();
+    const id = target?.closest(".tl-bar")?.getAttribute("data-id") ?? props.bars.find((b) => props.selected && (b.id === props.selected || props.selected.startsWith(`${b.id}.`)))?.id;
+    if (id) props.onFocus(id);
+  });
 
   const toX = (e: React.MouseEvent) => {
     const r = svg.current!.getBoundingClientRect();
@@ -102,6 +112,7 @@ export const Timeline = memo(function Timeline(props: {
 
   return (
     <div className="timeline" data-tour="timeline">
+      <div className="tl-track">
       <svg
         ref={svg}
         viewBox={`0 0 ${W} ${H}`}
@@ -162,9 +173,15 @@ export const Timeline = memo(function Timeline(props: {
         {props.ticks.map((t) => (
           <rect key={t.id} x={x(t.ts) - 1} y={LANE} width={2} height={WAVE + 2} className="tl-tick" />
         ))}
-        {props.playhead !== undefined && props.playhead >= props.start && <line x1={x(props.playhead)} x2={x(props.playhead)} y1={0} y2={H} className="tl-playhead" />}
         {drag && <rect x={Math.min(drag.a, drag.b)} y={0} width={Math.abs(drag.b - drag.a)} height={H} className="tl-brush" />}
       </svg>
+      {/* the playhead sits over the tape, not in it: the stretched SVG would bend a marker, and clip it at the edges */}
+      {props.playhead !== undefined && props.playhead >= props.start && (
+        <span className="tl-head" style={{ left: `clamp(1px, ${(x(props.playhead) / W) * 100}%, calc(100% - 1px))` }} aria-hidden>
+          <span className="tl-head-mark" />
+        </span>
+      )}
+      </div>
       <div className="tl-axis">
         <span>{fmtTime(new Date(props.start).toISOString())}</span>
         {props.window && (

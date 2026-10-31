@@ -15,6 +15,7 @@ import { CHIPS } from "./FilterBar";
 import { Help, type HelpTab } from "./Help";
 import { TourInvite } from "./TourInvite";
 import { useKeyboard } from "./useKeyboard";
+import { useCtrlWheel } from "./wheelZoom";
 import { matchOrder, stepIn } from "./nav";
 import { useStream } from "./useStream";
 import { resolveId, shortId, useViewState, type Layout, type SetView, type ViewState } from "./state";
@@ -574,6 +575,17 @@ export function App() {
   const path = scope ? scope.path.slice(1).map((n) => ({ id: n.id, label: n.label })) : [];
   const timelineWindow = scope ? scope.window : projectWindow;
   const layout: Layout = narrow && view.layout === "split" ? "read" : view.layout;
+  // Ctrl + wheel over the reader zooms like → and ←: up into the part under the pointer (or the selection), down widens
+  useCtrlWheel(
+    readerBody,
+    (dir, target) => {
+      if (dir < 0) return widen();
+      const node = target?.closest(".zoom .node:not(.root)");
+      const id = node?.id.slice("node-".length) ?? (sel && sel !== scope?.focus.id ? sel : undefined);
+      if (id) focusOn(id);
+    },
+    [layout],
+  );
   const hoverAt = useCallback((h: HoverInfo | undefined) => (setHover(h?.id), setCard(h)), []);
   const setDetail = useCallback((z: Granularity) => setView({ z }), [setView]);
   const setWindow = useCallback((w: [number, number] | undefined) => act({ window: w }), [act]);
@@ -685,6 +697,7 @@ export function App() {
           dim={dim}
           hits={hits}
           onFocus={focusOn}
+          onWiden={widen}
           onWindow={setWindow}
           onHover={hoverAt}
         />

@@ -203,7 +203,7 @@ export function Help(props: { open: boolean; tab: HelpTab; onTab: (t: HelpTab) =
             </Tabs.Content>
             <Tabs.Content value="keys">
               <p className="help-lead">
-                ← → move the scope, ↑ ↓ the selection, − + the detail. Keys work while you are not typing; the map keeps its own arrows and zoom while it has focus. <Kbd>?</Kbd> opens this page.
+                ← → move the scope, ↑ ↓ the selection, − + the detail. Keys work while you are not typing; the map keeps its own arrows and zoom while it has focus. Ctrl (or ⌘) and the scroll wheel over the text or the timeline zoom like → and ←: up into the part under the pointer, down one level out. <Kbd>?</Kbd> opens this page.
               </p>
               <Keys />
             </Tabs.Content>

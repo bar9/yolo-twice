@@ -708,3 +708,10 @@ a.link:hover { text-decoration-color: currentColor; }
 .working.waiting .dots i { animation: none; opacity: .55; background: var(--ink-3); }
 .working.quiet .dots i { animation: none; opacity: .55; }
 .working.waiting { color: var(--ink); }
+
+/* the playhead: a line over the tape with a small triangle under it pointing up, outlined so it stands out on blocks */
+.tl-track { position: relative; }
+.tl-head { position: absolute; top: -2px; bottom: -2px; width: 0; pointer-events: none; }
+.tl-head::before { content: ""; position: absolute; top: 0; bottom: 0; left: -1px; width: 2px; border-radius: 1px; background: var(--rec); box-shadow: 0 0 0 1px var(--sheet); }
+.tl-head-mark { position: absolute; bottom: -7px; left: -5px; width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent; border-bottom: 6px solid var(--rec); }
+.tl-axis { margin-top: 9px; }

@@ -393,7 +393,10 @@ scope (the breadcrumb runs left to right), ↑ ↓ the selection (the reader run
 − + the detail, letters and digits the filters and views. One table (`ui/src/keys.ts`) drives
 both the handling and the Keyboard tab of Help (`?`), so they cannot drift apart.
 Keys work while focus is not in a text field, menu or dialog; Ctrl, ⌘ and Alt combinations stay
-with the browser; the graph canvas keeps its own arrows and − + 0 while it has focus.
+with the browser; the graph canvas keeps its own arrows and − + 0 while it has focus. Ctrl (or ⌘)
+and the wheel over the reader or the timeline zoom through the levels like → and ←, up into the
+part under the pointer, down one level out, one step per gesture; there it replaces the browser's
+page zoom (Ctrl + plus and minus on the keyboard stay with the browser).
 
 | Keys | Action |
 |---|---|
