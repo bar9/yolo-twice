@@ -1,3 +1,4 @@
 # runtime state, never commit
 cache/
 engine.json
+local.json
