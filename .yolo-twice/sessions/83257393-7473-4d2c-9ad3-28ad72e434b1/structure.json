@@ -2988,23 +2988,404 @@
             "output_tokens": 32687,
             "tool_calls": 26
           }
+        },
+        {
+          "children": [
+            {
+              "children": [],
+              "event_ids": [
+                "fbfd748f-5925-46e1-92a4-f77503c8a796"
+              ],
+              "id": "t4.s1",
+              "kind": "step",
+              "label": "show next commit time instead of last",
+              "level": 3,
+              "meta": {
+                "step_kind": "prompt"
+              },
+              "span": {
+                "first": "fbfd748f-5925-46e1-92a4-f77503c8a796",
+                "last": "fbfd748f-5925-46e1-92a4-f77503c8a796",
+                "ts_first": "2026-10-31T12:52:50.549Z",
+                "ts_last": "2026-10-31T12:52:50.549Z"
+              },
+              "stats": {
+                "events": 1,
+                "input_tokens": 0,
+                "output_tokens": 0,
+                "tool_calls": 0
+              }
+            },
+            {
+              "children": [],
+              "event_ids": [
+                "acb83dbd-f95f-42ab-8d8e-7ba30362460f"
+              ],
+              "id": "t4.s2",
+              "kind": "step",
+              "label": "thinking (hidden)",
+              "level": 3,
+              "meta": {
+                "step_kind": "thinking"
+              },
+              "span": {
+                "first": "acb83dbd-f95f-42ab-8d8e-7ba30362460f",
+                "last": "acb83dbd-f95f-42ab-8d8e-7ba30362460f",
+                "ts_first": "2026-10-31T12:52:55.562Z",
+                "ts_last": "2026-10-31T12:52:55.562Z"
+              },
+              "stats": {
+                "events": 1,
+                "input_tokens": 111027,
+                "output_tokens": 473,
+                "tool_calls": 0
+              }
+            },
+            {
+              "children": [],
+              "event_ids": [
+                "ccb15f5d-1054-4482-adc7-0c339bc65716",
+                "fff2b5ac-32c6-4696-901f-8c5a6447335e"
+              ],
+              "id": "t4.s3",
+              "kind": "step",
+              "label": "Bash: git status --short packages/engine/src/autocommit.ts packages/ui/src/…",
+              "level": 3,
+              "meta": {
+                "step_kind": "tool",
+                "tool": "Bash"
+              },
+              "span": {
+                "first": "ccb15f5d-1054-4482-adc7-0c339bc65716",
+                "last": "fff2b5ac-32c6-4696-901f-8c5a6447335e",
+                "ts_first": "2026-10-31T12:52:56.611Z",
+                "ts_last": "2026-10-31T12:52:56.738Z"
+              },
+              "stats": {
+                "events": 2,
+                "input_tokens": 111027,
+                "output_tokens": 473,
+                "tool_calls": 1
+              }
+            },
+            {
+              "children": [],
+              "event_ids": [
+                "27a49f3e-5ab6-4bfc-afe3-c1250d3974df",
+                "d6f4b433-824a-4850-9ead-1477fbc0d07c"
+              ],
+              "id": "t4.s4",
+              "kind": "step",
+              "label": "Bash: python3 - <<'EOF' p='packages/engine/src/autocommit.ts'; s=open(p).re…",
+              "level": 3,
+              "meta": {
+                "step_kind": "tool",
+                "tool": "Bash"
+              },
+              "span": {
+                "first": "27a49f3e-5ab6-4bfc-afe3-c1250d3974df",
+                "last": "d6f4b433-824a-4850-9ead-1477fbc0d07c",
+                "ts_first": "2026-10-31T12:53:03.804Z",
+                "ts_last": "2026-10-31T12:53:04.236Z"
+              },
+              "stats": {
+                "events": 2,
+                "input_tokens": 111886,
+                "output_tokens": 951,
+                "tool_calls": 1
+              }
+            },
+            {
+              "children": [],
+              "event_ids": [
+                "af5d18e0-a608-42c6-b03f-3b33143b6d83"
+              ],
+              "id": "t4.s5",
+              "kind": "step",
+              "label": "thinking (hidden)",
+              "level": 3,
+              "meta": {
+                "step_kind": "thinking"
+              },
+              "span": {
+                "first": "af5d18e0-a608-42c6-b03f-3b33143b6d83",
+                "last": "af5d18e0-a608-42c6-b03f-3b33143b6d83",
+                "ts_first": "2026-10-31T12:53:06.243Z",
+                "ts_last": "2026-10-31T12:53:06.243Z"
+              },
+              "stats": {
+                "events": 1,
+                "input_tokens": 112985,
+                "output_tokens": 303,
+                "tool_calls": 0
+              }
+            },
+            {
+              "children": [],
+              "event_ids": [
+                "6e0a6203-8668-4fda-8b69-172550bbb94c",
+                "bd3da7eb-b499-49bd-94d1-6f75e3773d90"
+              ],
+              "id": "t4.s6",
+              "kind": "step",
+              "label": "Bash: sed -i '41a\\ expect(Date.parse(st.next!) - Date.now()).toBeGreaterTha…",
+              "level": 3,
+              "meta": {
+                "step_kind": "tool",
+                "tool": "Bash"
+              },
+              "span": {
+                "first": "6e0a6203-8668-4fda-8b69-172550bbb94c",
+                "last": "bd3da7eb-b499-49bd-94d1-6f75e3773d90",
+                "ts_first": "2026-10-31T12:53:07.657Z",
+                "ts_last": "2026-10-31T12:53:25.825Z"
+              },
+              "stats": {
+                "events": 2,
+                "input_tokens": 112985,
+                "output_tokens": 303,
+                "tool_calls": 1
+              }
+            },
+            {
+              "children": [],
+              "event_ids": [
+                "991b9444-2a52-4fc5-b1c1-615184697b29"
+              ],
+              "id": "t4.s7",
+              "kind": "step",
+              "label": "thinking (hidden)",
+              "level": 3,
+              "meta": {
+                "step_kind": "thinking"
+              },
+              "span": {
+                "first": "991b9444-2a52-4fc5-b1c1-615184697b29",
+                "last": "991b9444-2a52-4fc5-b1c1-615184697b29",
+                "ts_first": "2026-10-31T12:53:28.338Z",
+                "ts_last": "2026-10-31T12:53:28.338Z"
+              },
+              "stats": {
+                "events": 1,
+                "input_tokens": 114299,
+                "output_tokens": 336,
+                "tool_calls": 0
+              }
+            },
+            {
+              "children": [],
+              "event_ids": [
+                "6d79aec7-bb31-4b15-9abb-21243bb6023f"
+              ],
+              "id": "t4.s8",
+              "kind": "step",
+              "label": "Tests, typecheck and build pass. Committing, then checking whether you have aut…",
+              "level": 3,
+              "meta": {
+                "step_kind": "text"
+              },
+              "span": {
+                "first": "6d79aec7-bb31-4b15-9abb-21243bb6023f",
+                "last": "6d79aec7-bb31-4b15-9abb-21243bb6023f",
+                "ts_first": "2026-10-31T12:53:28.348Z",
+                "ts_last": "2026-10-31T12:53:28.348Z"
+              },
+              "stats": {
+                "events": 1,
+                "input_tokens": 114299,
+                "output_tokens": 336,
+                "tool_calls": 0
+              }
+            },
+            {
+              "children": [],
+              "event_ids": [
+                "29c8165e-9c32-4e3d-bd04-2d4b8f3f924a",
+                "e8ac15d4-330f-4e26-9ef3-23d3a230f85d"
+              ],
+              "id": "t4.s9",
+              "kind": "step",
+              "label": "Bash: git add API.md packages/engine/src/autocommit.ts packages/engine/test…",
+              "level": 3,
+              "meta": {
+                "step_kind": "tool",
+                "tool": "Bash"
+              },
+              "span": {
+                "first": "29c8165e-9c32-4e3d-bd04-2d4b8f3f924a",
+                "last": "e8ac15d4-330f-4e26-9ef3-23d3a230f85d",
+                "ts_first": "2026-10-31T12:53:29.592Z",
+                "ts_last": "2026-10-31T12:53:29.808Z"
+              },
+              "stats": {
+                "events": 2,
+                "input_tokens": 114299,
+                "output_tokens": 336,
+                "tool_calls": 1
+              }
+            },
+            {
+              "children": [],
+              "event_ids": [
+                "8867e8f5-7934-410b-9995-3a3a83366d9f"
+              ],
+              "id": "t4.s10",
+              "kind": "step",
+              "label": "thinking (hidden)",
+              "level": 3,
+              "meta": {
+                "step_kind": "thinking"
+              },
+              "span": {
+                "first": "8867e8f5-7934-410b-9995-3a3a83366d9f",
+                "last": "8867e8f5-7934-410b-9995-3a3a83366d9f",
+                "ts_first": "2026-10-31T12:53:33.158Z",
+                "ts_last": "2026-10-31T12:53:33.158Z"
+              },
+              "stats": {
+                "events": 1,
+                "input_tokens": 114758,
+                "output_tokens": 347,
+                "tool_calls": 0
+              }
+            },
+            {
+              "children": [],
+              "event_ids": [
+                "374ba7ab-8b41-4a4b-921f-3384b368789b"
+              ],
+              "id": "t4.s11",
+              "kind": "step",
+              "label": "Auto-commit is on, so after restarting I'll turn it back on. First I want to ch…",
+              "level": 3,
+              "meta": {
+                "step_kind": "text"
+              },
+              "span": {
+                "first": "374ba7ab-8b41-4a4b-921f-3384b368789b",
+                "last": "374ba7ab-8b41-4a4b-921f-3384b368789b",
+                "ts_first": "2026-10-31T12:53:33.171Z",
+                "ts_last": "2026-10-31T12:53:33.171Z"
+              },
+              "stats": {
+                "events": 1,
+                "input_tokens": 114758,
+                "output_tokens": 347,
+                "tool_calls": 0
+              }
+            },
+            {
+              "children": [],
+              "event_ids": [
+                "1dce2bf6-936e-47e2-ad7b-925342131550",
+                "a80e1f71-1f58-49dd-b065-ce63fdf4bece"
+              ],
+              "id": "t4.s12",
+              "kind": "step",
+              "label": "Bash: git show --stat HEAD && git show HEAD -- packages/ui/src/api.ts packa…",
+              "level": 3,
+              "meta": {
+                "step_kind": "tool",
+                "tool": "Bash"
+              },
+              "span": {
+                "first": "1dce2bf6-936e-47e2-ad7b-925342131550",
+                "last": "a80e1f71-1f58-49dd-b065-ce63fdf4bece",
+                "ts_first": "2026-10-31T12:53:33.944Z",
+                "ts_last": "2026-10-31T12:53:34.064Z"
+              },
+              "stats": {
+                "events": 2,
+                "input_tokens": 114758,
+                "output_tokens": 347,
+                "tool_calls": 1
+              }
+            },
+            {
+              "children": [],
+              "event_ids": [
+                "5db66811-718f-4c26-8074-5604cfd4a818"
+              ],
+              "id": "t4.s13",
+              "kind": "step",
+              "label": "Only my changes went in. Now I'll restart your engine and turn auto-commit back…",
+              "level": 3,
+              "meta": {
+                "step_kind": "text"
+              },
+              "span": {
+                "first": "5db66811-718f-4c26-8074-5604cfd4a818",
+                "last": "5db66811-718f-4c26-8074-5604cfd4a818",
+                "ts_first": "2026-10-31T12:53:35.181Z",
+                "ts_last": "2026-10-31T12:53:35.181Z"
+              },
+              "stats": {
+                "events": 1,
+                "input_tokens": 115532,
+                "output_tokens": 191,
+                "tool_calls": 0
+              }
+            },
+            {
+              "children": [],
+              "event_ids": [
+                "d85d7e6d-1a89-4b7d-9687-953144de9ba6"
+              ],
+              "id": "t4.s14",
+              "kind": "step",
+              "label": "Bash: cd $PROJECT && code/plugin/bin/yolo-twice stop && code/plugin/bin/yol…",
+              "level": 3,
+              "meta": {
+                "step_kind": "tool",
+                "tool": "Bash"
+              },
+              "span": {
+                "first": "d85d7e6d-1a89-4b7d-9687-953144de9ba6",
+                "last": "d85d7e6d-1a89-4b7d-9687-953144de9ba6",
+                "ts_first": "2026-10-31T12:53:36.227Z",
+                "ts_last": "2026-10-31T12:53:36.227Z"
+              },
+              "stats": {
+                "events": 1,
+                "input_tokens": 115532,
+                "output_tokens": 191,
+                "tool_calls": 1
+              }
+            }
+          ],
+          "id": "t4",
+          "kind": "turn",
+          "label": "show next commit time instead of last",
+          "level": 2,
+          "span": {
+            "first": "fbfd748f-5925-46e1-92a4-f77503c8a796",
+            "last": "d85d7e6d-1a89-4b7d-9687-953144de9ba6",
+            "ts_first": "2026-10-31T12:52:50.549Z",
+            "ts_last": "2026-10-31T12:53:36.227Z"
+          },
+          "stats": {
+            "events": 19,
+            "input_tokens": 1478145,
+            "output_tokens": 4934,
+            "tool_calls": 6
+          }
         }
       ],
       "id": "p1",
       "kind": "phase",
-      "label": "the .yolo-twice folder pollutes my git status view. add a \"auto commit\" mode th… (+2 turns)",
+      "label": "the .yolo-twice folder pollutes my git status view. add a \"auto commit\" mode th… (+3 turns)",
       "level": 1,
       "span": {
         "first": "7b001103-bcbc-47bc-b333-eb531b5163bc",
-        "last": "d65ebe0c-df01-4746-bf3d-dcc908f9c98d",
+        "last": "d85d7e6d-1a89-4b7d-9687-953144de9ba6",
         "ts_first": "2026-10-31T12:28:44.824Z",
-        "ts_last": "2026-10-31T12:39:20.184Z"
+        "ts_last": "2026-10-31T12:53:36.227Z"
       },
       "stats": {
-        "events": 164,
-        "input_tokens": 9454732,
-        "output_tokens": 70029,
-        "tool_calls": 51
+        "events": 183,
+        "input_tokens": 10932877,
+        "output_tokens": 74963,
+        "tool_calls": 57
       }
     }
   ],
@@ -3014,15 +3395,15 @@
   "level": 0,
   "span": {
     "first": "7b001103-bcbc-47bc-b333-eb531b5163bc",
-    "last": "d65ebe0c-df01-4746-bf3d-dcc908f9c98d",
+    "last": "d85d7e6d-1a89-4b7d-9687-953144de9ba6",
     "ts_first": "2026-10-31T12:28:44.824Z",
-    "ts_last": "2026-10-31T12:39:20.184Z"
+    "ts_last": "2026-10-31T12:53:36.227Z"
   },
   "stats": {
-    "events": 164,
-    "input_tokens": 9454732,
-    "output_tokens": 70029,
-    "tool_calls": 51
+    "events": 183,
+    "input_tokens": 10932877,
+    "output_tokens": 74963,
+    "tool_calls": 57
   },
   "text": {
     "abstract": "Adds an opt-in auto-commit that runs `git commit --only -- .yolo-twice` right away and then every 10 min when the folder changed, so staged work stays out of the commit. The state lives only in engine memory (`autocommit.ts`, `PUT /api/autocommit`, `yolo-twice autocommit on|off`), so it resets on engine restart and skips during merges, rebases or a detached HEAD, with the reason shown in a header button in `Header.tsx`; this is committed as 1a719fa with tests, typecheck and build passing. The button was missing in the browser only because the running engine predated the change, so restarting it fixed that, and the session then added live reload (a build id in the SSE `hello` frame plus a `build` event on UI rebuilds) and a `bun run dev` script that runs the engine and `vite build --watch` in parallel, both left uncommitted.",
