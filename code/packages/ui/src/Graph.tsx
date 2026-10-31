@@ -335,20 +335,22 @@ function FlowMap(props: Props) {
   );
 
   // a new root is a new view: start from the readable size at the top; a live update keeps where you are
+  // (React Flow drops viewport changes until it has initialised, which a fresh mount, e.g. switching to Map, has not)
+  const [ready, setReady] = useState(false);
   const lastRoot = useRef<string | undefined>(undefined);
   useEffect(() => {
-    if (lastRoot.current === props.flow.root) return;
+    if (!ready || lastRoot.current === props.flow.root) return;
     lastRoot.current = props.flow.root;
     const t = requestAnimationFrame(home);
     return () => cancelAnimationFrame(t);
-  }, [props.flow.root, home]);
+  }, [ready, props.flow.root, home]);
 
   // bring the selection into view: centred while following, otherwise only when it is off screen;
   // switching follow off (the user moved away) must not pull the view back
   const lastSel = useRef<string | undefined>(undefined);
   useEffect(() => {
     const el = host.current;
-    if (!el || !selBox) return;
+    if (!ready || !el || !selBox) return;
     const same = lastSel.current === selBox;
     lastSel.current = selBox;
     if (same && !props.follow) return;
@@ -365,7 +367,7 @@ function FlowMap(props: Props) {
       void rf.setViewport({ x, y, zoom: v.zoom }, props.follow ? undefined : { duration: 280 });
     }, 40);
     return () => clearTimeout(t);
-  }, [props.follow, selBox, laid, rf]);
+  }, [ready, props.follow, selBox, laid, rf]);
 
   // a pane resize (divider, window) starts over from the readable view
   useEffect(() => {
@@ -460,6 +462,7 @@ function FlowMap(props: Props) {
           elementsSelectable={false}
           onlyRenderVisibleElements={props.flow.nodes.length > 300}
           proOptions={{ hideAttribution: true }}
+          onInit={() => setReady(true)}
           onMove={onMove}
           onNodeClick={(_, n) => props.onFocus((n as Node<BoxData>).data.flow.ref)}
           onNodeMouseEnter={hoverNode as never}
