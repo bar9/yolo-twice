@@ -351,8 +351,12 @@ the wordmark's deep navy in dark mode.
   only the pane you move leads.
 - **Follow.** Like `tail -f` or a CI log: the selection stays on the newest step, a focused
   turn moves to the newest turn, and the reader keeps the end of the newest part a quarter above
-  the bottom, gliding over small steps. While the session is being written, a quiet "Claude is
-  working" row sits under it and the newest box on the map pulses; parts that arrive fade in.
+  the bottom: the scroll is corrected in the same frame as the layout change and the text slides
+  up once (FLIP), so new parts never make the page jump. While Claude's hooks say a turn is
+  running (from the prompt to Stop; an interrupt in the transcript ends it too), a "Claude is
+  working" row with moving dots sits under it and the newest box on the map pulses; during a
+  permission prompt or question it reads "waiting for you" and holds still. Without hooks the
+  UI makes no claim. Parts that arrive fade in.
   Any navigation
   (click, brush, Esc, scrolling up) stops following; new events are then counted in a
   "N new" button that jumps back to the tail. Filters keep following, like `tail -f | grep`.
