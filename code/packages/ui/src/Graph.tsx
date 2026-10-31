@@ -251,6 +251,8 @@ interface Props {
   /** The user panned the map: the part now at its reading line, for the reader to scroll to. */
   onView?: (id: string) => void;
   api?: React.Ref<GraphApi>;
+  /** Following a session that is being written: the newest box pulses softly. */
+  working?: boolean;
 }
 
 /** Where a part is read in either pane: 40% down the map, a third down the reader. */
@@ -291,6 +293,8 @@ function FlowMap(props: Props) {
     [props.flow],
   );
   const selBox = useMemo(() => boxOf(props.selected)?.id, [boxOf, props.selected]);
+  // boxes that arrive while you watch fade in
+  const bornAt = useRef(Date.now() - 1000);
   const hoverBox = useMemo(() => boxOf(props.hover)?.id, [boxOf, props.hover]);
 
   const nodes = useMemo((): Node<BoxData>[] => {
@@ -302,6 +306,8 @@ function FlowMap(props: Props) {
       const p = n.parent ? laid.rects.get(n.parent) : undefined;
       const state = cn(
         n.id === selBox && "is-selected",
+        n.id === selBox && props.follow && props.working && "is-working",
+        n.node && Date.parse(n.node.span.ts_first) > bornAt.current && "is-fresh",
         n.id === hoverBox && "is-hover",
         props.dim.has(n.ref) && "is-dim",
         (props.hits.get(n.ref) ?? 0) > 0 && "has-hit",
@@ -323,7 +329,7 @@ function FlowMap(props: Props) {
         },
       ];
     });
-  }, [props.flow, laid, flowById, selBox, hoverBox, props.dim, props.hits]);
+  }, [props.flow, laid, flowById, selBox, hoverBox, props.dim, props.hits, props.follow, props.working]);
 
   const edges = useMemo(
     (): Edge[] =>
@@ -399,7 +405,7 @@ function FlowMap(props: Props) {
       if (inside && !props.follow) return;
       const x = el.clientWidth / 2 - (r.x + r.w / 2) * v.zoom;
       const y = el.clientHeight * 0.45 - (r.y + r.h / 2) * v.zoom;
-      void rf.setViewport({ x, y, zoom: v.zoom }, props.follow ? undefined : { duration: 280 });
+      void rf.setViewport({ x, y, zoom: v.zoom }, { duration: props.follow ? 350 : 280 });
     }, 40);
     return () => clearTimeout(t);
   }, [ready, props.follow, selBox, laid, rf]);

@@ -47,6 +47,8 @@ export const Zoom = memo(function Zoom(props: {
   onOverrides: (o: Record<string, Granularity>) => void;
   /** For the keyboard: open or close a part, step its own detail. */
   api?: React.Ref<ZoomApi>;
+  /** Following a session that is being written: the time of its last event (a quiet "working" row at the end). */
+  working?: string;
 }) {
   // expansion state keyed by node id survives structure refetches
   const [open, setOpen] = useState<Record<string, boolean>>({ [props.root.id]: true });
@@ -176,10 +178,48 @@ export const Zoom = memo(function Zoom(props: {
     const path = ancestors(props.root, props.selected);
     if (props.follow) path.push(props.selected);
     if (path.length) setOpen((o) => ({ ...o, ...Object.fromEntries(path.map((id) => [id, true])) }));
-    // following: keep the tail in the middle of the pane, like tail -f; otherwise center the selection
-    const t = setTimeout(() => document.getElementById(`node-${props.selected}`)?.scrollIntoView({ block: "center", behavior: props.follow ? "auto" : "smooth" }), 50);
+    // following: show the end of the newest part, like tail -f (the first jump is instant, later ones glide);
+    // otherwise center the selection
+    const first = !same && lastTailed.current === undefined;
+    const t = setTimeout(() => {
+      if (props.follow) tail(first ? "auto" : "smooth");
+      else document.getElementById(`node-${props.selected}`)?.scrollIntoView({ block: "center", behavior: "smooth" });
+    }, 50);
     return () => clearTimeout(t);
-  }, [props.selected, props.root, props.follow]);
+  }, [props.selected, props.root, props.follow]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // while following, the end of the newest part (and the working row under it) sits a quarter above the
+  // bottom of the pane, and stays there as content grows (a summary arrives, a tool result lands)
+  const lastTailed = useRef<string | undefined>(undefined);
+  const tail = (behavior: ScrollBehavior) => {
+    const pane = zoomRef.current?.closest<HTMLElement>(".pane-body");
+    const node = props.selected ? document.getElementById(`node-${props.selected}`) : null;
+    if (!pane || !node) return;
+    lastTailed.current = props.selected;
+    const end = Math.max(node.getBoundingClientRect().bottom, zoomRef.current?.querySelector(".working")?.getBoundingClientRect().bottom ?? 0);
+    const delta = end - (pane.getBoundingClientRect().top + pane.clientHeight * 0.75);
+    // glide over small steps; a jump of more than a screen (a burst of events) lands at once
+    if (Math.abs(delta) > 2) pane.scrollTo({ top: pane.scrollTop + delta, behavior: Math.abs(delta) > pane.clientHeight ? "auto" : behavior });
+  };
+  const tailRef = useRef(tail);
+  tailRef.current = tail;
+  useEffect(() => {
+    const el = zoomRef.current;
+    if (!props.follow || !el || typeof ResizeObserver === "undefined") return;
+    let frame = 0;
+    const ro = new ResizeObserver(() => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => tailRef.current("smooth"));
+    });
+    ro.observe(el);
+    return () => (cancelAnimationFrame(frame), ro.disconnect());
+  }, [props.follow]);
+  useEffect(() => {
+    if (!props.follow) lastTailed.current = undefined;
+  }, [props.follow]);
+
+  // parts that arrive while you watch fade in; what was there when the page opened just shows
+  const bornAt = useRef(Date.now() - 1000);
 
   // runs of non-matching parts fold into one line; a click opens that run, a new search folds again
   const [openRuns, setOpenRuns] = useState<Set<string>>(new Set());
@@ -234,7 +274,7 @@ export const Zoom = memo(function Zoom(props: {
     const own = g !== props.granularity;
     const kind = nodeKind(node);
     const expandable = node.children.length > 0 || (node.event_ids?.length ?? 0) > 0;
-    const cls = ["node", `level-${node.level}`, node.kind, isRoot ? "root" : "", isOpen ? "open" : "", props.selected === node.id ? "selected" : "", props.hover === node.id ? "hover" : "", props.dim.has(node.id) ? "dim" : ""].join(" ");
+    const cls = ["node", `level-${node.level}`, node.kind, isRoot ? "root" : "", Date.parse(node.span.ts_first) > bornAt.current ? "fresh" : "", isOpen ? "open" : "", props.selected === node.id ? "selected" : "", props.hover === node.id ? "hover" : "", props.dim.has(node.id) ? "dim" : ""].join(" ");
     const hitCount = props.hits.get(node.id);
     const images = imageCount(node, props.events);
     const tokens = node.stats.input_tokens + node.stats.output_tokens;
@@ -367,9 +407,33 @@ export const Zoom = memo(function Zoom(props: {
         </p>
       )}
       {render(props.root, 0)}
+      {props.working && <Working since={props.working} />}
     </div>
   );
 });
+
+/** The tail of a live session: Claude is still at it, more will come in below. */
+function Working({ since }: { since: string }) {
+  const [, tick] = useState(0);
+  useEffect(() => {
+    const t = setInterval(() => tick((n) => n + 1), 1000);
+    return () => clearInterval(t);
+  }, []);
+  const s = Math.max(0, Math.round((Date.now() - Date.parse(since)) / 1000));
+  return (
+    <div className="working" role="status">
+      <span className="dots" aria-hidden>
+        <i />
+        <i />
+        <i />
+      </span>
+      Claude is working
+      <span className="num text-ink-3" aria-hidden>
+        · last event {s < 60 ? `${s}s` : `${Math.floor(s / 60)}m ${s % 60}s`} ago
+      </span>
+    </div>
+  );
+}
 
 /** Turns and phases say the time of day; steps say how far into their turn they happened. */
 function when(node: StructureNode, parent: StructureNode | undefined, isRoot: boolean): string {

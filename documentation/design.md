@@ -345,10 +345,15 @@ the wordmark's deep navy in dark mode.
   the timeline, counts on reader rows and accented graph nodes; everything else is dimmed. An
   empty query with a filter lists every match, for example all your prompts. Query and filter
   combine with AND; filter codes combine with OR.
-- **Selection and hover link.** Click selects a node in every view; hover highlights it in
-  every view.
+- **Selection, hover and scroll link.** Click selects a node in every view; hover highlights
+  it in every view (a step hovered in the text lights the turn that holds it on the map). In
+  Split, scrolling either pane brings the other to the same part, the one at its reading line;
+  only the pane you move leads.
 - **Follow.** Like `tail -f` or a CI log: the selection stays on the newest step, a focused
-  turn moves to the newest turn, and the reader keeps the tail in view. Any navigation
+  turn moves to the newest turn, and the reader keeps the end of the newest part a quarter above
+  the bottom, gliding over small steps. While the session is being written, a quiet "Claude is
+  working" row sits under it and the newest box on the map pulses; parts that arrive fade in.
+  Any navigation
   (click, brush, Esc, scrolling up) stops following; new events are then counted in a
   "N new" button that jumps back to the tail. Filters keep following, like `tail -f | grep`.
   At the project root, follow opens the session that is active right now. Keys: `f` toggles,

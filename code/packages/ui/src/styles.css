@@ -673,3 +673,23 @@ a.link:hover { text-decoration-color: currentColor; }
 }
 @keyframes invite-in { from { opacity: 0; transform: translateY(-4px); } }
 @media (prefers-reduced-motion: reduce) { .tour-invite { animation: none; } }
+
+/* ---------- live: new parts fade in, a working row and a soft pulse at the tail ---------- */
+@keyframes enter { from { opacity: 0; transform: translateY(6px); } }
+.zoom .node.fresh { animation: enter .4s ease-out; }
+.flow .base-node.is-fresh { animation: enter .4s ease-out; }
+.working { display: flex; align-items: center; gap: 10px; margin: 16px 0 0 6px; font-size: 13px; color: var(--ink-2); animation: enter .4s ease-out; }
+.working .dots { display: inline-flex; gap: 4px; }
+.working .dots i { width: 6px; height: 6px; border-radius: 50%; background: var(--rec); animation: dot 1.3s ease-in-out infinite; }
+.working .dots i:nth-child(2) { animation-delay: .16s; }
+.working .dots i:nth-child(3) { animation-delay: .32s; }
+@keyframes dot { 0%, 80%, 100% { opacity: .25; transform: scale(.75); } 40% { opacity: 1; transform: scale(1); } }
+.flow .base-node.is-selected.is-working { animation: working 2.2s ease-in-out infinite; }
+@keyframes working {
+  0%, 100% { box-shadow: 0 0 0 2px var(--ink), 0 0 0 2px color-mix(in srgb, var(--rec) 50%, transparent); }
+  50% { box-shadow: 0 0 0 2px var(--ink), 0 0 0 9px color-mix(in srgb, var(--rec) 0%, transparent); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .zoom .node.fresh, .flow .base-node.is-fresh, .working { animation: none; }
+  .working .dots i, .flow .base-node.is-selected.is-working { animation: none; }
+}

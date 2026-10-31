@@ -286,6 +286,16 @@ export function App() {
     el.scrollTop += row.getBoundingClientRect().top - el.getBoundingClientRect().top - el.clientHeight / 3 + 8;
   };
   const onGraphView = useCallback((id: string) => syncReaderToMap.current(id), []);
+
+  // following a session that is being written: its last event is recent and the stream is up
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    if (!view.follow) return;
+    const t = setInterval(() => setNow(Date.now()), 10_000);
+    return () => clearInterval(t);
+  }, [view.follow]);
+  const lastAt = structure?.span.ts_last;
+  const working = view.follow && live === "live" && lastAt && now - Date.parse(lastAt) < 180_000 ? lastAt : undefined;
   const onGraphMove = useCallback((down: boolean, atTail: boolean) => (down ? atTail && scrollTail() : scrollLock()), [scrollLock, scrollTail]);
 
   /* ---------- project scope (no session in focus) ---------- */
@@ -579,7 +589,7 @@ export function App() {
           !scope ? (
             <p className="empty">Loading the session…</p>
           ) : reader === "outline" ? (
-            <Zoom session={sessionId} root={scope.focus} granularity={view.z} events={events} follow={view.follow} selected={sel} hover={hover} dim={dim} hits={hits} query={dq} active={scope.active} matches={scope.matches} collapseDim={foldRest && scope.active && scope.matches.size > 0} onSelect={select} onFocus={focusOn} onHover={setHover} onGranularity={setDetail} onOverrides={setOverrides} api={zoomApi} />
+            <Zoom session={sessionId} root={scope.focus} granularity={view.z} events={events} follow={view.follow} selected={sel} hover={hover} dim={dim} hits={hits} query={dq} active={scope.active} matches={scope.matches} collapseDim={foldRest && scope.active && scope.matches.size > 0} onSelect={select} onFocus={focusOn} onHover={setHover} onGranularity={setDetail} onOverrides={setOverrides} api={zoomApi} working={working} />
           ) : (
             <Results ids={resultIds} events={events} owner={scope.owner} selected={sel} query={view.q} onSelect={select} />
           )
@@ -608,7 +618,7 @@ export function App() {
   );
   const graphPane = (
     <section className="pane right" data-tour="map">
-      <Graph flow={flow} selected={sel} follow={view.follow} hover={hover} dim={dim} hits={hits} onFocus={graphFocus} onHover={hoverAt} onUserMove={onGraphMove} onView={onGraphView} api={graphApi} head={graphHead} />
+      <Graph flow={flow} selected={sel} follow={view.follow} hover={hover} dim={dim} hits={hits} onFocus={graphFocus} onHover={hoverAt} onUserMove={onGraphMove} onView={onGraphView} api={graphApi} working={!!working} head={graphHead} />
     </section>
   );
 
