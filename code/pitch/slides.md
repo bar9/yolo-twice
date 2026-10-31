@@ -1,7 +1,7 @@
 ---
 theme: default
 title: yolo-twice
-info: Transparent agentic development superpowers. BaselHack 2026.
+info: Long AI coding sessions are a black box. yolo-twice makes them something a team can retrieve, discuss and review. BaselHack 2026.
 class: text-center
 highlighter: shiki
 drawings:
@@ -14,178 +14,274 @@ mdc: true
 
 <div class="cover-band">
   <h1>yolo-twice</h1>
-  <p class="cover-tag">Transparent agentic development superpowers</p>
-  <p class="cover-sub">See what your coding agent did, at the zoom level you choose, while it is still running.</p>
+  <p class="cover-tag">What did the agent do, and why?</p>
   <p class="cover-team">BaselHack 2026 · Matthias Cullmann · Roland Brand · Jan Babin · Thomas Schöller</p>
 </div>
 
 <!--
-0:00–0:15. Hello, we are yolo-twice. One sentence: zoomable, live insight into long Claude Code sessions.
+0:00–0:10. Hi, we are yolo-twice. We want to talk about a question every team using coding agents runs into: what did the agent actually do, and why?
+-->
+
+---
+layout: center
+class: text-center
+---
+
+<div class="story">
+
+It's Friday afternoon. The agent has been working for three hours.
+
+<v-click>
+
+The pull request is **+2,400 lines**.
+
+</v-click>
+
+<v-click>
+
+The reviewer asks: *"Why did it switch to RS256? Did anyone ask it to drop rate limiting?"*
+
+</v-click>
+
+<v-click>
+
+Nobody really knows.
+
+</v-click>
+
+</div>
+
+<!--
+0:10–0:35. Tell it as a scene. Three hours of agent work, a big PR, a reasonable review question. The developer was there, sort of. They approved things, went for coffee, came back. The answer is somewhere in the session, and nobody can find it.
 -->
 
 ---
 
-# The problem: a session is a wall of text
+# The answer is in there, somewhere
 
 <div class="wall">
 {"parentUuid":"a2","isSidechain":false,"type":"user","message":{"role":"user","content":[{"tool_use_id":"toolu_01","type":"tool_result","content":"auth.ts\nusers.ts\n"}]},"uuid":"u2","timestamp":"2026-10-31T08:00:07.000Z"} {"parentUuid":"u2","type":"assistant","message":{"role":"assistant","model":"claude-fable-5-1","content":[{"type":"tool_use","id":"toolu_r1","name":"Read","input":{"file_path":"/tmp/yolo-demo/src/routes/auth.ts"}}]},"uuid":"a3"} {"parentUuid":"a3","type":"user","message":{"role":"user","content":[{"tool_use_id":"toolu_r1","type":"tool_result","content":"const API_KEY = '[redacted:anthropic-key]'\nexport function login() {}\n"}]},"uuid":"u3"} {"parentUuid":"u3","type":"assistant","message":{"role":"assistant","content":[{"type":"tool_use","id":"toolu_02","name":"Agent","input":{"description":"Research JWT best practices"}}]},"uuid":"a4"} {"parentUuid":"a4","type":"user","message":{"role":"user","content":[{"tool_use_id":"toolu_02","type":"tool_result","content":"JWT research summary: use RS256, rotate keys, short expiry."}]},"uuid":"u4"} {"parentUuid":"u4","type":"assistant","message":{"role":"assistant","content":[{"type":"tool_use","id":"toolu_e1","name":"Edit","input":{"file_path":"/tmp/yolo-demo/src/routes/auth.ts"}}]},"uuid":"a5"} {"parentUuid":"a5","type":"user","message":{"role":"user","content":[{"tool_use_id":"toolu_e1","type":"tool_result","content":"The file has been updated."}]},"uuid":"u5"} {"parentUuid":"u5","type":"assistant","message":{"role":"assistant","content":[{"type":"tool_use","id":"toolu_03","name":"Bash","input":{"command":"npm test"}}]},"uuid":"a6"} {"parentUuid":"a6","type":"user","message":{"role":"user","content":[{"tool_use_id":"toolu_03","type":"tool_result","content":"✓ test case 1 passes ✓ test case 2 passes ✓ test case 3 passes ✓ test case 4 passes ✓ test case 5 passes ✓ test case 6 passes ✓ test case 7 passes ✓ test case 8 passes ✓ test case 9 passes ✓ test case 10 passes ✓ test case 11 passes ✓ test case 12 passes ✓ test case 13 passes ✓ test case 14 passes ✓ test case 15 passes ✓ test case 16 passes ✓ test case 17 passes ✓ test case 18 passes ✓ test case 19 passes ✓ test case 20 passes ✓ test case 21 passes ✓ test case 22 passes ✓ test case 23 passes ✓ test case 24 passes ✓ test case 25 passes ✓ test case 26 passes ✓ test case 27 passes ✓ test case 28 passes ✓ test case 29 passes ✓ test case 30 passes ✗ login returns 401 for valid user 1 failing","is_error":true}]},"uuid":"u6"} {"parentUuid":"u6","type":"assistant","message":{"role":"assistant","content":[{"type":"text","text":"One test fails: login returns 401 for a valid user. The password hash comparison uses the wrong salt. Fixing it."}]},"uuid":"a7"} {"type":"system","subtype":"turn_duration","durationMs":115000,"messageCount":14} {"parentUuid":"a7","type":"user","message":{"role":"user","content":"Also add rate limiting to the login endpoint"},"uuid":"u7"} {"parentUuid":"a7","type":"user","message":{"role":"user","content":"Actually, skip rate limiting; just fix the failing login test"},"uuid":"u9"} {"type":"cost-state","totalCostUSD":1.2345,"totalDuration":4000000}
 </div>
 
-**Megabytes of JSONL.** Hundreds of turns, tool calls, subagents, rewinds, compactions.
-Either you micro-manage every tool call, or you go full yolo and lose track.
+Both answers are in this file: a research subagent recommended RS256, and the developer said
+*"skip rate limiting"*. Along with megabytes of tool output, on one laptop, in `~/.claude`.
 
 <!--
-0:15–0:45. A long Claude Code session leaves this behind. You cannot read it as a chat list. Today you either babysit the agent or you walk away blind.
+0:35–0:55. This is what a session leaves behind. The answers to the reviewer's question are literally in here. Point at the RS256 line and the "skip rate limiting" line. But it is a wall of JSON on one person's machine.
 -->
 
 ---
 
-# Viewers exist. They show the list.
+# A long AI session is a black box
 
-| Project | What it does well |
-|---|---|
-| [Claudescope](https://github.com/vladar107/claudescope) | 8 agents, full-text search, cost analytics, MCP server |
-| [claude-code-history-viewer](https://github.com/jhlee0409/claude-code-history-viewer) | 31 agents, desktop app, live updates |
-| [cc_transcript_viewer](https://github.com/tim-hua-01/cc_transcript_viewer) | zero dependencies, live tail |
+<div class="grid grid-cols-3 gap-6 pt-4">
+<div class="card">
 
-<div class="pt-6">
+### Retrieve
 
-None of them offer **abstraction levels**, a **flow graph** of the conversation, or
-**project-local, committable history**. That is what we build. With thanks to all three.
+It lives on one machine, outside the repo. Clean up `~/.claude`, switch laptops, and it's gone.
+
+</div>
+<div class="card">
+
+### Discuss
+
+You can't send a link to *"the moment it decided this"*. You paste screenshots into chat.
+
+</div>
+<div class="card">
+
+### Review
+
+The PR shows the diff, the result. It doesn't show the prompts, the detours, or the decisions behind it.
+
+</div>
+</div>
+
+<div class="pt-10 text-center text-xl">
+
+More and more of our decisions happen in the conversation, <br/>but we only review the code that comes out of it.
 
 </div>
 
 <!--
-0:45–1:05. Credit where due: these are good tools and we learned from them. They all render the transcript as a flat list. We add the missing dimension: zoom.
+0:55–1:20. Name the three gaps. Retrieve, discuss, review. Then the core point: the conversation is where the engineering decisions are made now, and it's the one part of the work that never gets reviewed.
+-->
+
+---
+layout: center
+class: text-center
+---
+
+# Our idea: treat agent interaction as code
+
+<div class="text-xl pt-4 opacity-90">
+
+Keep the session **in the repository**, next to the code it produced.<br/>
+Make it **readable** at whatever level of detail you need.
+
+</div>
+
+<div class="pt-8 opacity-70">
+
+Versioned · diffable · reviewable · resumable
+
+</div>
+
+<!--
+1:20–1:35. The idea is simple. We already know how to make work transparent for a team: put it in git. So we do that with the session, and we make it readable.
 -->
 
 ---
 
-# Semantic zoom on two axes
+# Step 1: capture it, next to the code
 
-<div class="grid grid-cols-2 gap-6">
+<div class="grid grid-cols-2 gap-8">
 <div>
 
-**Structural axis**: project → session → phases → turns → steps → raw records.
-
-**Text axis**: title → abstract → summary → full, at every node.
-
-A long summary is never the end of the road: zoom out one more step. A long tool result collapses to an abstract first.
-
-</div>
-<div>
 <Pele text="flowchart TB
-  P[Project digest] --- S[Session title]
-  S --- A[Abstract: 3 sentences]
-  A --- PH[Phases]
-  PH --- T[Turns]
-  T --- ST[Steps: tools, thinking, subagents]
-  ST --- R[Raw records]" />
+  CC[Claude Code session] -- hooks --> ENG[yolo-twice engine]
+  ENG --> R[normalize + redact]
+  R --> STORE[(.yolo-twice/ in your repo)]" />
+
+</div>
+<div>
+
+```
+.yolo-twice/sessions/<id>/
+  meta.json        label, time span, cost
+  events.ndjson    every step, redacted
+  structure.json   the zoom tree
+  graph.mmd        the flow, as mermaid
+  text/            summaries of finished parts
+```
+
 </div>
 </div>
 
+A small plugin listens to the session while it runs. Secrets are redacted and paths made portable
+*before* anything is written. One folder per session, so teammates never get merge conflicts.
+
 <!--
-1:05–1:35. Stretchtext: expand in place, collapse in place. Structural levels need no model at all; the text axis is produced lazily by the Claude CLI itself, cached by content hash.
+1:35–1:55. A Claude Code plugin with hooks, and a small local engine. It turns the transcript into plain files in your repo. Redaction happens before writing. You decide whether to commit it.
 -->
 
 ---
 
-# Live flow graph
+# Step 2: make it readable
 
-<Pele text="flowchart LR
-  s([Add login endpoint and fix tests])
-  subgraph p1 [Add a /login endpoint +2 turns]
-    direction LR
-    t1[Add a /login endpoint to the API]
-    a1[[Agent: Research JWT best practices]]
-    t2[Also add rate limiting]
-    t3[Actually, skip rate limiting; fix the failing test]
-  end
-  subgraph p2 [Write the changelog]
-    t4[Write the changelog entry]
-  end
-  s --> t1
+<div class="grid grid-cols-2 gap-8">
+<div class="zoom">
+
+<div class="z z1">Add login endpoint and fix tests</div>
+<div class="z z2">Added /login with JWT (RS256, per a research subagent). Rate limiting was requested, then dropped by the developer. Fixed a salt bug that failed one test.</div>
+<div class="z z3">3 phases · 7 turns · 1 subagent · 1 rewind</div>
+<div class="z z4">turn 4: <em>"Actually, skip rate limiting; just fix the failing login test"</em></div>
+<div class="z z5">raw records</div>
+
+</div>
+<div>
+
+<Pele text="flowchart TB
+  t1[Add a /login endpoint]
+  a1[[Agent: research JWT]]
+  t2[Also add rate limiting]
+  t3[Skip rate limiting, fix the test]
+  t4[Write the changelog]
   t1 -.-> a1
   t1 --> t2
   t1 -. rewind .-> t3
   t3 --> t4
-  classDef session fill:#1f2937,color:#fff,stroke:#111;
-  classDef turn fill:#dbeafe,stroke:#60a5fa;
   classDef branch fill:#fde68a,stroke:#d97706;
   classDef subagent fill:#ede9fe,stroke:#8b5cf6;
-  class s session; class t1,t2,t4 turn; class t3 branch; class a1 subagent;" />
+  class t3 branch; class a1 subagent;" />
 
-Turns, subagents, a rewind branch, compaction boundaries. Emitted as mermaid, rendered with pele, updated while the session runs.
+</div>
+</div>
+
+Zoom from one line down to the raw record. See the session as a flow, with its detours and subagents.
 
 <!--
-1:35–2:00. The transcript is a tree, not a list: rewinds branch, subagents nest, compaction leaves markers. We get all of that for free, structurally. Same mermaid text renders in the UI, on the site, in this deck.
+1:55–2:20. Left: the same session at five zoom levels. Structure comes for free; summaries are written by Claude itself, cached, and only as often as you allow. Right: the session isn't a list, it's a graph. The rewind is exactly the "skip rate limiting" moment the reviewer asked about.
 -->
 
 ---
 
-# The attention slider
+# What this changes
 
-| | Semantic trigger | Default zoom |
-|---|---|---|
-| **Micro management** | every turn | steps |
-| **Attentive** | each turn label, phase on close | turns |
-| **Balanced** | phase close only | phases |
-| **Yolo** | nothing until you ask, then "catch me up" | digest |
+<div class="grid grid-cols-2 gap-x-10 gap-y-6 pt-4">
+<div>
 
-Ingestion is always live and nearly free. The slider only decides how many tokens and how much attention you spend. The cost is shown next to it.
+### Reviews include the *why*
+
+The session is in the PR. The reviewer reads the decision, not just the diff.
+
+</div>
+<div>
+
+### Conversations get a link
+
+A URL opens exactly the turn you mean. Discuss the moment, not a screenshot.
+
+</div>
+<div>
+
+### Work can be picked up
+
+A teammate clones the repo and continues the session on their own machine with `yolo-twice resume`.
+
+</div>
+<div>
+
+### History explains the code
+
+Months later, the session committed alongside the code still explains why it looks the way it does.
+
+</div>
+</div>
 
 <!--
-2:00–2:20. You choose. Yolo mode: go for coffee, come back, press "catch me up" and read what happened since you last looked.
+2:20–2:40. Back to Friday afternoon. The reviewer opens the session, zooms to the turn where rate limiting was dropped, and has their answer. That is the transparency we are after.
 -->
 
 ---
-
-# How it works
-
-<Pele text="flowchart LR
-  CC[Claude Code] -- hooks --> ENG[Engine]
-  CC -- writes --> JSONL[(session JSONL)]
-  JSONL -- incremental read --> ENG
-  ENG --> NORM[normalize + redact]
-  NORM --> STORE[(.yolo-twice/)]
-  STORE --> AN[analyzers: structure, search, claude -p]
-  AN --> STORE
-  ENG -- HTTP + SSE --> UI[web UI]" />
-
-Hooks trigger, the JSONL is the truth. Idempotent, incremental, redacted before anything is written. Derived data is plain JSON and mermaid in your repo: commit it or gitignore it.
-
-<!--
-2:20–2:40. Claude Code plugin with hooks, a small engine, a web UI. Stop it, resume it, run it twice: same bytes.
--->
-
+layout: center
+class: text-center
 ---
 
-# One command
+# We used it to build itself
+
+<div class="text-lg pt-2 opacity-90">
+
+This repository's `.yolo-twice/` holds the sessions that built yolo-twice.<br/>Let's open one.
+
+</div>
 
 ```
 claude plugin install yolo-twice --marketplace bar9/yolo-twice
+/yolo-twice:yolo-twice
 ```
 
-Then, inside Claude Code:
-
-```
-/yolo-twice
-```
-
-<div class="pt-6 text-xl">→ live demo</div>
+<div class="pt-4 text-xl">→ live demo</div>
 
 <!--
-2:40–2:50. Install, then slash command. Switch to the live demo: a running session, zoom out to phases, zoom into a tool call, the graph with a rewind.
+2:40–2:50. We dogfooded it all weekend. Switch to the demo: open the committed build session, zoom out to phases, zoom into one decision, show the graph.
 -->
 
 ---
 
-# Roadmap and team
+# Thanks
 
-- opencode and other agents through a second source adapter
-- MCP server so Claude can search its own history
-- Annotations and team sharing on the committed history
-- Standalone binary without a Node dependency
+<div class="text-left max-w-2xl mx-auto">
+
+We learned from the viewers that came first:
+[Claudescope](https://github.com/vladar107/claudescope),
+[claude-code-history-viewer](https://github.com/jhlee0409/claude-code-history-viewer),
+[cc_transcript_viewer](https://github.com/tim-hua-01/cc_transcript_viewer).
+
+**Next:** more agents than Claude Code, comments on committed sessions, and letting the agent search its own history.
+
+</div>
 
 <div class="pt-8">
 
@@ -196,5 +292,5 @@ MIT · [github.com/bar9/yolo-twice](https://github.com/bar9/yolo-twice) · [bar9
 </div>
 
 <!--
-2:50–3:00. Thank you. Four of us, built in a weekend, AI-driven in parallel.
+2:50–3:00. Credit to the projects before us. Thank you.
 -->
