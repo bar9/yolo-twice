@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T19:08:26.903Z",
+  "granularity": "title",
+  "hash": "50e3112650d55825",
+  "node": "t5.s51",
+  "text": "Add engine daemon/CLI and Claude Code plugin; verify /yolo-twice:yolo-twice command",
+  "version": "2"
+}

@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T19:08:27.682Z",
+  "granularity": "title",
+  "hash": "256f499ee6c3a5c8",
+  "node": "t13",
+  "text": "Link graph, timeline and search through one URL-addressed viewer state",
+  "version": "2"
+}

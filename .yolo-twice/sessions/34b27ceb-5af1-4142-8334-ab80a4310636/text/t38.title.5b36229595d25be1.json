@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T19:09:28.455Z",
+  "granularity": "title",
+  "hash": "5b36229595d25be1",
+  "node": "t38",
+  "text": "Recommend merging the react-flow graph branch into main: 10 conflicts, 3 gaps",
+  "version": "2"
+}

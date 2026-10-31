@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T19:07:29.607Z",
+  "granularity": "title",
+  "hash": "7b4c37e7d4afaa0f",
+  "node": "t23",
+  "text": "Short nodes skip the LLM; summaries forbid narrating the transcript",
+  "version": "2"
+}

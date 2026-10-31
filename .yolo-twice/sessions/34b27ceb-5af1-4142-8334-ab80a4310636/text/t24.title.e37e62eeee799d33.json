@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T19:09:30.143Z",
+  "granularity": "title",
+  "hash": "e37e62eeee799d33",
+  "node": "t24",
+  "text": "Pasted prompt images stored per session, shown in reader, restored on resume",
+  "version": "2"
+}

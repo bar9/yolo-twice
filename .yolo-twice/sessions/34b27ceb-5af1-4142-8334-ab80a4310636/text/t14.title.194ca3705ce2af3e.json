@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T19:08:21.709Z",
+  "granularity": "title",
+  "hash": "194ca3705ce2af3e",
+  "node": "t14",
+  "text": "Add tail-f follow mode; trace project.json merge conflict to shared aggregate",
+  "version": "2"
+}

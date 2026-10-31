@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T19:01:28.700Z",
+  "granularity": "summary",
+  "hash": "546a9946b9d5cde1",
+  "node": "t49.s10",
+  "text": "Bar height uses the square root of the event count, so one large burst doesn't flatten the rest. A bar twice as tall stands for about four times as many events. Hovering a slice shows its count and time range (e.g. \"6 events, 09:35:34 AM to 09:39:34 AM\") and darkens the bar, with the whole slice height as the hit area so short bars are easy to target. A small \"▮ activity\" label beside the axis start time explains the bars on hover. Checked in the browser and committed as 2cf3b68, not pushed. Reload the tab to see it.",
+  "version": "2"
+}

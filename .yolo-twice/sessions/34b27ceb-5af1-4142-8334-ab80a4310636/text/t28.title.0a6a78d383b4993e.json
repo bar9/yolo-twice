@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T19:08:32.615Z",
+  "granularity": "title",
+  "hash": "0a6a78d383b4993e",
+  "node": "t28",
+  "text": "shadcn/ui on Tailwind with Read/Split/Map layouts and a pan-zoom graph",
+  "version": "2"
+}
