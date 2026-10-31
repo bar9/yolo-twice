@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T15:51:36.175Z",
+  "granularity": "summary",
+  "hash": "552d4c37573c5af4",
+  "node": "t42.s59",
+  "text": "Keys are grouped by kind of movement, so new shortcuts can be added without moving existing ones. One keymap list both handles the keys and generates the cheat sheet, and tooltips show them (e.g. \"Follow (f)\"). Deviation from plan: per-part detail uses `,` and `.` instead of Shift+−/+, since + needs Shift on most layouts. Shortcuts are ignored in the search box and in open menus or dialogs; Ctrl/⌘/Alt combinations go to the browser. A focused graph keeps its own arrow and zoom keys until Esc. Tests: a new 25-check browser suite; 68 unit tests and 30 linked-view browser checks pass. The shadcn CLI pulled in an unrelated `cn` package, which was removed and the import fixed. An accidental empty `.claude-plan-placeholder` was deleted and never committed. Commits 5b32a50 and 0c68217 are local, not pushed.",
+  "version": "2"
+}
