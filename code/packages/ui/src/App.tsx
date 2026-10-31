@@ -114,10 +114,7 @@ export function App() {
     }
   };
 
-  const select = useCallback((id: string) => {
-    setSelected(id);
-    requestAnimationFrame(() => document.getElementById(`node-${id}`)?.scrollIntoView({ block: "center", behavior: "smooth" }));
-  }, []);
+  const select = useCallback((id: string) => setSelected(id), []);
 
   const selectEvent = useCallback(
     (eventId: string) => {

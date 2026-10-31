@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { api, fmtTime, fmtTokens, type Event, type Granularity, type StructureNode } from "./api";
+import { useEffect, useState } from "react";
+import { ancestors, api, fmtTime, fmtTokens, type Event, type Granularity, type StructureNode } from "./api";
 
 const ORDER: Granularity[] = ["title", "abstract", "summary", "full"];
 
@@ -36,6 +36,15 @@ export function Zoom(props: {
   };
 
   const toggle = (id: string) => setOpen((o) => ({ ...o, [id]: !o[id] }));
+
+  // a selection made elsewhere (graph, timeline, search) opens the path to the node and scrolls to it
+  useEffect(() => {
+    if (!props.selected) return;
+    const path = ancestors(props.root, props.selected);
+    if (path.length) setOpen((o) => ({ ...o, ...Object.fromEntries(path.map((id) => [id, true])) }));
+    const t = setTimeout(() => document.getElementById(`node-${props.selected}`)?.scrollIntoView({ block: "center", behavior: "smooth" }), 50);
+    return () => clearTimeout(t);
+  }, [props.selected, props.root]);
 
   const render = (node: StructureNode, depth: number, prevBoundary?: string) => {
     const isOpen = open[node.id] ?? depth < 1;
