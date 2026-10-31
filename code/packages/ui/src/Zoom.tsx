@@ -5,6 +5,8 @@ import { prettyJson } from "./toolview";
 import { Bot, ChevronRight, Ellipsis, Coins, Focus, Image, Minus, Plus, RotateCcw, Search, TriangleAlert, Undo2, Wrench } from "lucide-react";
 import { ancestors, api, fmtDuration, fmtTime, fmtTokens, walk, type Event, type Granularity, type ImageRef, type StructureNode } from "./api";
 import { DETAIL_LABEL, DETAIL_ORDER, eventKind, KIND, KindIcon, kindStyle, nodeKind, richText } from "./kinds";
+import { promptPlain } from "./harness";
+import { PromptText } from "./PromptText";
 
 const ORDER = DETAIL_ORDER;
 
@@ -635,6 +637,8 @@ function RawText({ text }: { text: string }) {
   return pretty ? <JsonView value={JSON.parse(pretty)} source={pretty} /> : <pre>{text}</pre>;
 }
 
+/** Text without the blank lines around it (inner blank lines stay): pre-wrap would show them as empty space. */
+const trimLines = (t: string) => t.replace(/^\s*\n/, "").trimEnd();
 const PROSE = new Set(["user.prompt", "assistant.text", "compaction"]);
 
 /** Raw events of a step (L3) in append order: words as prose, tool input and output as code. */
@@ -683,8 +687,10 @@ function Events({
               )}
               <span className="time">{fmtTime(e.ts)}</span>
             </div>}
-            {PROSE.has(e.kind) ? (
-              <p className="event-prose">{richText(text, query)}</p>
+            {e.kind === "user.prompt" ? (
+              <PromptText text={text} query={query} />
+            ) : PROSE.has(e.kind) ? (
+              <p className="event-prose">{richText(trimLines(text), query)}</p>
             ) : e.kind === "tool.call" ? (
               <ToolCallView event={e} />
             ) : e.kind === "tool.result" ? (
@@ -724,9 +730,11 @@ export function Results(props: {
         const e = props.events!.get(id);
         if (!e) return null;
         const node = props.owner.get(id);
-        const at = term ? e.text.toLowerCase().indexOf(term) : -1;
+        // a prompt's snippet is what you wrote and pasted, not the IDE context around it
+        const whole = e.kind === "user.prompt" ? promptPlain(e.text) : e.text;
+        const at = term ? whole.toLowerCase().indexOf(term) : -1;
         const from = Math.max(0, at - 50);
-        const text = e.text.slice(from, from + 220).replace(/\s+/g, " ");
+        const text = whole.slice(from, from + 220).replace(/\s+/g, " ");
         const k = eventKind(e);
         return (
           <li key={id} className={node && node === props.selected ? "selected" : ""} style={kindStyle(k)} onClick={() => node && props.onSelect(node)}>
