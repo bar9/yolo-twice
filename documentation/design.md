@@ -209,7 +209,11 @@ Rules that make stop, resume and re-run safe:
    formatting, so git diffs are small and merges are sane.
 5. `/yolo-twice` is idempotent: it checks `~/.yolo-twice/engine.json`, probes the port, and
    reuses a healthy engine instead of starting a second one.
-6. Redaction runs before anything is written: API keys, tokens, JWTs, private keys, env
+6. Resume from the repo: `yolo-twice resume [session]` rebuilds a Claude Code transcript from
+   the committed `events.ndjson` (main conversation only, tool call and result pairs kept,
+   parent chain re-linked, redacted text as stored) into `~/.claude/projects/<slug>/` and runs
+   `claude --resume <id>`. This is what makes the committed folder more than an archive.
+7. Redaction runs before anything is written: API keys, tokens, JWTs, private keys, env
    values and configurable patterns are replaced with `[redacted:<rule>]`; tool results above a
    size limit keep head and tail plus a hash. The original stays in `~/.claude` untouched.
 

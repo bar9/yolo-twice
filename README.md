@@ -42,6 +42,7 @@ Inside any Claude Code session (plugin commands are namespaced, so the command i
 /yolo-twice:yolo-twice stop             stop the engine
 /yolo-twice:yolo-twice status           show engine, session and index state
 /yolo-twice:yolo-twice mode yolo        set the attention slider: micro | attentive | balanced | yolo
+/yolo-twice:yolo-twice resume [id]      rebuild a committed session's transcript and print the claude --resume command
 ```
 
 The same commands work from a terminal via the engine CLI, for example `yolo-twice status` or
@@ -93,6 +94,11 @@ flowchart TB
 ```
 
 Raw transcripts stay in `~/.claude`. Only redacted events and derived data are written here.
+
+Because the redacted events are complete, a teammate who clones the repo can continue a
+session that never ran on their machine: `yolo-twice resume` rebuilds the Claude Code
+transcript from `events.ndjson` into `~/.claude/projects/<project>/` and runs
+`claude --resume <id>`. An existing transcript is never overwritten without `--force`.
 
 ## Acknowledgments
 
