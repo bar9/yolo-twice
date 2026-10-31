@@ -20,6 +20,10 @@ tool call or you go full yolo and lose track of what happened.
 - **Attention slider.** From "micro management" (every turn summarized live) to "yolo"
   (nothing until you ask, then "catch me up"). You choose how many tokens and how much
   attention to spend; the cost is shown next to the slider.
+- **Linked views, shareable links.** Filter bar, timeline, reader and graph react to each
+  other: drag a time window, double click to zoom into a phase or turn, filter to your prompts
+  or tool errors, and every view follows. The URL captures the whole view, so a link opens
+  exactly what you saw.
 - **Project-local history.** Everything derived lands in `.yolo-twice/` in your repo,
   redacted, plain JSON and mermaid, so you can commit it or gitignore it.
 - **Incremental and idempotent.** Stop the engine, resume later, run it twice: same bytes.

@@ -26,6 +26,15 @@ Demo on 1 Nov is a vertical slice; the architecture is designed for the full vis
 | Pitch | Markdown deck on GitHub Pages, reusing the site's mermaid diagrams |
 | Update cadence | Attention slider with four detents (micro, attentive, balanced, yolo); ingestion always live, semantic work and UI attention follow the slider |
 
+### Design principles
+
+- **Idempotency.** Every derived artifact is a pure function of its input and the analyzer
+  version. Stop, resume, re-run, or run two writers at once: the bytes come out the same.
+- **Addressability.** The URL is a deep link to the complete viewer state: project, session,
+  focus, time window, selection, query, filters and text length. Any view can be bookmarked or
+  pasted to a teammate and opens identically. URLs are as short as possible: defaults are
+  omitted, ids are the shortest unique prefix.
+
 ### What exists and what we add
 
 Over a dozen Claude Code transcript viewers exist. The strongest are
@@ -122,6 +131,9 @@ Mapping from Claude Code records observed in version 2.1.31x:
 with a `.meta.json` giving agent type and spawning `toolUseId`), compaction `summary` records,
 `ai-title` / `custom-title` / `agent-name`, `cost-state` (total cost and per-model usage),
 `system` with subtype `turn_duration`, `file-history-snapshot`, `api-request*` (dropped, internal).
+A message typed while the agent is busy arrives as a `queued_command` attachment; it becomes
+a `user.prompt` with `data.queued` and stays inside the running turn. Background task
+notifications arrive in the user role but are `system` events, never human prompts.
 Unknown record types become `kind: meta` and never crash the reader.
 
 ### Semantic zoom: two axes
@@ -200,9 +212,12 @@ Engine runtime state (`engine.json` with pid and port, `projects.json`, `engine.
 
 Rules that make stop, resume and re-run safe:
 
-1. Event identity is the record uuid. Re-ingesting the same line is a no-op.
-2. Each source file has a cursor. On start the engine resumes from it; if the file shrank or
-   the head hash changed, it re-reads from zero and rewrites that session's files.
+1. Event identity is the record uuid. Re-ingesting the same line is a no-op, also when two
+   writers (two engines, or an engine and `yolo-twice index`) run at once: ingestion of a
+   session holds a lock in `cache/`, and the known-id set reloads when the file grows.
+2. Each source file has a cursor. On start the engine resumes from it; if the file shrank,
+   the head hash changed, or the events were written by an older normalizer version, it
+   re-reads from zero and rewrites that session's files once.
 3. Every derived artifact is keyed by sha256 of its input event ids plus content plus analyzer
    name and version. Existing key means skip. This is what makes `claude -p` affordable.
 4. Files are written atomically (temp file then rename) with sorted keys and stable
@@ -259,7 +274,49 @@ Design rules:
   returns clean text. When the CLI is missing or fails, a structural head-and-tail summarizer
   answers instead and the artifact says so.
 
-## 7. Plugin and install
+## 7. Coordinated views and deep links
+
+The UI shows four linked views at once: a filter bar, a timeline scrubber, the reader (the
+zoom tree) and the graph. They are projections of one state, and that state is the URL.
+
+- **Focus narrows.** The focus is a node: the project, a session, a phase, a turn or a step.
+  The reader is rooted at it, the graph is redrawn one level below it (semantic zoom, no pixel
+  zoom), and the timeline axis spans it. Double click focuses, Esc goes up one level, the
+  breadcrumb jumps anywhere above.
+- **The window narrows in time.** Dragging on the timeline sets a window that snaps to whole
+  bars (turns, or steps inside a turn), so it always maps to nodes in the tree and graph.
+- **Filter and query highlight, they never hide.** Matches inside the focus show as ticks on
+  the timeline, counts on reader rows and accented graph nodes; everything else is dimmed. An
+  empty query with a filter lists every match, for example all your prompts. Query and filter
+  combine with AND; filter codes combine with OR.
+- **Selection and hover link.** Click selects a node in every view; hover highlights it in
+  every view.
+- **Pinning.** The project is the root. Going into a session pins it, so reset and Esc stay in
+  that session; unpinning returns to the project.
+
+URL form:
+
+```
+/<project>/<session>/<focus>?t=<from>-<to>&x=<selected>&q=<query>&k=<filters>&z=<text length>
+```
+
+| Part | Meaning | Default |
+|---|---|---|
+| `project` | project folder name, `name~abcd` only when two projects share a name | the engine's last project |
+| `session` | shortest unique session id prefix, at least 6 characters; a leading `~` means not pinned | project root |
+| `focus` | structure node id such as `p2`, `t7`, `t1.s5` | the session |
+| `t` | window in seconds from the focus start, snapped to whole bars | whole focus |
+| `x` | selected node | none |
+| `q` | text query | none |
+| `k` | filters: `u` your prompts, `a` assistant text, `h` thinking, `t` tool calls, `t:Name` one tool, `e` tool errors, `s` subagents, `c` compactions and commands, `r` rewound turns | none |
+| `z` | default text length: `t` title, `a` abstract, `s` summary, `f` full | `a` |
+
+Example: `http://127.0.0.1:9656/yolo-twice/34b27c/t2?k=t,e&x=t2.s4`
+
+Filtering and search run in the browser over the loaded session events, so linking is
+instant. At the project root the same filters go to the engine and search every session.
+
+## 8. Plugin and install
 
 ```
 code/plugin/
@@ -287,7 +344,7 @@ claude plugin install yolo-twice --marketplace bar9/yolo-twice
 Requires Node 22 or newer. A standalone binary (Node SEA or `bun build --compile`) is a
 post-hackathon item.
 
-## 8. Frozen interfaces
+## 9. Frozen interfaces
 
 - Types: `code/packages/core/src/schema.ts` (zod schemas and TypeScript types for `Event`,
   `StructureNode`, `Config`, `SourceState`, `ProjectIndex`)
@@ -298,7 +355,7 @@ post-hackathon item.
 
 With these frozen, the tracks run in parallel against the fixture and meet at integration.
 
-## 9. Hackathon timeline
+## 10. Hackathon timeline
 
 | Hours | A: core + engine | B: analyzers | C: UI | D: plugin, site, pitch |
 |---|---|---|---|---|
@@ -311,7 +368,7 @@ Post-hackathon roadmap: opencode adapter (SQLite reader, ACP `session/load` as t
 path), MCP server exposing search and summaries back to Claude, annotations and team sharing,
 embedding-based clustering, OpenTelemetry export, standalone binary.
 
-## 10. Site, pitch and README
+## 11. Site, pitch and README
 
 Mermaid is the single diagram source everywhere. The README renders it through GitHub's own
 renderer. The VitePress site and the Slidev deck render ```mermaid blocks at build time with
@@ -341,7 +398,7 @@ sentence on why existing viewers do not solve it, with credit; live demo zooming
 phases, in to a tool call, and the flow graph showing a rewind branch and subagents; the
 attention slider; the architecture diagram; the one-line install; roadmap.
 
-## 11. Verification
+## 12. Verification
 
 Status 31 Oct: core and analyzers have 16 passing tests (`bun test` in `code/`) covering
 normalization, redaction, truncation, idempotency, cursor resume, source replacement, the
@@ -356,7 +413,7 @@ live session ingested 261 events in 71 ms and derived the tree in 20 ms.
 - Live: `claude --plugin-dir ./code/plugin`, run `/yolo-twice`, send a prompt, see the UI update; `/yolo-twice stop` leaves no process.
 - Clean install: follow the README on a machine without the repo.
 
-## 12. Risks
+## 13. Risks
 
 - Transcript lag behind hooks: mitigated by debounce plus re-read on every subsequent event.
 - `claude -p` latency and cost: cache by hash, queue in background, structural levels never wait for it.
