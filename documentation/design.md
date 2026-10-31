@@ -24,6 +24,7 @@ Demo on 1 Nov is a vertical slice; the architecture is designed for the full vis
 | `.yolo-twice` content | Redacted raw events plus derived data, so it is safe to commit |
 | LLM analysis | Headless `claude -p` through the user's subscription, hash-cached, never blocking the UI |
 | Pitch | Markdown deck on GitHub Pages, reusing the site's mermaid diagrams |
+| Update cadence | Attention slider with four detents (micro, attentive, balanced, yolo); ingestion always live, semantic work and UI attention follow the slider |
 
 ### What exists and what we add
 
@@ -170,7 +171,44 @@ Rules that make stop, resume and re-run safe:
    values and configurable patterns are replaced with `[redacted:<rule>]`; tool results above a
    size limit keep head and tail plus a hash. The original stays in `~/.claude` untouched.
 
-## 6. Plugin and install
+## 6. Attention slider: micro management to yolo
+
+Not every layer costs the same. Ingestion, redaction, the structural tree and the search index
+are cheap and incremental, so they always run near realtime and the data is always complete.
+Semantic analysis through `claude -p` is the expensive layer: seconds to minutes per call,
+thousands of tokens, and it competes with the user's own session for the same subscription
+rate limit. Re-summarizing an open phase after every turn is quadratic in tokens and every
+interim result is a cache miss by design.
+
+The slider therefore controls semantic triggers and UI attention, never ingestion. Four
+detents, not a continuous value, so each mode is testable:
+
+| Detent | Semantic trigger | Default zoom | UI behaviour |
+|---|---|---|---|
+| Micro management | every turn: incremental fold summary of the open phase, small model | L3 steps | live ticker, graph re-layout batched to 1 s |
+| Attentive | turn label on each Stop hook, phase summary when the phase closes | L2 turns | live, no interim phase summaries |
+| Balanced (default) | phase close only: compaction, idle gap, topic change | L1 phases | updates on phase boundaries |
+| Yolo | nothing automatic; summaries computed lazily for nodes the UI shows, or on SessionEnd | L0 digest | "catch me up": digest of everything since the user last looked |
+
+Design rules:
+
+- The UI viewport is the demand signal. The UI requests summaries for visible nodes; the
+  slider only sets how far ahead the engine prefetches. One code path, different policy.
+- Idempotency survives the slider. A closed phase has the same input hash in every mode, so
+  its artifact is identical whether computed eagerly or lazily. Interim summaries of open
+  phases carry `interim: true` and live in `cache/`, never in the committed `sessions/`.
+- Show the cost. Next to the slider the UI displays estimated tokens per hour and update lag
+  for the current setting.
+- The setting is `attention` in `.yolo-twice/config.json`, overridable per user in
+  `~/.config/yolo-twice/config.json`, changeable live from the UI header or
+  `/yolo-twice mode <micro|attentive|balanced|yolo>`. The engine reloads it without restart.
+- "Catch me up" uses a last-viewed cursor per session stored in the per-user config, so the
+  digest covers exactly what the user has not seen.
+- `claude -p` jobs run with concurrency one and a per-hour token budget derived from the
+  detent; when the budget is exhausted the engine degrades to the next lazier mode and says so
+  in the UI.
+
+## 7. Plugin and install
 
 ```
 plugin/
@@ -194,19 +232,21 @@ claude plugin marketplace add <org>/yolo-twice && claude plugin install yolo-twi
 Requires Node 22 or newer. A standalone binary (Node SEA or `bun build --compile`) is a
 post-hackathon item.
 
-## 7. Interfaces to freeze in hour one
+## 8. Interfaces to freeze in hour one
 
 - `packages/core/schema/event.schema.json` and `structure.schema.json` (zod, exported types)
 - `.yolo-twice` layout above
 - HTTP API: `GET /api/sessions`, `GET /api/sessions/:id/events?after=<id>`,
   `GET /api/sessions/:id/structure`, `GET /api/sessions/:id/semantic`,
   `GET /api/search?q=&session=`, `GET /api/stream` (SSE: `events`, `structure`, `semantic`),
+  `GET|PUT /api/config` (attention detent), `POST /api/sessions/:id/semantic/request` (lazy summary for visible nodes),
+  `GET /api/sessions/:id/digest?since=<event-id>` (catch me up),
   `POST /hook`, `GET /health`
 - Fixtures in `code/fixtures/<session>/` in exactly the `.yolo-twice/sessions/<id>/` shape
 
 With these frozen, the four tracks run in parallel against fixtures and meet at integration.
 
-## 8. Hackathon timeline
+## 9. Hackathon timeline
 
 | Hours | A: core + engine | B: analyzers | C: UI | D: plugin, site, pitch |
 |---|---|---|---|---|
@@ -219,7 +259,7 @@ Post-hackathon roadmap: opencode adapter (SQLite reader, ACP `session/load` as t
 path), MCP server exposing search and summaries back to Claude, annotations and team sharing,
 embedding-based clustering, OpenTelemetry export, standalone binary.
 
-## 9. Site and pitch
+## 10. Site and pitch
 
 The README carries the mermaid diagrams and renders them on GitHub as-is. The VitePress site
 reuses the README sections. The Slidev deck lives in `assets/pitch/`, renders the same mermaid
@@ -230,15 +270,16 @@ sentence on why existing viewers do not solve it; live demo zooming out to phase
 tool call, and the flow graph showing a rewind branch and subagents; the architecture diagram;
 the one-line install; roadmap.
 
-## 10. Verification
+## 11. Verification
 
 - Unit: normalizer against fixtures; idempotency test runs `index` twice and asserts identical bytes; resume test truncates the cursor and asserts identical output.
+- Slider test: index a fixture in micro mode and in yolo mode with a mocked `claude -p`; assert the committed `sessions/` output is byte-identical and only `cache/` differs.
 - Redaction test seeds fake keys and tokens into a fixture and asserts none reach `events.ndjson`.
 - Engine e2e: start on a copy of a fixture, append lines to the JSONL, assert the SSE event arrives within one second and the UI renders it.
 - Live: `claude --plugin-dir ./code/plugin`, run `/yolo-twice`, send a prompt, see the UI update; `/yolo-twice stop` leaves no process.
 - Clean install: follow the README on a machine without the repo.
 
-## 11. Risks
+## 12. Risks
 
 - Transcript lag behind hooks: mitigated by debounce plus re-read on every subsequent event.
 - `claude -p` latency and cost: cache by hash, queue in background, structural levels never wait for it.
