@@ -1,0 +1,9 @@
+{
+  "analyzer": "structural",
+  "created": "2026-10-31T13:49:43.804Z",
+  "granularity": "abstract",
+  "hash": "d7cff928f2fc59e1",
+  "node": "t18.s4",
+  "text": "[tool Bash] {\"command\":\"cd $PROJECT/code && grep -rn \\\"readSourceState\\\\|writeSourceState\\\\|writeProjectIndex\\\\|readProjectIndex\\\\|writeConfig\\\\|readConfig\\\\|new TextCache\\\\|summarizeNode(\\\\|cache.put\\\\|\\\\.latest(\\\" packages/*/src packages/ui/mock | grep -v \\\"^packages/core/src/store.ts\\\" ; echo --…",
+  "version": "2"
+}

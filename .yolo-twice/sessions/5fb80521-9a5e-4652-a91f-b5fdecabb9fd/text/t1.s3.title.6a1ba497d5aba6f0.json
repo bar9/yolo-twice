@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T13:53:11.411Z",
+  "granularity": "title",
+  "hash": "6a1ba497d5aba6f0",
+  "node": "t1.s3",
+  "text": "Serve yolo-twice insights UI on port 9656 for session 7f825bc9",
+  "version": "2"
+}

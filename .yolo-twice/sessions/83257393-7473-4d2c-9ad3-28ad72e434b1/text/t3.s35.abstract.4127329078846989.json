@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T13:40:17.403Z",
+  "granularity": "abstract",
+  "hash": "4127329078846989",
+  "node": "t3.s35",
+  "text": "A page script read `window.__marker` and the `.live` element on the yolo-twice session view (`/yolo-twice/34b27c?x=p1&z=t`), but it failed with \"Execution context was destroyed\" because the page was still navigating and its title was still \"Loading\". The page logged 1 console error, saved to `.playwright-mcp/console-2026-10-31T12-37-57-134Z.log` lines 1–2. No marker or live-element value was returned, so the check needs a retry after the page finishes loading.",
+  "version": "2"
+}

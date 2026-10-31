@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T13:45:23.092Z",
+  "granularity": "summary",
+  "hash": "3c5ff21c3592b100",
+  "node": "t18",
+  "text": "Moved `project.json` to `cache/project.json` and the `source.json` cursors to `cache/sources/`. Added a committed per-session `sessions/<id>/meta.json`, so a fresh clone still lists sessions. The attention slider now writes the gitignored `local.json`, and `config.json` is back to `balanced`. Live-tail summaries go to `cache/text/`; finished ones stay committed. The old layout migrates on engine start. Found that every Claude summary call had failed: `--bare` skipped the login, so the engine fell back to structural text. Replaced it with `--settings '{\"disableAllHooks\":true}'` and trimmed titles to one line. 50 tests pass. Commits 582ef0e, 4073b3f, f46f357, 6245e42. One `claude -p` failure is still unexplained, and Roland must restart his engine.",
+  "version": "2"
+}

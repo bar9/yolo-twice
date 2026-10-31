@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T13:40:36.438Z",
+  "granularity": "title",
+  "hash": "28997e5e6176221e",
+  "node": "t3.s35",
+  "text": "Session 34b27c page check aborted: execution context destroyed by navigation",
+  "version": "2"
+}

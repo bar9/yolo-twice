@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T13:49:44.132Z",
+  "granularity": "title",
+  "hash": "e344b46a638d9a2a",
+  "node": "t18.s4",
+  "text": "Store writers live in ingest.ts and pipeline.ts; text cache feeds summarizeNode",
+  "version": "2"
+}

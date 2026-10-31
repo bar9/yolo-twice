@@ -54,6 +54,9 @@
                 "input_tokens": 40953,
                 "output_tokens": 116,
                 "tool_calls": 1
+              },
+              "text": {
+                "title": "Launcher opens viewer at 127.0.0.1:9656 for session 7f825bc9"
               }
             },
             {
@@ -79,6 +82,9 @@
                 "input_tokens": 41142,
                 "output_tokens": 88,
                 "tool_calls": 0
+              },
+              "text": {
+                "title": "Serve yolo-twice insights UI on port 9656 for session 7f825bc9"
               }
             }
           ],
@@ -98,6 +104,9 @@
             "input_tokens": 82095,
             "output_tokens": 204,
             "tool_calls": 1
+          },
+          "text": {
+            "title": "Serve yolo-twice insights UI on port 9656 for session 7f825bc9"
           }
         }
       ],

@@ -2424,6 +2424,10 @@
                 "input_tokens": 104533,
                 "output_tokens": 96,
                 "tool_calls": 1
+              },
+              "text": {
+                "abstract": "A page script read `window.__marker` and the `.live` element on the yolo-twice session view (`/yolo-twice/34b27c?x=p1&z=t`), but it failed with \"Execution context was destroyed\" because the page was still navigating and its title was still \"Loading\". The page logged 1 console error, saved to `.playwright-mcp/console-2026-10-31T12-37-57-134Z.log` lines 1–2. No marker or live-element value was returned, so the check needs a retry after the page finishes loading.",
+                "title": "Session 34b27c page check aborted: execution context destroyed by navigation"
               }
             },
             {
@@ -2987,6 +2991,10 @@
             "input_tokens": 5545976,
             "output_tokens": 32687,
             "tool_calls": 26
+          },
+          "text": {
+            "abstract": "A page script read `window.__marker` and the `.live` element on the yolo-twice session view (`/yolo-twice/34b27c?x=p1&z=t`), but it failed with \"Execution context was destroyed\" because the page was still navigating and its title was still \"Loading\". The page logged 1 console error, saved to `.playwright-mcp/console-2026-10-31T12-37-57-134Z.log` lines 1–2. No marker or live-element value was returned, so the check needs a retry after the page finishes loading.",
+            "title": "Session 34b27c page check aborted: execution context destroyed by navigation"
           }
         },
         {

@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T13:40:03.842Z",
+  "granularity": "abstract",
+  "hash": "3c05aeadc88a7037",
+  "node": "t3",
+  "text": "The engine now sends a build id (its start time plus a hash of the served `index.html`) on the SSE `hello` frame and a `build` event when `packages/ui/dist` changes, and `useStream.ts` reloads the page when that id changes. A new `bun run dev` in `code/package.json` runs `bun --watch` on the engine and `vite build --watch` on the UI in parallel, and both paths reloaded the page in a test on port 9662. Committed as `65a7fea` with `API.md` and `CONTRIBUTING.md` updated; the engine on 9656 needs one manual restart before auto reload applies to it.",
+  "version": "2"
+}

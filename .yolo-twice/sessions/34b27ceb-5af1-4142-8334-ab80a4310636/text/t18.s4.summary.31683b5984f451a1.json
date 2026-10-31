@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T13:49:43.070Z",
+  "granularity": "summary",
+  "hash": "31683b5984f451a1",
+  "node": "t18.s4",
+  "text": "Store API callers span four packages. packages/analyzers/src/pipeline.ts builds a TextCache and writes the project index. packages/engine/src/project.ts reads and writes config and runs summarizeNode with the summarizer or structural analyzer. server.ts and resume.ts read the project index, and cli.ts sets attention via writeConfig. packages/core/src/ingest.ts reads and writes SourceState per session. packages/ui/mock/server.ts serves fixture index and config and calls TextCache.put. In semantic.ts, SemanticJob carries an interim flag that marks artifacts interim=true. project.ts exposes text(session, nodeId, granularity) for title, abstract or summary lookups.",
+  "version": "2"
+}

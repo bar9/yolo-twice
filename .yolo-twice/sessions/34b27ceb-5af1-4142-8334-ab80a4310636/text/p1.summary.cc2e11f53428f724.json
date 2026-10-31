@@ -1,0 +1,9 @@
+{
+  "analyzer": "structural",
+  "created": "2026-10-31T13:56:47.404Z",
+  "granularity": "summary",
+  "hash": "cc2e11f53428f724",
+  "node": "p1",
+  "text": "[user.prompt] <pasted_content id=\"bba5\"> we are creating \"yolo-twice\" a tool to help individuals and teams get insights into long running claude code sessions. The basic idea is to inspect and visualize long running conversations on the fly as they evolve and present different levels of abstraction of the transcript that allow the user to easily navigate and search the history and deep dive where they choose to. This could include interactive, time line, text search, flow graph, strechtext like semantic abstraction levels, semantic clusters etc we can imagine a solution that has an seperate engine running that watches and indexes the users relevant ~/.claude/* folders, transforms fil system changes into and event stream and analysis and transforms the events using local tools and eventual…",
+  "version": "2"
+}
