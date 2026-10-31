@@ -1,7 +1,5 @@
 # yolo-twice
 
-Website: [bar9.github.io/yolo-twice](https://bar9.github.io/yolo-twice/) · Pitch deck: [/pitch](https://bar9.github.io/yolo-twice/pitch/)
-
 **Transparent agentic development superpowers.** See what your coding agent did, at the
 zoom level you choose, while it is still running.
 
