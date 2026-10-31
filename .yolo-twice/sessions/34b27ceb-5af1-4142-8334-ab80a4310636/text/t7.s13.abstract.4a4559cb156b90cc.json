@@ -1,0 +1,9 @@
+{
+  "analyzer": "structural",
+  "created": "2026-10-31T15:24:54.711Z",
+  "granularity": "abstract",
+  "hash": "4a4559cb156b90cc",
+  "node": "t7.s13",
+  "text": "[tool Bash] {\"command\":\"cd $PROJECT && gh api repos/bar9/yolo-twice/pages 2>&1 | head -c 300; echo; echo \\\"=== failed step ===\\\"; gh run view 41188498197 --log-failed 2>&1 | grep -v '^$' | tail -25; echo \\\"=== resume smoke ===\\\"; bun run code/packages/engine/src/cli.ts resume --print --cwd $PROJECT…",
+  "version": "2"
+}

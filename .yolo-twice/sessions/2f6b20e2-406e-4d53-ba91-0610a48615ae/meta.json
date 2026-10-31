@@ -1,0 +1,9 @@
+{
+  "agent": "claude-code",
+  "cost_usd": 13.870710599999994,
+  "events": 591,
+  "id": "2f6b20e2-406e-4d53-ba91-0610a48615ae",
+  "label": "Graph UI with React Flow blocks",
+  "ts_first": "2026-10-31T15:17:59.264Z",
+  "ts_last": "2026-10-31T20:20:31.685Z"
+}

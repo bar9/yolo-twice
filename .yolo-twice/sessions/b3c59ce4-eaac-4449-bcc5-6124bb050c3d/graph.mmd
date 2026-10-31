@@ -1,0 +1,36 @@
+flowchart TD
+  s_b3c59ce4_eaac_4449_bcc5_6124bb050c3d(["Website detent wording and Mermaid styling"])
+  subgraph p1 ["pull and iterate on the website. #quot;detent#quot; is a wo…"]
+    direction TD
+    t1["pull and iterate on the website. #quot;detent#quot; is a word we don'…"]
+    t2["serve website locally"]
+    t3["and serve the slides too"]
+    t4["that is too funky. one color  purple  for the outline is en…"]
+    t5["ok commit and push"]
+    t6["are all of my sessions committed?"]
+    t7["yes commit and push them"]
+  end
+  s_b3c59ce4_eaac_4449_bcc5_6124bb050c3d --> t1
+  t1 --> t2
+  t2 --> t3
+  t3 --> t4
+  t4 --> t5
+  t5 --> t6
+  t6 --> t7
+  classDef session fill:#1f2937,color:#fff,stroke:#111;
+  classDef phase fill:#e5e7eb,stroke:#9ca3af;
+  classDef turn fill:#dbeafe,stroke:#60a5fa;
+  classDef branch fill:#fde68a,stroke:#d97706;
+  classDef subagent fill:#ede9fe,stroke:#8b5cf6;
+  classDef tool fill:#dcfce7,stroke:#22c55e;
+  classDef error fill:#fee2e2,stroke:#ef4444;
+  classDef text fill:#f3f4f6,stroke:#9ca3af;
+  classDef thinking fill:#f3f4f6,stroke:#d1d5db,stroke-dasharray: 3 3;
+  class s_b3c59ce4_eaac_4449_bcc5_6124bb050c3d session;
+  class t1 turn;
+  class t2 turn;
+  class t3 turn;
+  class t4 turn;
+  class t5 turn;
+  class t6 turn;
+  class t7 turn;
