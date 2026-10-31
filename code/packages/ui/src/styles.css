@@ -570,3 +570,13 @@ a.link:hover { text-decoration-color: currentColor; }
 /* folded runs in the graph ("Hide filtered") */
 .graph .pele-node[data-id$="_fold"] > :is(rect, polygon, path), .graph .pele-node[data-id$="_fold_t"] > :is(rect, polygon, path) { fill: transparent; stroke: var(--rule-strong); stroke-dasharray: 3 3; }
 .graph .pele-node[data-id$="_fold"] .pele-label, .graph .pele-node[data-id$="_fold_t"] .pele-label { fill: var(--ink-3); }
+
+/* keyboard cheat sheet */
+.shortcuts { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 18px 28px; }
+.shortcuts h3 { margin: 0 0 6px; font-size: 13px; font-weight: 600; color: var(--ink); }
+.shortcuts dl { margin: 0; display: grid; gap: 5px; }
+.shortcuts dl > div { display: grid; grid-template-columns: 110px 1fr; gap: 10px; align-items: baseline; }
+.shortcuts dt { display: flex; flex-wrap: wrap; align-items: center; gap: 3px; }
+.shortcuts dd { margin: 0; font-size: 13px; color: var(--ink-2); line-height: 1.4; }
+.shortcuts .or { font-size: 11px; color: var(--ink-3); margin: 0 2px; }
+.chip.widen { color: var(--ink); border-color: var(--rule-strong); }

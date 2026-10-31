@@ -1,4 +1,4 @@
-import { Monitor, Moon, Sun, BookOpen, BookOpenText, ChevronRight, Columns2, GitCommitHorizontal, ListRestart, Network, Pin, PinOff, Radio, SlidersHorizontal } from "lucide-react";
+import { Keyboard, Monitor, Moon, Sun, BookOpen, BookOpenText, ChevronRight, Columns2, GitCommitHorizontal, ListRestart, Network, Pin, PinOff, Radio, SlidersHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Slider } from "@/components/ui/slider";
@@ -7,6 +7,8 @@ import { ATTENTION, ATTENTION_LABEL, fmtTime, type Attention, type AutoCommit, t
 import { KIND } from "./kinds";
 import type { Layout } from "./state";
 import { Tip } from "./Tip";
+import { Kbd } from "@/components/ui/kbd";
+import { hint } from "./keys";
 import { useTheme, type ThemeChoice } from "./theme";
 
 const THEMES: { c: ThemeChoice; label: string; Icon: typeof Sun }[] = [
@@ -65,6 +67,7 @@ export function Header(props: {
   autoCommit?: AutoCommit;
   onAutoCommit: (enabled: boolean) => void;
   onCatchMeUp: () => void;
+  onShortcuts: () => void;
 }) {
   const [theme, setTheme] = useTheme();
   const attention = props.config?.attention ?? "balanced";
@@ -139,14 +142,14 @@ export function Header(props: {
           {liveLabel}
         </span>
       </Tip>
-      <Tip label={props.follow ? "Following the newest events (f). Scroll up or click anything to stop." : "Follow the newest events as they arrive, like tail -f (f or End)."}>
+      <Tip label={props.follow ? `Following the newest events${hint("follow")}. Scroll up or click anything to stop.` : `Follow the newest events as they arrive, like tail -f${hint("follow")}.`}>
         <Button variant="outline" size="sm" className={`follow ${props.follow ? "on" : ""}`} onClick={() => props.onFollow(!props.follow)} aria-pressed={props.follow}>
           <Radio />
           {props.follow ? "Following" : "Follow"}
         </Button>
       </Tip>
 
-      <ToggleGroup type="single" variant="outline" size="sm" value={props.layout} onValueChange={(v) => v && props.onLayout(v as Layout)} aria-label="Views" className="hide-narrow">
+      <ToggleGroup type="single" variant="outline" size="sm" value={props.layout} onValueChange={(v) => v && props.onLayout(v as Layout)} aria-label="Views" className="hide-narrow" title={`Views${hint("layout")}`}>
         <ToggleGroupItem value="read" aria-label="Text only" title="Text only">
           <BookOpen />
           <span className="hidden xl:inline">Read</span>
@@ -162,7 +165,7 @@ export function Header(props: {
       </ToggleGroup>
 
       <Popover>
-        <Tip label="Appearance, summaries and auto-commit">
+        <Tip label={`Appearance, summaries, auto-commit and keyboard shortcuts${hint("help")}`}>
           <PopoverTrigger asChild>
             <Button variant="outline" size="icon-sm" aria-label="Settings" className="relative">
               <SlidersHorizontal />
@@ -199,6 +202,13 @@ export function Header(props: {
               {COST[attention].what}
               {COST[attention].callsPerTurn > 0 && ` ${callsPerHour < 1 ? "Less than one call" : `About ${callsPerHour} call${callsPerHour === 1 ? "" : "s"}`} an hour for this session.`}
             </p>
+            <button className="flex w-full items-center justify-between rounded-md border-t pt-3 text-[13px] font-semibold hover:text-ink" onClick={props.onShortcuts}>
+              <span className="flex items-center gap-2">
+                <Keyboard className="size-4" aria-hidden />
+                Keyboard shortcuts
+              </span>
+              <Kbd>?</Kbd>
+            </button>
             {ac && (
               <div className="border-t pt-3">
                 <div className="flex items-center justify-between gap-3">
@@ -228,7 +238,7 @@ export function Header(props: {
         </PopoverContent>
       </Popover>
 
-      <Button size="sm" onClick={props.onCatchMeUp} disabled={!props.session}>
+      <Button size="sm" onClick={props.onCatchMeUp} disabled={!props.session} title={`What happened since you last looked${hint("catch")}`}>
         <BookOpenText />
         <span className="hide-narrow">Catch me up</span>
       </Button>

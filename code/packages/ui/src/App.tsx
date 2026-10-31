@@ -10,11 +10,15 @@ import { Header } from "./Header";
 import { FilterBar } from "./FilterBar";
 import { Timeline, type Bar, type Tick } from "./Timeline";
 import { Graph, type HoverInfo } from "./Graph";
-import { Results, Zoom } from "./Zoom";
+import { Results, Zoom, type ZoomApi } from "./Zoom";
+import { CHIPS } from "./FilterBar";
+import { Shortcuts } from "./Shortcuts";
+import { useKeyboard } from "./useKeyboard";
+import { matchOrder, stepIn } from "./nav";
 import { useStream } from "./useStream";
 import { resolveId, shortId, useViewState, type Layout, type SetView, type ViewState } from "./state";
 import { computeScope, foldTree, followTarget, indexTree, walk } from "./scope";
-import { DETAIL, KIND, KindIcon, kindStyle, nodeKind, richText, type Kind } from "./kinds";
+import { DETAIL, DETAIL_ORDER, KIND, KindIcon, kindStyle, nodeKind, richText, type Kind } from "./kinds";
 
 type Index = ProjectIndex & { current?: string };
 const sessionNode = (id: string) => `s:${id}`;
@@ -302,20 +306,6 @@ export function App() {
     act({ focus: undefined, window: undefined });
   }, [sessionId, view.pinned, view.focus, view.window, act, leaveSession]);
 
-  // keyboard: Esc goes up one level, Enter focuses the selection
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (/input|textarea|select/i.test((e.target as HTMLElement).tagName) || (e.target as HTMLElement).isContentEditable) return;
-      if (document.querySelector("[role=dialog], [role=menu]")) return;
-      if (e.key === "Escape") up();
-      if (e.key === "Enter" && sel && !(e.target as HTMLElement).closest("button")) focusOn(sel);
-      if (e.key === "f" && !e.ctrlKey && !e.metaKey && !e.altKey) setView((s) => ({ follow: !s.follow }), { push: false });
-      if (e.key === "End") setView({ follow: true }, { push: false });
-    };
-    addEventListener("keydown", onKey);
-    return () => removeEventListener("keydown", onKey);
-  }, [up, focusOn, sel, setView]);
-
   const setAttention = async (a: Attention) => {
     setConfig((c) => (c ? { ...c, attention: a } : c));
     try {
@@ -425,6 +415,81 @@ export function App() {
   const playhead = view.follow ? tlEnd : selectedNode ? Date.parse(selectedNode.span.ts_first) : sel?.startsWith("s:") ? Date.parse(sessions.find((s) => sessionNode(s.id) === sel)?.ts_first ?? "") : undefined;
 
   const resultIds = useMemo(() => (scope && events ? [...events.keys()].filter((id) => scope.matches.has(id)) : []), [scope, events]);
+
+  /* ---------- keyboard (the keymap lives in keys.ts) ---------- */
+
+  // what ↑ ↓ walk through: the view you are looking at, top to bottom
+  const order = (): string[] => {
+    if (!sessionId) return [...sessions].reverse().map((s) => sessionNode(s.id));
+    if (reader === "results" && layout !== "map" && scope) return matchOrder(resultIds, scope.owner);
+    if (layout === "map") return graphIds.filter((id) => !id.includes(".fold"));
+    // the focus itself heads the reader; ↓ starts inside it
+    return [...document.querySelectorAll<HTMLElement>(".zoom .node:not(.root)")].map((el) => el.id.slice("node-".length));
+  };
+  // after Enter in the search box, or widening a search that found nothing: land on the first match
+  const pendingFirst = useRef(false);
+  const [submitted, setSubmitted] = useState(0);
+  useEffect(() => {
+    // wait until the views have caught up with the query, or a stale match would be picked
+    if (!pendingFirst.current || dq !== view.q || !scope?.active || scope.matches.size === 0) return;
+    pendingFirst.current = false;
+    const first = matchOrder(resultIds, scope.owner)[0];
+    if (first) select(first);
+  }, [scope, resultIds, select, submitted, dq, view.q]);
+  const widenLabel = !scope
+    ? undefined
+    : view.window
+      ? `Search the whole ${scope.focus.kind}`
+      : view.focus
+        ? (() => {
+            const p = scope.parent.get(scope.focus.id);
+            const pn = p ? tree?.byId.get(p) : undefined;
+            return pn ? `Search the ${pn.kind}` : undefined;
+          })()
+        : sessionId && !view.pinned
+          ? "Search the project"
+          : undefined;
+  const widen = useCallback(() => {
+    if (scope?.active && scope.matches.size === 0) pendingFirst.current = true;
+    up();
+  }, [scope, up]);
+  const zoomApi = useRef<ZoomApi>(null);
+  const [shortcutsOpen, setShortcutsOpen] = useState(false);
+  const LAYOUTS: Layout[] = ["read", "split", "map"];
+  useKeyboard({
+    move: (dir) => {
+      const next = stepIn(order(), sel, dir);
+      if (next) select(next);
+    },
+    first: () => {
+      const o = order();
+      if (o[0]) select(o[0]);
+    },
+    zoomIn: () => sel && sel !== scope?.focus.id && focusOn(sel),
+    widen,
+    widenToTop: () => (view.focus || view.window ? act({ focus: undefined, window: undefined }) : sessionId && !view.pinned ? leaveSession() : undefined),
+    togglePart: () => sel && zoomApi.current?.toggle(sel),
+    newest: () => setView({ follow: true }, { push: false }),
+    search: () => document.querySelector<HTMLInputElement>(".filterbar .query")?.focus(),
+    nextMatch: (dir) => {
+      const o = sessionId && scope ? matchOrder(resultIds, scope.owner) : projectHits.map((h) => sessionNode(h.session)).filter((id, i, a) => a.indexOf(id) === i);
+      const next = stepIn(o, sel && o.includes(sel) ? sel : undefined, dir);
+      if (next) select(next);
+    },
+    toggleKind: (i) => {
+      const code = CHIPS[i]?.code;
+      if (code) setView({ k: view.k.includes(code) ? view.k.filter((c) => c !== code) : [...view.k, code] });
+    },
+    toggleFold: () => setFoldRest((f) => !f),
+    clearAll: () => setView({ q: "", k: [], window: undefined }),
+    detail: (dir) => setView({ z: DETAIL_ORDER[Math.min(DETAIL_ORDER.length - 1, Math.max(0, DETAIL_ORDER.indexOf(view.z) + dir))]! }),
+    partDetail: (dir) => (sel && zoomApi.current ? zoomApi.current.detail(sel, dir) : setView({ z: DETAIL_ORDER[Math.min(DETAIL_ORDER.length - 1, Math.max(0, DETAIL_ORDER.indexOf(view.z) + dir))]! })),
+    cycleLayout: () => setView({ layout: LAYOUTS[(LAYOUTS.indexOf(view.layout) + 1) % LAYOUTS.length]! }, { push: false }),
+    toggleFollow: () => setView((s) => ({ follow: !s.follow }), { push: false }),
+    togglePin: () => sessionId && setView({ pinned: !view.pinned }),
+    catchMeUp: () => void catchMeUp(),
+    shortcuts: () => setShortcutsOpen(true),
+  });
   const path = scope ? scope.path.slice(1).map((n) => ({ id: n.id, label: n.label })) : [];
   const timelineWindow = scope ? scope.window : projectWindow;
   const layout: Layout = narrow && view.layout === "split" ? "read" : view.layout;
@@ -459,7 +524,7 @@ export function App() {
           !scope ? (
             <p className="empty">Loading the session…</p>
           ) : reader === "outline" ? (
-            <Zoom session={sessionId} root={scope.focus} granularity={view.z} events={events} follow={view.follow} selected={sel} hover={hover} dim={dim} hits={hits} query={dq} active={scope.active} matches={scope.matches} collapseDim={foldRest && scope.active && scope.matches.size > 0} onSelect={select} onFocus={focusOn} onHover={setHover} onGranularity={setDetail} onOverrides={setOverrides} />
+            <Zoom session={sessionId} root={scope.focus} granularity={view.z} events={events} follow={view.follow} selected={sel} hover={hover} dim={dim} hits={hits} query={dq} active={scope.active} matches={scope.matches} collapseDim={foldRest && scope.active && scope.matches.size > 0} onSelect={select} onFocus={focusOn} onHover={setHover} onGranularity={setDetail} onOverrides={setOverrides} api={zoomApi} />
           ) : (
             <Results ids={resultIds} events={events} owner={scope.owner} selected={sel} query={view.q} onSelect={select} />
           )
@@ -515,6 +580,7 @@ export function App() {
         autoCommit={autoCommit}
         onAutoCommit={toggleAutoCommit}
         onCatchMeUp={catchMeUp}
+        onShortcuts={() => setShortcutsOpen(true)}
       />
       {error && (
         <div className="banner error" role="alert">
@@ -522,7 +588,7 @@ export function App() {
           Lost contact with the engine: {error}. Run /yolo-twice:yolo-twice to start it again.
         </div>
       )}
-      <FilterBar q={view.q} k={view.k} tools={tools} matches={matchCount} scopeLabel={scopeLabel} onQuery={(q) => setView({ q })} onCodes={(k: FilterCode[]) => setView({ k })} folded={foldRest} onFolded={setFoldRest} />
+      <FilterBar q={view.q} k={view.k} tools={tools} matches={matchCount} scopeLabel={scopeLabel} onQuery={(q) => setView({ q })} onCodes={(k: FilterCode[]) => setView({ k })} folded={foldRest} onFolded={setFoldRest} onSubmit={() => ((pendingFirst.current = true), setSubmitted((n) => n + 1))} widen={widenLabel ? { label: widenLabel, run: widen } : undefined} />
       {bars.length > 0 && (
         <Timeline
           bars={bars}
@@ -564,6 +630,7 @@ export function App() {
           </button>
         )}
       </div>
+      <Shortcuts open={shortcutsOpen} onOpenChange={setShortcutsOpen} />
       {card && <HoverCard info={card} tree={tree} sessions={sessions} hits={hits} />}
       <Sheet open={digest !== undefined} onOpenChange={(o) => !o && setDigest(undefined)}>
         <SheetContent className="w-full sm:max-w-lg overflow-y-auto">

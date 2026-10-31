@@ -1,10 +1,15 @@
-import { memo, useEffect, useMemo, useRef, useState } from "react";
+import { memo, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
 import { ToolCallView, ToolResultView } from "./ToolCall";
 import { Bot, ChevronRight, Ellipsis, Coins, Focus, Image, Minus, Plus, RotateCcw, Search, TriangleAlert, Undo2, Wrench } from "lucide-react";
 import { ancestors, api, fmtDuration, fmtTime, fmtTokens, walk, type Event, type Granularity, type ImageRef, type StructureNode } from "./api";
 import { DETAIL_LABEL, DETAIL_ORDER, eventKind, KIND, KindIcon, kindStyle, nodeKind, richText } from "./kinds";
 
 const ORDER = DETAIL_ORDER;
+
+export interface ZoomApi {
+  toggle(id: string): void;
+  detail(id: string, dir: 1 | -1): void;
+}
 /** How many matching steps a search opens at Raw; more would bury the page. */
 const AUTO_MAX = 30;
 
@@ -38,6 +43,8 @@ export const Zoom = memo(function Zoom(props: {
   onGranularity: (g: Granularity) => void;
   /** Parts set to their own detail, so the page switch can show them. */
   onOverrides: (o: Record<string, Granularity>) => void;
+  /** For the keyboard: open or close a part, step its own detail. */
+  api?: React.Ref<ZoomApi>;
 }) {
   // expansion state keyed by node id survives structure refetches
   const [open, setOpen] = useState<Record<string, boolean>>({ [props.root.id]: true });
@@ -138,6 +145,23 @@ export const Zoom = memo(function Zoom(props: {
   };
 
   const toggle = (id: string) => setOpen((o) => ({ ...o, [id]: !(o[id] ?? id === props.root.id) }));
+  useImperativeHandle(
+    props.api,
+    () => ({
+      toggle,
+      detail(id: string, dir: 1 | -1) {
+        const step = (g: Granularity) => ORDER[Math.min(ORDER.length - 1, Math.max(0, ORDER.indexOf(g) + dir))]!;
+        if (id === props.root.id) return props.onGranularity(step(props.granularity));
+        setOverride((o) => {
+          const { [id]: cur, ...rest } = o;
+          const next = step(cur ?? props.granularity);
+          return next === props.granularity ? rest : { ...rest, [id]: next };
+        });
+        setOpen((o) => ({ ...o, [id]: true }));
+      },
+    }),
+    [props.root.id, props.granularity, props.onGranularity],
+  );
 
   // a selection made elsewhere (graph, timeline, search) opens the path to the node and scrolls to it;
   // switching follow off (the user scrolled up) must not scroll back

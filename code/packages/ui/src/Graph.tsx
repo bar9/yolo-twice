@@ -323,6 +323,8 @@ export const Graph = memo(function Graph(props: {
             ArrowRight: () => ((v.x -= step), apply(true)),
             ArrowUp: () => ((v.y += step), apply(true)),
             ArrowDown: () => ((v.y -= step), apply(true)),
+            // give the keys back to the page
+            Escape: () => host.current?.blur(),
           };
           const fn = moves[e.key];
           if (fn) {
