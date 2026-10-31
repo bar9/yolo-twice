@@ -1,3 +1,6 @@
 node_modules/
 dist/
 .slidev/
+
+# your own ringtone for the call on the scene slide (not redistributable)
+public/ringtone.*
