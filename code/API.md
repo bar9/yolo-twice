@@ -22,6 +22,8 @@ most recently registered project is used. All JSON uses the types from `@yolo-tw
 | GET | `/api/search` | `project`, `q`, `session?`, `k?`, `from?`, `to?`, `limit?` (default 50) | `{ hits: SearchHit[], tools: string[] }`. `k` is a comma list of filter codes (`u` user prompts, `a` assistant text, `h` thinking, `t` tool calls, `t:Name` one tool, `e` tool errors, `s` subagents, `c` compactions and commands; codes are OR'd). `from`/`to` are ISO timestamps. Without `session` the whole project is searched. An empty `q` with a filter lists matching events in order; an empty `q` without a filter returns no hits. `tools` lists tool names seen, most used first |
 | GET | `/api/config` | `project` | `Config` |
 | PUT | `/api/config` | `{ project, attention }` | `Config` (persisted to `.yolo-twice/config.json`, broadcast on the stream) |
+| GET | `/api/autocommit` | `project` | `{ enabled, intervalMs, lastCommit?: { ts, sha, files }, lastCheck?, skipped? }` |
+| PUT | `/api/autocommit` | `{ project, enabled }` | same shape. Opt-in: commits only `.yolo-twice` (`git commit --only`, staged work stays staged) right away and every 10 min when it changed; skips during merges, rebases and on a detached HEAD. Engine memory only, off after every engine restart. Broadcast as `autocommit` |
 | GET | `/api/stream` | `project` | Server-Sent Events, see below |
 | POST | `/hook` | Claude Code hook JSON (`session_id`, `transcript_path`, `cwd`, `hook_event_name`, …) | `{}` within 50 ms; ingestion is scheduled, never awaited |
 | GET | `/` and `/assets/*` | | the built UI from `packages/ui/dist` when present |
@@ -38,6 +40,7 @@ most recently registered project is used. All JSON uses the types from `@yolo-tw
 | `structure` | `{ session }` | structure.json and graph.mmd were rewritten; clients refetch |
 | `semantic` | `{ session, node, granularity, interim }` | a text artifact was written |
 | `config` | `Config` | attention changed |
+| `autocommit` | auto-commit status (see `/api/autocommit`) | toggled, or a commit attempt finished |
 | `ping` | `{}` | every 25 s keep-alive |
 
 ## Engine CLI (`yolo-twice`)
@@ -49,6 +52,7 @@ yolo-twice stop                                                stop the daemon
 yolo-twice status [--cwd <dir>] [--json]                       engine and project state
 yolo-twice index [--cwd <dir>]                                 one-shot ingest + derive, no daemon
 yolo-twice mode <micro|attentive|balanced|yolo> [--cwd <dir>]  set the attention detent
+yolo-twice autocommit [on|off] [--cwd <dir>]     commit only .yolo-twice every 10 min, until the engine stops
 yolo-twice resume [session] [--cwd <dir>] [--print]  rebuild a committed session from .yolo-twice into .yolo-twice/cache/resume/<id>.jsonl, with $PROJECT and ~ expanded to this machine's paths, and run `claude --resume <that file> --fork-session` (a new session id, so the committed session never gets a second writer)
 yolo-twice hook                                                read a Claude Code hook JSON from stdin and forward it (used by the plugin)
 ```

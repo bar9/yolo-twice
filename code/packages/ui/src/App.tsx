@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { focusMermaid, projectToMermaid } from "@yolo-twice/analyzers/graph";
 import { SearchIndex, type FilterCode } from "@yolo-twice/analyzers/search";
-import { api, setProject, storage, store, type Attention, type Config, type Event, type Granularity, type ProjectIndex, type SearchHit, type StructureNode } from "./api";
+import { api, setProject, storage, store, type Attention, type AutoCommit, type Config, type Event, type Granularity, type ProjectIndex, type SearchHit, type StructureNode } from "./api";
 import { Header } from "./Header";
 import { FilterBar } from "./FilterBar";
 import { Timeline, type Bar, type Tick } from "./Timeline";
@@ -25,6 +25,7 @@ export function App() {
   const [structure, setStructure] = useState<StructureNode | undefined>();
   const [events, setEvents] = useState<Map<string, Event> | undefined>();
   const [config, setConfig] = useState<Config | undefined>();
+  const [autoCommit, setAutoCommit] = useState<AutoCommit | undefined>();
   const [digest, setDigest] = useState<string | undefined>();
   const [error, setError] = useState<string | undefined>();
   const [hover, setHover] = useState<string | undefined>();
@@ -74,6 +75,7 @@ export function App() {
   useEffect(() => {
     void loadIndex();
     api.config().then(setConfig).catch(() => undefined);
+    api.autoCommit().then(setAutoCommit).catch(() => undefined);
   }, [loadIndex, view.project]);
 
   useEffect(() => {
@@ -106,6 +108,9 @@ export function App() {
         break;
       case "config":
         api.config().then(setConfig).catch(() => undefined);
+        break;
+      case "autocommit":
+        setAutoCommit(ev.data);
         break;
     }
   });
@@ -240,6 +245,14 @@ export function App() {
     }
   };
 
+  const toggleAutoCommit = async (enabled: boolean) => {
+    try {
+      setAutoCommit(await api.setAutoCommit(enabled));
+    } catch (e) {
+      setError(String(e));
+    }
+  };
+
   const catchMeUp = async () => {
     if (!sessionId) return;
     setDigest("…");
@@ -331,6 +344,8 @@ export function App() {
         config={config}
         structure={structure}
         onAttention={setAttention}
+        autoCommit={autoCommit}
+        onAutoCommit={toggleAutoCommit}
         onCatchMeUp={catchMeUp}
       />
       {error && <div className="banner error">{error}</div>}

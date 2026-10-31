@@ -179,6 +179,14 @@ export class Engine {
       return c.json(need(body.project).setAttention(parsed.data));
     });
 
+    // auto-commit of .yolo-twice: opt-in, engine memory only, off after every engine restart
+    app.get("/api/autocommit", (c) => c.json(need(c.req.query("project")).autoCommit.get()));
+    app.put("/api/autocommit", async (c) => {
+      const body = (await c.req.json().catch(() => ({}))) as { project?: string; enabled?: unknown };
+      if (typeof body.enabled !== "boolean") return c.json({ error: "enabled (boolean) required" }, 400);
+      return c.json(need(body.project).autoCommit.set(body.enabled));
+    });
+
     app.get("/api/stream", (c) => {
       const rt = need(c.req.query("project"));
       return streamSSE(c, async (stream) => {

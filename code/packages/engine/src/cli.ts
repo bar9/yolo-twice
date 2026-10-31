@@ -168,6 +168,18 @@ async function main(): Promise<void> {
       console.log(`attention: ${parsed.data}`);
       return;
     }
+    case "autocommit": {
+      // engine memory only: needs a running engine and is off again after it restarts
+      const on = args[1] === "on" ? true : args[1] === "off" ? false : undefined;
+      const root = findProjectRoot(cwd);
+      const p = await ensureEngine();
+      await register(p);
+      const init = on === undefined ? undefined : { method: "PUT", headers: { "content-type": "application/json" }, body: JSON.stringify({ project: root, enabled: on }) };
+      const res = await fetch(`http://127.0.0.1:${p}/api/autocommit${init ? "" : `?project=${encodeURIComponent(root)}`}`, init);
+      const st = (await res.json()) as { enabled: boolean; intervalMs: number };
+      console.log(`auto-commit of .yolo-twice: ${st.enabled ? `on, every ${Math.round(st.intervalMs / 60_000)} min until the engine stops` : "off"}`);
+      return;
+    }
     case "resume": {
       // resume a session from the project-local .yolo-twice folder, e.g. one a teammate committed
       const root = findProjectRoot(cwd);
@@ -202,6 +214,7 @@ async function main(): Promise<void> {
   status [--cwd <dir>] [--json]                  engine and project state
   index [--cwd <dir>]                            one-shot ingest + derive, no daemon
   mode <micro|attentive|balanced|yolo>           set the attention detent
+  autocommit [on|off] [--cwd <dir>]             commit only .yolo-twice every 10 min (this engine run only)
   resume [session] [--cwd <dir>] [--print]       rebuild a session from .yolo-twice and continue it as a fork (claude --resume <file> --fork-session)
   hook                                           forward a Claude Code hook JSON from stdin`);
   }

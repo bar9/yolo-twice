@@ -8,7 +8,7 @@ set -u
 HERE="$(cd "$(dirname "$0")/.." && pwd)"
 CMD="${1:-open}"; [ $# -gt 0 ] && shift
 case "$CMD" in
-  stop|status|index|start|open|mode|resume|hook|help) ;;
+  stop|status|index|start|open|mode|autocommit|resume|hook|help) ;;
   micro|attentive|balanced|yolo) set -- "$CMD" "$@"; CMD=mode ;;
   *) set -- "$CMD" "$@"; CMD=open ;;
 esac

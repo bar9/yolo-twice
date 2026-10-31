@@ -12,6 +12,15 @@ export const ATTENTION_LABEL: Record<Attention, string> = {
   yolo: "yolo",
 };
 
+/** Auto-commit of .yolo-twice. Lives in engine memory only: off after every engine restart. */
+export interface AutoCommit {
+  enabled: boolean;
+  intervalMs: number;
+  lastCommit?: { ts: string; sha: string; files: number };
+  lastCheck?: string;
+  skipped?: string;
+}
+
 /** Project key (or root) passed on every call; empty means "engine default". Set from the URL by App. */
 export let project = "";
 export function setProject(key: string): void {
@@ -69,6 +78,13 @@ export const api = {
       method: "PUT",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ project: project || undefined, attention }),
+    }),
+  autoCommit: () => json<AutoCommit>(`/api/autocommit${qs({})}`),
+  setAutoCommit: (enabled: boolean) =>
+    json<AutoCommit>(`/api/autocommit`, {
+      method: "PUT",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ project: project || undefined, enabled }),
     }),
   streamUrl: () => `/api/stream${qs({})}`,
 };

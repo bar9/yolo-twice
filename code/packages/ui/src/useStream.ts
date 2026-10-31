@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState } from "react";
-import { api } from "./api";
+import { api, type AutoCommit } from "./api";
 
 export type StreamEvent =
   | { type: "hook"; data: { hook_event_name: string; session_id: string } }
   | { type: "ingest"; data: { session: string; appended: number } }
   | { type: "structure"; data: { session: string } }
   | { type: "semantic"; data: { session: string; node: string; granularity: string; interim?: boolean } }
-  | { type: "config"; data: { attention: string } };
+  | { type: "config"; data: { attention: string } }
+  | { type: "autocommit"; data: AutoCommit };
 
 /** EventSource on /api/stream with reconnect backoff. `onEvent` is kept in a ref so it never re-subscribes. */
 export function useStream(onEvent: (e: StreamEvent) => void): "connecting" | "live" | "offline" {
@@ -28,7 +29,7 @@ export function useStream(onEvent: (e: StreamEvent) => void): "connecting" | "li
         delay = 1000;
         setState("live");
       });
-      for (const type of ["hook", "ingest", "structure", "semantic", "config"] as const) {
+      for (const type of ["hook", "ingest", "structure", "semantic", "config", "autocommit"] as const) {
         es.addEventListener(type, (ev) => {
           try {
             handler.current({ type, data: JSON.parse((ev as MessageEvent).data) } as StreamEvent);

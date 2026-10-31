@@ -18,12 +18,14 @@ import { isOpenNode,
   type Summarizer,
   type TextArtifact,
 } from "@yolo-twice/analyzers";
+import { AutoCommitter } from "./autocommit.js";
 
 export type Broadcast = (event: string, data: unknown) => void;
 
 export interface ProjectOptions {
   originDir?: string; // test override for the Claude Code project folder
   watch?: boolean;
+  autoCommitMs?: number; // test override for the auto-commit interval
   log?: (msg: string) => void;
 }
 
@@ -46,6 +48,7 @@ export class ProjectRuntime {
   private summarizer: Summarizer;
   private readonly structural = new StructuralSummarizer();
   lastActivity = new Map<string, string>(); // session -> ts of last ingest
+  readonly autoCommit: AutoCommitter;
 
   constructor(
     readonly root: string,
@@ -58,6 +61,7 @@ export class ProjectRuntime {
     this.name = path.basename(root);
     const cfg = this.store.readConfig();
     this.summarizer = hasClaudeCli() && cfg.analyzers.semantic && !process.env.YOLO_TWICE_NO_LLM ? new ClaudeCliSummarizer({ model: cfg.analyzers.model }) : this.structural;
+    this.autoCommit = new AutoCommitter(root, this.store.dir, (st) => broadcast("autocommit", st), (m) => this.log(m), opts.autoCommitMs);
     // warm the search index from what is already on disk
     for (const id of this.store.listSessions()) this.indexSession(id);
   }
@@ -88,6 +92,7 @@ export class ProjectRuntime {
 
   async stop(): Promise<void> {
     clearTimeout(this.timer);
+    this.autoCommit.stop();
     await this.watcher?.close();
     this.watcher = undefined;
   }

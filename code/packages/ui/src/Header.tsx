@@ -1,4 +1,4 @@
-import { ATTENTION, ATTENTION_LABEL, fmtDuration, type Attention, type Config, type StructureNode } from "./api";
+import { ATTENTION, ATTENTION_LABEL, fmtDuration, fmtTime, type Attention, type AutoCommit, type Config, type StructureNode } from "./api";
 
 /** Rough cost table per detent: summarization calls per turn, and how far the view lags the session. */
 const COST: Record<Attention, { callsPerTurn: number; lag: string }> = {
@@ -34,6 +34,8 @@ export function Header(props: {
   config?: Config;
   structure?: StructureNode;
   onAttention: (a: Attention) => void;
+  autoCommit?: AutoCommit;
+  onAutoCommit: (enabled: boolean) => void;
   onCatchMeUp: () => void;
 }) {
   const attention = props.config?.attention ?? "balanced";
@@ -43,6 +45,15 @@ export function Header(props: {
   const hours = Math.max(durationMs / 3_600_000, 1 / 60);
   const callsPerHour = Math.round((turns * COST[attention].callsPerTurn) / hours);
   const pinned = props.session?.pinned;
+  const ac = props.autoCommit;
+  const acTitle = ac?.enabled
+    ? [
+        `committing only .yolo-twice every ${Math.round(ac.intervalMs / 60_000)} min while it changed; your staged work is left alone.`,
+        ac.lastCommit ? `last commit ${ac.lastCommit.sha} at ${fmtTime(ac.lastCommit.ts)} (${ac.lastCommit.files} files).` : "no commit yet.",
+        ac.skipped ? `last check skipped: ${ac.skipped}.` : "",
+        "Off again when the engine restarts. Click to stop.",
+      ].filter(Boolean).join(" ")
+    : "auto-commit the .yolo-twice folder (now and every 10 min) so it stops cluttering git status. Only for this engine run";
 
   return (
     <header className="header">
@@ -99,6 +110,11 @@ export function Header(props: {
         </button>
       )}
       <span className="spacer" />
+      {ac && (
+        <button className={`autocommit ${ac.enabled ? "on" : ""} ${ac.enabled && ac.skipped ? "warn" : ""}`} onClick={() => props.onAutoCommit(!ac.enabled)} aria-pressed={ac.enabled} title={acTitle}>
+          {ac.enabled ? `⟳ auto-commit${ac.lastCommit ? ` · ${fmtTime(ac.lastCommit.ts).slice(0, 5)}` : ""}` : "auto-commit"}
+        </button>
+      )}
       <label className="slider">
         <span className="slider-label">micro management</span>
         <input type="range" min={0} max={3} step={1} value={idx < 0 ? 2 : idx} onChange={(e) => props.onAttention(ATTENTION[Number(e.target.value)]!)} aria-label="attention" />
