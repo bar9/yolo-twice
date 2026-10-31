@@ -236,7 +236,14 @@ export function App() {
   if (scope && events) {
     tlStart = Date.parse(scope.focus.span.ts_first);
     tlEnd = Math.max(Date.parse(scope.focus.span.ts_last), tlStart + 1000);
-    bars = scope.units.map((u) => ({ id: u.node.id, label: u.node.label, start: u.start, end: u.end, node: u.node, group: scope.parent.get(u.node.id) }));
+    // steps are near-instant records; a step's bar runs until the next step starts (time spent on it).
+    // turns keep their own span so the user's idle time between turns stays visible as a gap
+    const steps = scope.focus.level >= 2;
+    bars = scope.units.map((u, i) => {
+      const next = scope.units[i + 1];
+      const end = steps ? Math.max(u.end, next ? next.start : Math.max(u.end, tlEnd)) : u.end;
+      return { id: u.node.id, label: u.node.label, start: u.start, end, node: u.node, group: scope.parent.get(u.node.id) };
+    });
     ticks = [...scope.matches].flatMap((id) => {
       const e = events.get(id);
       return e ? [{ id, ts: Date.parse(e.ts), kind: e.kind }] : [];
