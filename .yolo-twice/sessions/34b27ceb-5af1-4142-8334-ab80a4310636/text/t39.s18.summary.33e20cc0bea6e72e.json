@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T16:02:46.647Z",
+  "granularity": "summary",
+  "hash": "33e20cc0bea6e72e",
+  "node": "t39.s18",
+  "text": "Fold state lives in App.tsx as `foldRest` (line 75), defaulting to true, and the FilterBar toggles it via `onFolded` (line 590). When a filter is active and has matches, App.tsx line 370 builds the graph with `foldTree(scope.graphRoot, scope.dim)`, and line 526 passes `collapseDim` to Zoom. In Zoom.tsx (around lines 198-209), each run of dimmed, non-matching children collapses into a `dim-run` button labelled \"N filtered\". Clicking it adds the run's id to `openRuns`, which reveals those children.",
+  "version": "2"
+}

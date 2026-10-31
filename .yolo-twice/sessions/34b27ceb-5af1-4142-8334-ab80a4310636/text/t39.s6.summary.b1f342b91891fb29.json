@@ -1,0 +1,9 @@
+{
+  "analyzer": "structural",
+  "created": "2026-10-31T16:02:19.878Z",
+  "granularity": "summary",
+  "hash": "b1f342b91891fb29",
+  "node": "t39.s6",
+  "text": "[tool Bash] {\"command\":\"git checkout --ours -- .yolo-twice/sessions/34b27ceb-5af1-4142-8334-ab80a4310636/{events.ndjson,graph.mmd,meta.json,structure.json} && git add .yolo-twice/sessions/34b27ceb-5af1-4142-8334-ab80a4310636 && cd code/packages/ui/src && grep -n \\\"^<<<<<<<\\\\|^=======\\\\|^>>>>>>>\\\" App.tsx Graph.tsx ToolCall.tsx Zoom.tsx styles.css\",\"description\":\"Resolve session data with ours and locate code conflicts\"} [tool.result] ToolCall.tsx:15:<<<<<<< HEAD ToolCall.tsx:18:======= ToolCall.tsx:20:>>>>>>> main ToolCall.tsx:221:<<<<<<< HEAD ToolCall.tsx:223:======= ToolCall.tsx:225:>>>>>>> main Zoom.tsx:3:<<<<<<< HEAD Zoom.tsx:7:======= Zoom.tsx:9:>>>>>>> main Graph.tsx:435:<<<<<<< HEAD Graph.tsx:440:======= Graph.tsx:447:>>>>>>> main App.tsx:369:<<<<<<< HEAD App.tsx:371:======= App.ts…",
+  "version": "2"
+}

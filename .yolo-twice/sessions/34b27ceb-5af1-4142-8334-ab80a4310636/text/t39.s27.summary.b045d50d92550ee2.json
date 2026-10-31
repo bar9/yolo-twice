@@ -1,0 +1,9 @@
+{
+  "analyzer": "structural",
+  "created": "2026-10-31T16:03:05.697Z",
+  "granularity": "summary",
+  "hash": "b045d50d92550ee2",
+  "node": "t39.s27",
+  "text": "[tool Bash] {\"command\":\"python3 - <<'EOF'\\ndef fix(p, pairs):\\n s=open(p).read()\\n for old,new in pairs:\\n assert old in s, (p, old[:40]); s=s.replace(old,new)\\n open(p,\\\"w\\\").write(s)\\nfix(\\\"ToolCall.tsx\\\",[('''<<<<<<< HEAD\\nimport { JsonView } from \\\"./Json\\\";\\nimport { richText } from \\\"./kinds\\\";\\n=======\\nimport { linkify, richText } from \\\"./kinds\\\";\\n>>>>>>> main\\n''','''import { JsonView } from \\\"./Json\\\";\\nimport { linkify, richText } from \\\"./kinds\\\";\\n'''),('''<<<<<<< HEAD\\n {json ? <JsonView value={json.value} source={json.source} /> : parts.map((p, i) => (p.kind === \\\"code\\\" ? <Code key={i} text={p.text} lang={p.lang} start={p.start} /> : <p key={i} className=\\\"tool-text\\\">{p.text.trim()}</p>))}\\n=======\\n {parts.map((p, i) => (p.kind === \\\"code\\\" ? <Code key={i} text={p.text…",
+  "version": "2"
+}
