@@ -1,0 +1,17 @@
+{
+  "name": "@yolo-twice/pitch",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "bun node_modules/@slidev/cli/bin/slidev.mjs --open",
+    "build": "bun node_modules/@slidev/cli/bin/slidev.mjs build --base /yolo-twice/pitch/ --out dist",
+    "export": "bun node_modules/@slidev/cli/bin/slidev.mjs export --output ../../assets/pitch.pdf"
+  },
+  "dependencies": {
+    "@slidev/cli": "^53.0.0",
+    "@slidev/theme-default": "latest",
+    "pele": "^1.13.0",
+    "vue": "^3.5.0"
+  }
+}

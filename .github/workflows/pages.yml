@@ -1,0 +1,55 @@
+name: Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - name: Install
+        working-directory: code
+        run: bun install --frozen-lockfile
+      - name: Build pele-markdown
+        working-directory: code/packages/pele-markdown
+        run: bun run build
+      - name: Build site
+        working-directory: code/site
+        run: bun run build
+      - name: Build pitch deck
+        working-directory: code/pitch
+        run: bun run build
+      - name: Assemble
+        run: |
+          mkdir -p public
+          cp -r code/site/.vitepress/dist/. public/
+          mkdir -p public/pitch
+          cp -r code/pitch/dist/. public/pitch/
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: public
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

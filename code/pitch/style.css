@@ -1,0 +1,24 @@
+.pele {
+  --pele-bg: transparent;
+  --pele-fg: currentColor;
+  --pele-muted: #6b7280;
+  --pele-line: #6b7280;
+  --pele-surface: rgba(127, 127, 127, 0.12);
+  --pele-surface-alt: rgba(127, 127, 127, 0.22);
+  --pele-border: #9ca3af;
+  --pele-accent: #2563eb;
+  --pele-font: inherit;
+  --pele-radius: 6px;
+  display: flex;
+  justify-content: center;
+}
+.pele svg { max-height: 60vh; width: auto; max-width: 100%; }
+.wall {
+  font-family: ui-monospace, monospace;
+  font-size: 0.5rem;
+  line-height: 1.1;
+  opacity: 0.6;
+  word-break: break-all;
+  max-height: 55vh;
+  overflow: hidden;
+}

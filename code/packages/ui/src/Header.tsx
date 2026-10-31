@@ -1,0 +1,63 @@
+import { ATTENTION, ATTENTION_LABEL, fmtDuration, type Attention, type Config, type ProjectIndex, type StructureNode } from "./api";
+
+/** Rough cost table per detent: summarization calls per turn, and how far the view lags the session. */
+const COST: Record<Attention, { callsPerTurn: number; lag: string }> = {
+  micro: { callsPerTurn: 3, lag: "≈ seconds" },
+  attentive: { callsPerTurn: 1, lag: "≈ one turn" },
+  balanced: { callsPerTurn: 0.25, lag: "≈ one phase" },
+  yolo: { callsPerTurn: 0, lag: "on demand" },
+};
+
+export function Header(props: {
+  project: string;
+  sessions: ProjectIndex["sessions"];
+  session?: string;
+  onSession: (id: string) => void;
+  live: "connecting" | "live" | "offline";
+  config?: Config;
+  structure?: StructureNode;
+  onAttention: (a: Attention) => void;
+  onCatchMeUp: () => void;
+}) {
+  const attention = props.config?.attention ?? "balanced";
+  const idx = ATTENTION.indexOf(attention);
+  const turns = props.structure ? props.structure.children.reduce((n, p) => n + p.children.length, 0) : 0;
+  const durationMs = props.structure ? Date.parse(props.structure.span.ts_last) - Date.parse(props.structure.span.ts_first) : 0;
+  const hours = Math.max(durationMs / 3_600_000, 1 / 60);
+  const callsPerHour = Math.round((turns * COST[attention].callsPerTurn) / hours);
+
+  return (
+    <header className="header">
+      <a className="brand" href={location.pathname}>
+        yolo-twice
+      </a>
+      <span className="project" title={props.project}>
+        {props.project.split("/").filter(Boolean).pop() ?? props.project}
+      </span>
+      <select value={props.session ?? ""} onChange={(e) => props.onSession(e.target.value)} className="session-pick">
+        <option value="">— all sessions —</option>
+        {[...props.sessions].reverse().map((s) => (
+          <option key={s.id} value={s.id}>
+            {s.label || s.id}
+          </option>
+        ))}
+      </select>
+      <span className={`live ${props.live}`} title={`stream: ${props.live}`}>
+        ● {props.live}
+      </span>
+      <span className="spacer" />
+      <label className="slider">
+        <span className="slider-label">micro management</span>
+        <input type="range" min={0} max={3} step={1} value={idx < 0 ? 2 : idx} onChange={(e) => props.onAttention(ATTENTION[Number(e.target.value)]!)} aria-label="attention" />
+        <span className="slider-label">yolo</span>
+      </label>
+      <span className="readout" title="estimated summarization calls per hour at this detent, and how far the view lags the live session">
+        <strong>{ATTENTION_LABEL[attention]}</strong> · ≈ {callsPerHour} calls/h · lag {COST[attention].lag}
+        {durationMs > 0 && <span className="muted"> · {fmtDuration(durationMs)}</span>}
+      </span>
+      <button className="primary" onClick={props.onCatchMeUp} disabled={!props.session}>
+        Catch me up
+      </button>
+    </header>
+  );
+}

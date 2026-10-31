@@ -1,0 +1,230 @@
+import fs from "node:fs";
+import path from "node:path";
+import chokidar, { type FSWatcher } from "chokidar";
+import { claudeProjectDir, ingestProject, Store, type Config, type Event, type StructureNode } from "@yolo-twice/core";
+import {
+  ClaudeCliSummarizer,
+  decorate,
+  deriveProject,
+  deriveSession,
+  findNode,
+  nodeFullText,
+  planJobs,
+  SearchIndex,
+  StructuralSummarizer,
+  summarizeNode,
+  TextCache,
+  type SemanticJob,
+  type Summarizer,
+  type TextArtifact,
+} from "@yolo-twice/analyzers";
+
+export type Broadcast = (event: string, data: unknown) => void;
+
+export interface ProjectOptions {
+  originDir?: string; // test override for the Claude Code project folder
+  watch?: boolean;
+  log?: (msg: string) => void;
+}
+
+function hasClaudeCli(): boolean {
+  const dirs = (process.env.PATH ?? "").split(path.delimiter);
+  return dirs.some((d) => d && fs.existsSync(path.join(d, "claude")));
+}
+
+/** Runtime for one registered project: store, ingest debounce, watcher, search index and semantic queue. */
+export class ProjectRuntime {
+  readonly store: Store;
+  readonly originDir: string;
+  readonly name: string;
+  readonly search = new SearchIndex();
+  private timer: NodeJS.Timeout | undefined;
+  private watcher: FSWatcher | undefined;
+  private queue: SemanticJob[] = [];
+  private running = false;
+  private indexedCount = new Map<string, number>();
+  private summarizer: Summarizer;
+  private readonly structural = new StructuralSummarizer();
+  lastActivity = new Map<string, string>(); // session -> ts of last ingest
+
+  constructor(
+    readonly root: string,
+    private readonly broadcast: Broadcast,
+    private readonly opts: ProjectOptions = {},
+  ) {
+    this.store = new Store(root);
+    this.store.ensure();
+    this.originDir = opts.originDir ?? claudeProjectDir(root);
+    this.name = path.basename(root);
+    const cfg = this.store.readConfig();
+    this.summarizer = hasClaudeCli() && cfg.analyzers.semantic && !process.env.YOLO_TWICE_NO_LLM ? new ClaudeCliSummarizer({ model: cfg.analyzers.model }) : this.structural;
+    // warm the search index from what is already on disk
+    for (const id of this.store.listSessions()) this.indexSession(id);
+  }
+
+  private log(msg: string): void {
+    this.opts.log?.(`[${this.name}] ${msg}`);
+  }
+
+  private indexSession(id: string): Event[] {
+    const events = this.store.readEvents(id);
+    const seen = this.indexedCount.get(id) ?? 0;
+    if (events.length > seen) {
+      this.search.add(events.slice(seen));
+      this.indexedCount.set(id, events.length);
+    }
+    return events;
+  }
+
+  start(): void {
+    if (this.opts.watch === false || this.watcher) return;
+    if (!fs.existsSync(this.originDir)) fs.mkdirSync(this.originDir, { recursive: true });
+    this.watcher = chokidar.watch(this.originDir, { ignoreInitial: true, depth: 3, awaitWriteFinish: { stabilityThreshold: 150, pollInterval: 50 } });
+    this.watcher.on("all", (ev, file) => {
+      if (file.endsWith(".jsonl") || file.endsWith(".meta.json")) this.schedule(`watch:${ev}`);
+    });
+    this.schedule("start");
+  }
+
+  async stop(): Promise<void> {
+    clearTimeout(this.timer);
+    await this.watcher?.close();
+    this.watcher = undefined;
+  }
+
+  /** Debounced ingest. Safe to call from hooks and watcher at any rate. */
+  schedule(reason: string, session?: string): void {
+    clearTimeout(this.timer);
+    this.timer = setTimeout(() => {
+      try {
+        this.ingest(session);
+      } catch (e) {
+        this.log(`ingest failed (${reason}): ${(e as Error).message}`);
+      }
+    }, 300);
+  }
+
+  /** Synchronous ingest + derive. Returns changed session ids. */
+  ingest(session?: string): string[] {
+    const res = ingestProject({ cwd: this.root, store: this.store, originDir: this.originDir, session });
+    const changed = [...new Set([...res.changed, ...res.reset])];
+    for (const id of changed) {
+      this.broadcast("ingest", { session: id, appended: res.appended[id] ?? 0 });
+      this.lastActivity.set(id, new Date().toISOString());
+      if (res.reset.includes(id)) this.indexedCount.delete(id);
+      this.indexSession(id);
+      const built = deriveSession(this.store, id);
+      this.broadcast("structure", { session: id });
+      this.enqueue(built.session, id);
+    }
+    if (changed.length) deriveProject(this.store, this.name);
+    else if (!this.store.readProjectIndex()) deriveProject(this.store, this.name);
+    return changed;
+  }
+
+  config(): Config {
+    return this.store.readConfig();
+  }
+
+  setAttention(attention: Config["attention"]): Config {
+    const cfg = { ...this.store.readConfig(), attention };
+    this.store.writeConfig(cfg);
+    this.broadcast("config", cfg);
+    return cfg;
+  }
+
+  /** Session with the latest activity (by structure span, falling back to ingest time). */
+  currentSession(): string | undefined {
+    let best: { id: string; ts: string } | undefined;
+    for (const id of this.store.listSessions()) {
+      const s = this.store.readStructure(id);
+      const ts = this.lastActivity.get(id) ?? s?.span.ts_last ?? "";
+      if (!best || ts > best.ts) best = { id, ts };
+    }
+    return best?.id;
+  }
+
+  /* ---------- semantic ---------- */
+
+  private enqueue(structure: StructureNode, session: string): void {
+    const cfg = this.store.readConfig();
+    if (!cfg.analyzers.semantic) return;
+    const lastPhase = structure.children.at(-1);
+    const openTurn = lastPhase?.children.at(-1)?.id;
+    const jobs = planJobs(structure, cfg.attention, openTurn).map((j) => ({ ...j, session }));
+    for (const j of jobs) {
+      if (!this.queue.some((q) => q.node.id === j.node.id && q.granularity === j.granularity && (q as { session?: string }).session === session)) this.queue.push(j as SemanticJob);
+    }
+    void this.drain();
+  }
+
+  private async drain(): Promise<void> {
+    if (this.running) return;
+    this.running = true;
+    try {
+      while (this.queue.length) {
+        const job = this.queue.shift()! as SemanticJob & { session: string };
+        try {
+          await this.summarize(job.session, job);
+        } catch (e) {
+          this.log(`semantic job failed: ${(e as Error).message}`);
+        }
+      }
+    } finally {
+      this.running = false;
+    }
+  }
+
+  private async summarize(session: string, job: SemanticJob): Promise<TextArtifact> {
+    const events = this.store.readEvents(session);
+    const byId = new Map(events.map((e) => [e.id, e]));
+    const cache = new TextCache(this.store.textDir(session));
+    let artifact: TextArtifact;
+    try {
+      artifact = await summarizeNode(job, byId, cache, this.summarizer);
+    } catch (e) {
+      this.log(`summarizer ${this.summarizer.name} failed, using structural: ${(e as Error).message}`);
+      artifact = await summarizeNode(job, byId, cache, this.structural);
+    }
+    // keep structure.json decorated
+    const s = this.store.readStructure(session);
+    if (s) this.store.writeStructure(session, decorate(s, cache));
+    this.broadcast("semantic", { session, node: job.node.id, granularity: job.granularity, interim: !!job.interim, analyzer: artifact.analyzer });
+    return artifact;
+  }
+
+  /** On-demand text for one node. */
+  async text(session: string, nodeId: string, granularity: "title" | "abstract" | "summary"): Promise<TextArtifact | undefined> {
+    const s = this.store.readStructure(session);
+    const node = s && findNode(s, nodeId);
+    if (!node) return undefined;
+    return this.summarize(session, { node, granularity, interim: false });
+  }
+
+  /** Catch me up: summarize events after `since`. */
+  async digest(session: string, since?: string): Promise<{ since: string | null; until: string | null; events: number; text: string }> {
+    const events = this.store.readEvents(session);
+    const idx = since ? events.findIndex((e) => e.id === since) : -1;
+    const slice = events.slice(idx + 1).filter((e) => e.kind !== "meta" && e.kind !== "cost");
+    if (slice.length === 0) return { since: since ?? null, until: null, events: 0, text: "Nothing happened since then." };
+    const fake: StructureNode = {
+      id: `digest:${since ?? "start"}`,
+      level: 1,
+      kind: "phase",
+      label: "digest",
+      span: { first: slice[0]!.id, last: slice.at(-1)!.id, ts_first: slice[0]!.ts, ts_last: slice.at(-1)!.ts },
+      event_ids: slice.map((e) => e.id),
+      children: [],
+      stats: { events: slice.length, tool_calls: 0, input_tokens: 0, output_tokens: 0 },
+    };
+    const byId = new Map(events.map((e) => [e.id, e]));
+    const text = nodeFullText(fake, byId);
+    let out: string;
+    try {
+      out = await this.summarizer.summarize({ granularity: "summary", text, kind: "phase", label: "what happened since you last looked" });
+    } catch {
+      out = await this.structural.summarize({ granularity: "summary", text, kind: "phase" });
+    }
+    return { since: since ?? null, until: slice.at(-1)!.id, events: slice.length, text: out };
+  }
+}

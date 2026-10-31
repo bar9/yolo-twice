@@ -1,0 +1,26 @@
+{
+  "name": "yolo-twice",
+  "version": "0.1.0",
+  "description": "Insights into long-running Claude Code sessions: semantic zoom, live flow graph, project-local history.",
+  "type": "module",
+  "license": "MIT",
+  "repository": "https://github.com/bar9/yolo-twice",
+  "homepage": "https://bar9.github.io/yolo-twice/",
+  "bin": { "yolo-twice": "./dist/cli.js" },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc -b",
+    "typecheck": "tsc -b",
+    "start": "bun run src/cli.ts start --foreground"
+  },
+  "dependencies": {
+    "@hono/node-server": "^2.1.5",
+    "@yolo-twice/analyzers": "workspace:*",
+    "@yolo-twice/core": "workspace:*",
+    "chokidar": "^6.0.0",
+    "hono": "^4.13.14"
+  },
+  "engines": { "node": ">=20" }
+}

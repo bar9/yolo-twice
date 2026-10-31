@@ -1,0 +1,37 @@
+#!/bin/sh
+# Run the yolo-twice engine CLI. Resolution order:
+#   1. $YOLO_TWICE_ENGINE  (path to cli.js, or a command)
+#   2. repo dev layout next to this plugin (code/packages/engine)
+#   3. a marketplace clone under ~/.claude/plugins/marketplaces/*/code/packages/engine (built on first use with bun)
+#   4. npx -y yolo-twice@latest
+set -u
+HERE="$(cd "$(dirname "$0")/.." && pwd)"
+CMD="${1:-open}"; [ $# -gt 0 ] && shift
+case "$CMD" in
+  stop|status|index|start|open|mode|hook|help) ;;
+  micro|attentive|balanced|yolo) set -- "$CMD" "$@"; CMD=mode ;;
+  *) set -- "$CMD" "$@"; CMD=open ;;
+esac
+
+run_engine_dir() {
+  dir="$1"; shift
+  if [ -f "$dir/dist/cli.js" ]; then exec node "$dir/dist/cli.js" "$@"; fi
+  if command -v bun >/dev/null 2>&1 && [ -f "$dir/src/cli.ts" ]; then
+    if [ ! -d "$dir/../../node_modules" ]; then (cd "$dir/../.." && bun install >/dev/null 2>&1); fi
+    exec bun run "$dir/src/cli.ts" "$@"
+  fi
+  return 1
+}
+
+if [ -n "${YOLO_TWICE_ENGINE:-}" ]; then
+  case "$YOLO_TWICE_ENGINE" in
+    *.js) exec node "$YOLO_TWICE_ENGINE" "$CMD" "$@" ;;
+    *.ts) exec bun run "$YOLO_TWICE_ENGINE" "$CMD" "$@" ;;
+    *) exec "$YOLO_TWICE_ENGINE" "$CMD" "$@" ;;
+  esac
+fi
+if [ -d "$HERE/../packages/engine" ]; then run_engine_dir "$HERE/../packages/engine" "$CMD" "$@"; fi
+for d in "${CLAUDE_CONFIG_DIR:-$HOME/.claude}"/plugins/marketplaces/*/code/packages/engine; do
+  [ -d "$d" ] && run_engine_dir "$d" "$CMD" "$@"
+done
+exec npx -y yolo-twice@latest "$CMD" "$@"

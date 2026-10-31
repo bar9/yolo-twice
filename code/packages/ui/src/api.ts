@@ -1,0 +1,128 @@
+/** Thin client for the engine API. Shapes follow code/API.md (contract v1). */
+import type { Attention, Config, Event, Granularity, ProjectIndex, StructureNode } from "@yolo-twice/core";
+import type { SearchHit, TextArtifact } from "@yolo-twice/analyzers";
+
+export type { Attention, Config, Event, Granularity, ProjectIndex, StructureNode, SearchHit, TextArtifact };
+
+export const ATTENTION: Attention[] = ["micro", "attentive", "balanced", "yolo"];
+export const ATTENTION_LABEL: Record<Attention, string> = {
+  micro: "micro management",
+  attentive: "attentive",
+  balanced: "balanced",
+  yolo: "yolo",
+};
+
+/** Project root passed on every call; empty means "engine default". */
+export const project = new URLSearchParams(location.search).get("project") ?? "";
+
+function qs(params: Record<string, string | number | undefined>): string {
+  const p = new URLSearchParams();
+  if (project) p.set("project", project);
+  for (const [k, v] of Object.entries(params)) if (v !== undefined && v !== "") p.set(k, String(v));
+  const s = p.toString();
+  return s ? `?${s}` : "";
+}
+
+async function json<T>(url: string, init?: RequestInit): Promise<T> {
+  const res = await fetch(url, init);
+  if (!res.ok) throw new Error(`${init?.method ?? "GET"} ${url} -> ${res.status}`);
+  return (await res.json()) as T;
+}
+
+export const api = {
+  sessions: () => json<ProjectIndex & { current?: string }>(`/api/sessions${qs({})}`),
+  structure: (id: string) => json<StructureNode>(`/api/sessions/${id}/structure${qs({})}`),
+  graph: async (id: string, level: 1 | 2 | 3) => {
+    const res = await fetch(`/api/sessions/${id}/graph${qs({ level })}`);
+    if (!res.ok) throw new Error(`graph ${res.status}`);
+    return res.text();
+  },
+  /** All events of a session, following `next` cursors. */
+  events: async (id: string): Promise<Event[]> => {
+    const all: Event[] = [];
+    let after: string | undefined;
+    for (;;) {
+      const page = await json<{ events: Event[]; next?: string }>(`/api/sessions/${id}/events${qs({ after, limit: 500 })}`);
+      all.push(...page.events);
+      if (!page.next || page.events.length === 0) break;
+      after = page.next;
+    }
+    return all;
+  },
+  text: (id: string, node: string, granularity: Granularity) =>
+    json<TextArtifact>(`/api/sessions/${id}/text`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ project: project || undefined, node, granularity }),
+    }),
+  digest: (id: string, since: string | undefined) => json<{ since?: string; until: string; events: number; text: string }>(`/api/sessions/${id}/digest${qs({ since })}`),
+  search: (q: string, session?: string) => json<{ hits: SearchHit[] }>(`/api/search${qs({ q, session, limit: 50 })}`),
+  config: () => json<Config>(`/api/config${qs({})}`),
+  setAttention: (attention: Attention) =>
+    json<Config>(`/api/config`, {
+      method: "PUT",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ project: project || undefined, attention }),
+    }),
+  streamUrl: () => `/api/stream${qs({})}`,
+};
+
+/* ---- small helpers shared by views ---- */
+
+export function* walk(n: StructureNode): Generator<StructureNode> {
+  yield n;
+  for (const c of n.children) yield* walk(c);
+}
+
+export function findNode(root: StructureNode | undefined, id: string): StructureNode | undefined {
+  if (!root) return undefined;
+  for (const n of walk(root)) if (n.id === id) return n;
+  return undefined;
+}
+
+/** Path of ancestor ids from the root down to (excluding) `id`. */
+export function ancestors(root: StructureNode, id: string): string[] {
+  const path: string[] = [];
+  const dfs = (n: StructureNode): boolean => {
+    if (n.id === id) return true;
+    path.push(n.id);
+    for (const c of n.children) if (dfs(c)) return true;
+    path.pop();
+    return false;
+  };
+  return dfs(root) ? path : [];
+}
+
+export function fmtTokens(n: number): string {
+  return n >= 1_000_000 ? `${(n / 1e6).toFixed(1)}M` : n >= 1000 ? `${(n / 1000).toFixed(1)}k` : String(n);
+}
+
+export function fmtTime(iso: string): string {
+  const d = new Date(iso);
+  return Number.isNaN(d.getTime()) ? "" : d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+}
+
+export function fmtDuration(ms: number): string {
+  if (!Number.isFinite(ms) || ms < 0) return "";
+  const s = Math.round(ms / 1000);
+  if (s < 60) return `${s}s`;
+  const m = Math.floor(s / 60);
+  return m < 60 ? `${m}m ${s % 60}s` : `${Math.floor(m / 60)}h ${m % 60}m`;
+}
+
+export function storage<T>(key: string, fallback: T): T {
+  try {
+    const v = localStorage.getItem(key);
+    return v ? (JSON.parse(v) as T) : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+export function store(key: string, value: unknown): void {
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch {
+    /* private mode */
+  }
+}

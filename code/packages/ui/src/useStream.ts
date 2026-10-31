@@ -1,0 +1,56 @@
+import { useEffect, useRef, useState } from "react";
+import { api } from "./api";
+
+export type StreamEvent =
+  | { type: "hook"; data: { hook_event_name: string; session_id: string } }
+  | { type: "ingest"; data: { session: string; appended: number } }
+  | { type: "structure"; data: { session: string } }
+  | { type: "semantic"; data: { session: string; node: string; granularity: string; interim?: boolean } }
+  | { type: "config"; data: { attention: string } };
+
+/** EventSource on /api/stream with reconnect backoff. `onEvent` is kept in a ref so it never re-subscribes. */
+export function useStream(onEvent: (e: StreamEvent) => void): "connecting" | "live" | "offline" {
+  const [state, setState] = useState<"connecting" | "live" | "offline">("connecting");
+  const handler = useRef(onEvent);
+  handler.current = onEvent;
+
+  useEffect(() => {
+    let es: EventSource | undefined;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    let delay = 1000;
+    let closed = false;
+
+    const connect = () => {
+      if (closed) return;
+      setState("connecting");
+      es = new EventSource(api.streamUrl());
+      es.addEventListener("hello", () => {
+        delay = 1000;
+        setState("live");
+      });
+      for (const type of ["hook", "ingest", "structure", "semantic", "config"] as const) {
+        es.addEventListener(type, (ev) => {
+          try {
+            handler.current({ type, data: JSON.parse((ev as MessageEvent).data) } as StreamEvent);
+          } catch {
+            /* ignore malformed frame */
+          }
+        });
+      }
+      es.onerror = () => {
+        es?.close();
+        setState("offline");
+        timer = setTimeout(connect, delay);
+        delay = Math.min(delay * 2, 30_000);
+      };
+    };
+    connect();
+    return () => {
+      closed = true;
+      es?.close();
+      if (timer) clearTimeout(timer);
+    };
+  }, []);
+
+  return state;
+}
