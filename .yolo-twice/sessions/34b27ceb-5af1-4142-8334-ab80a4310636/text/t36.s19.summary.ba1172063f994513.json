@@ -1,0 +1,9 @@
+{
+  "analyzer": "structural",
+  "created": "2026-10-31T15:55:05.832Z",
+  "granularity": "summary",
+  "hash": "ba1172063f994513",
+  "node": "t36.s19",
+  "text": "[assistant.text] You're now on `ui/react-flow-graph`, tracking `origin/ui/react-flow-graph`, and it's up to date with the remote. To switch, I had to commit this session's live data on main first, because the branch changes the same files. That commit is `yolo-twice: auto-commit session data (5 files)` and is not pushed. **What the branch adds** (2 commits on top of an older main): - The graph is redrawn with React Flow as blocks, in a rewritten [Graph.tsx](code/packages/ui/src/Graph.tsx), with new graph code in [graph.ts](code/packages/analyzers/src/graph.ts). - Raw JSON is shown as a readable document, in the new [Json.tsx](code/packages/ui/src/Json.tsx). - The Map view opens centred. **What it's missing:** it was branched before the last 9 feature commits on main, so the branch doesn't…",
+  "version": "2"
+}
