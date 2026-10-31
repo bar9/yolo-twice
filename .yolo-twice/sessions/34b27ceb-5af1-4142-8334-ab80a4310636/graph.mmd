@@ -10,6 +10,10 @@ flowchart TD
     t5_s51[["Agent: Build engine daemon and plugin"]]
     t5_s52[["Agent: Build the web UI package"]]
     t5_s53[["Agent: Build site, pitch deck and CI"]]
+    t6["I still see many unstaged changes"]
+    t7["a163a165f2d1b0eaa toolu_011SYGaEu9nS9KsNCiQk4LjQ /tmp/claud…"]
+    t8["a77c38ee404cfe585 toolu_01XCijyctB2t5sG5eHjbKD79 /tmp/claud…"]
+    t9["a575a1cb35a8629b7 toolu_01JkStAdUvsDy4N2JZFVEdHB /tmp/claud…"]
   end
   s_34b27ceb_5af1_4142_8334_ab80a4310636 --> t1
   t1 --> t2
@@ -19,6 +23,10 @@ flowchart TD
   t5 -.-> t5_s51
   t5 -.-> t5_s52
   t5 -.-> t5_s53
+  t5 --> t6
+  t6 --> t7
+  t7 --> t8
+  t8 --> t9
   classDef session fill:#1f2937,color:#fff,stroke:#111;
   classDef phase fill:#e5e7eb,stroke:#9ca3af;
   classDef turn fill:#dbeafe,stroke:#60a5fa;
@@ -37,3 +45,7 @@ flowchart TD
   class t5_s51 subagent;
   class t5_s52 subagent;
   class t5_s53 subagent;
+  class t6 turn;
+  class t7 turn;
+  class t8 turn;
+  class t9 turn;
