@@ -30,21 +30,21 @@ Hi, we are yolo-twice. The name: YOLO, "you only live once", is also the nicknam
 
 <div class="kicker">01 · The scene</div>
 
-# A review question after a long AI session
+# Did we just leak everything?
 
 <div class="pr">
   <div class="pr-head">
     <span class="pr-state">Open</span>
-    <span class="pr-title">Add a newsletter sign-up <span class="dim">#142</span></span>
-    <span class="pr-meta"><span>written with an AI agent</span><span class="add">+286</span><span class="del">−9</span></span>
+    <span class="pr-title">Commit the AI sessions <span class="dim">#37</span></span>
+    <span class="pr-meta"><span>24 hours of AI work</span><span class="add">+37 files</span></span>
   </div>
   <div v-click class="comment">
     <div class="who"><span class="avatar">MR</span> Reviewer</div>
-    <p>Why do people have to confirm their email twice? And who decided to drop the spam protection ???</p>
+    <p>Wait. Are our API keys in here?</p>
   </div>
   <div v-click class="comment reply">
     <div class="who"><span class="avatar">YOU</span> Author</div>
-    <p>Good question. The AI did that at some point this afternoon. Let me scroll back…</p>
+    <p>Uh… Claude dealt with that. Somewhere. Let me scroll.</p>
   </div>
 </div>
 
@@ -52,9 +52,9 @@ Hi, we are yolo-twice. The name: YOLO, "you only live once", is also the nicknam
 <IncomingCall :active="$clicks >= 3" :sound="$renderContext === 'slide'" avatar="./assets/silo-avatar.png" />
 
 <!--
-A common situation. Someone from the running club works with an AI agent all afternoon on the club website; the result is a new newsletter sign-up. A reviewer asks two perfectly reasonable questions: why the double confirmation, and where the spam protection went. The author was there, sort of: approved things, went for coffee, came back. The answer is recorded somewhere; finding it takes time.
+We built yolo-twice for 24 hours with an AI agent, and committed every session. The reviewer: are our API keys in here? The author: Claude dealt with that. Somewhere.
 
-[click] And then the tech lead calls: "Can you explain the newsletter change before we merge?" (The ringtone plays in the audience window only.)
+[click] And then the tech lead calls: "Are you crazy? You have been pushing your whole internal development context for the last 24 hours?" (The ringtone plays in the audience window only.)
 -->
 
 ---
@@ -64,94 +64,60 @@ A common situation. Someone from the running club works with an AI agent all aft
 # The transcript
 <div class="term wall">
   <div class="term-bar"><span></span><span></span><span></span><em>Claude Code</em></div>
-  <div class="scroll-hint">↑ 1,240 more lines</div>
+  <div class="scroll-hint">↑ 9,870 more lines</div>
 <pre>
-<b class="u">&gt;</b> Add a newsletter sign-up to the website. Before building it, have a helper agent find out what the
-  rules and good practice are for collecting email addresses in Switzerland and the EU, then decide
-  how to do it and explain why.
-<b class="dot">●</b> I'll look at the current site first, then send a helper agent to research the rules.
-<b class="dot">●</b> <b>Read</b>(index.html)
-  <span class="dim">└  Read 64 lines</span>
-<b class="dot">●</b> <b>Read</b>(training.html)
-  <span class="dim">└  Read 48 lines</span>
-<b class="dot">●</b> <b>Read</b>(server.js)
-  <span class="dim">└  Read 37 lines</span>
-<b class="dot">●</b> <b>Read</b>(style.css)
-  <span class="dim">└  Read 122 lines</span>
-<b class="dot">●</b> <b>Agent</b>(Research rules for newsletter sign-ups in CH and EU)
-  <span class="dim">└  Done (11 tool uses · 27.3k tokens · 58s)</span>
-<b class="dot">●</b> Summary of the research: the Swiss data protection act (revDSG) and the EU GDPR both expect clear,
-  freely given consent that you can prove later. Good practice is double opt-in: people confirm by
-  clicking a link in an email, which proves the address is theirs and keeps a record of consent.
-<b class="dot">●</b> I will use double opt-in, store the date of consent, and add an unsubscribe link to every email.
-<b class="dot">●</b> <b>Write</b>(signup.html)
-  <span class="dim">└  Wrote 41 lines</span>
-<b class="dot">●</b> <b>Update</b>(index.html)
-  <span class="dim">└  Updated with 12 additions</span>
-<b class="dot">●</b> <b>Write</b>(confirm.html)
-  <span class="dim">└  Wrote 26 lines</span>
-<b class="dot">●</b> <b>Update</b>(server.js)
-  <span class="dim">└  Updated with 58 additions and 3 removals</span>
-<b class="dot">●</b> <b>Update</b>(style.css)
-  <span class="dim">└  Updated with 34 additions</span>
-<b class="dot">●</b> <b>Bash</b>(node server.js &amp; curl -s -X POST localhost:3000/signup -d email=test@example.ch)
-  <span class="err">└  {"ok":false,"error":"mail transport not configured"}</span>
-<b class="dot">●</b> Sending the confirmation email needs a mail setting. For local testing I will write emails to a file.
-<b class="dot">●</b> <b>Update</b>(server.js)
-  <span class="dim">└  Updated with 9 additions and 2 removals</span>
-<b class="dot">●</b> <b>Bash</b>(curl -s -X POST localhost:3000/signup -d email=test@example.ch)
-  <span class="dim">└  {"ok":true,"status":"confirmation sent"}</span>
-<b class="dot">●</b> <b>Bash</b>(cat outbox/latest.txt)
-  <span class="dim">└  To: test@example.ch · Subject: Please confirm your newsletter sign-up</span>
-<b class="dot">●</b> Done: the form sends a confirmation email; only confirmed addresses get the newsletter.
-<b class="u">&gt;</b> Also add a CAPTCHA to the sign-up form, so bots can't flood us with fake sign-ups.
-<b class="dot">●</b> I will add a simple puzzle CAPTCHA that is checked on the server before saving an address.
-<b class="dot">●</b> <b>Write</b>(captcha.js)
-  <span class="dim">└  Wrote 44 lines</span>
-<b class="dot">●</b> <b>Update</b>(signup.html)
-  <span class="dim">└  Updated with 9 additions</span>
-<b class="dot">●</b> <b>Update</b>(server.js)
-  <span class="dim">└  Updated with 17 additions</span>
-<b class="dot">●</b> <b>Bash</b>(curl -s -X POST localhost:3000/signup -d email=bot@spam.example)
-  <span class="dim">└  {"ok":false,"error":"captcha missing"}</span>
-<b class="u">&gt;</b> Actually, drop the CAPTCHA: our members find it annoying, and our mailing tool already filters out
-  spam sign-ups. Remove it again.
-<b class="dot">●</b> Understood. Removing the CAPTCHA from the form and the server.
-<b class="dot">●</b> <b>Bash</b>(rm captcha.js)
-  <span class="dim">└</span>
-<b class="dot">●</b> <b>Update</b>(signup.html)
-  <span class="dim">└  Updated with 9 removals</span>
-<b class="dot">●</b> <b>Update</b>(server.js)
-  <span class="dim">└  Updated with 17 removals</span>
-<b class="dot">●</b> <b>Bash</b>(curl -s -X POST localhost:3000/signup -d email=test2@example.ch)
-  <span class="dim">└  {"ok":true,"status":"confirmation sent"}</span>
-<b class="u">&gt;</b> Add a short, friendly privacy note under the sign-up form.
-<b class="dot">●</b> A short note in plain words: what we store, why, and how to unsubscribe.
-<b class="dot">●</b> <b>Read</b>(signup.html)
-  <span class="dim">└  Read 32 lines</span>
-<b class="dot">●</b> <b>Read</b>(contact.html)
-  <span class="dim">└  Read 39 lines</span>
-<b class="dot">●</b> The contact page already names the club's privacy contact. I will link to it from the note.
-<b class="dot">●</b> <b>Update</b>(signup.html)
-  <span class="dim">└  Updated with 7 additions</span>
-<b class="dot">●</b> <b>Update</b>(style.css)
-  <span class="dim">└  Updated with 6 additions</span>
-<b class="dot">●</b> <b>Bash</b>(node server.js &amp; curl -s localhost:3000/signup.html | grep -c privacy)
-  <span class="dim">└  2</span>
-<b class="dot">●</b> <b>Bash</b>(npx html-validate index.html signup.html confirm.html)
-  <span class="dim">└  0 errors, 0 warnings</span>
-<b class="dot">●</b> The note is in place and all pages validate.
-<b class="u">&gt;</b> Commit this as "Add a newsletter sign-up".
-<b class="dot">●</b> <b>Bash</b>(git status --short)
-  <span class="dim">└  M index.html · M server.js · M style.css · ?? signup.html · ?? confirm.html</span>
-<b class="dot">●</b> <b>Bash</b>(git add -A &amp;&amp; git commit -m "Add a newsletter sign-up")
-  <span class="dim">└  [main 63a2b55] Add a newsletter sign-up · 6 files changed, 286 insertions(+), 9 deletions(-)</span>
+<b class="u">&gt;</b> .yolo-twice contains my home folder ~ as absolute path. can we replace it with the tilde version?
+  goals: better portability to the team, no disclosure of user names and FS layout, less tokens
+<b class="dot">●</b> This is a new task, so I'll start the plan fresh. First I'll measure where absolute paths occur.
+<b class="dot">●</b> <b>Bash</b>(Count absolute paths, slugs and usernames across .yolo-twice files)
+  <span class="dim">└  296 project paths · 65 home paths · 120 slugs · 78 bare user names</span>
+<b class="dot">●</b> <b>WebFetch</b>(https://code.claude.com/docs/en/cli-reference)
+  <span class="dim">└  Output too large (50.6KB). Full output saved to a file</span>
+<b class="dot">●</b> <b>Bash</b>(Read full --resume entry and local fork-session help)
+  <span class="dim">└  --resume, -r  Resume a conversation by session ID …</span>
+<b class="dot">●</b> <b>AskUserQuestion</b>(How should resume treat the paths?)
+<b class="dot">●</b> <b>Write</b>(~/.claude/plans/pasted-content-id-bba5-we-are-transient-nautilus.md)
+<b class="u">&gt;</b> resume
+<b class="dot">●</b> Resuming the approved plan. First I'll check where the repo stands.
+<b class="dot">●</b> <b>Bash</b>(Verify regenerated project.json and conclude the merge)
+<b class="dot">●</b> <b>Bash</b>(Install, test, typecheck and build after the merge)
+  <span class="dim">└  39 pass · 0 fail</span>
+<b class="dot">●</b> <b>Write</b>($PROJECT/code/packages/core/src/anonymize.ts)
+  <span class="dim">└  File created successfully</span>
+<b class="dot">●</b> Now wiring it into ingest: path anonymization runs after secret redaction.
+<b class="dot">●</b> <b>Bash</b>(Add anonymizer and ingest tests, run them)
+  <span class="err">└  5 pass · 1 fail: Received "alicesmith and &lt;user&gt;.cooper and &lt;user&gt;@example.com"</span>
+<b class="dot">●</b> <b>Bash</b>(Fix username boundary after the name, rerun all tests)
+  <span class="dim">└  Ran 45 tests across 9 files · 0 fail</span>
+<b class="dot">●</b> <b>Bash</b>(Expand paths on resume, write to cache, fork the session; update CLI)
+<b class="dot">●</b> <b>Bash</b>(Rebuild fixture session in a scratch project and resume it as a fork)
+  <span class="err">└  Exit code 1</span>
+<b class="dot">●</b> <b>Bash</b>(Resume the rebuilt transcript as a fork with login, hooks off)
+<b class="dot">●</b> <b>Bash</b>(Scan before, restart engine to rebuild with v3, scan after)
+  <span class="dim">└  before: ~ 435 · &lt;user&gt; 88 · after: ~ 3 · &lt;user&gt; 0</span>
+<b class="dot">●</b> <b>Bash</b>(Widen the other-homes rule, bump normalizer to 4, run tests)
+<b class="dot">●</b> The secret scan matched something in the session's events, and my command committed anyway.
+<b class="dot">●</b> <b>Bash</b>(Show what the secret scan matched)
+  <span class="dim">└  grep -lE 'sk-ant-api|ghp_[A-Za-z0-9]{30}' …   (the scan's own command)</span>
+<b class="dot">●</b> .yolo-twice/ is now portable and anonymous.
+<b class="u">&gt;</b> implement the project.json split
+<b class="dot">●</b> <b>Bash</b>(Move cursor, project index and open summaries to the cache)
+<b class="dot">●</b> <b>Bash</b>(Run all tests after the layout change)
+  <span class="err">└  44 pass · 1 fail: ENOENT .yolo-twice/project.json</span>
+<b class="dot">●</b> <b>Bash</b>(Replace --bare with disableAllHooks in the summarizer)
+<b class="u">&gt;</b> build in ~/Downloads/Yolo/1793441711665.jpg to the title slide
+<b class="dot">●</b> <b>Bash</b>(Copy the image into the deck and make it the title slide background)
+<b class="dot">●</b> <b>Bash</b>(Build the deck, serve it under its Pages base path, screenshot slide 1)
+<b class="u">&gt;</b> commit and push changes
+<b class="dot">●</b> <b>Bash</b>(Stage .yolo-twice and scan the staged additions for real secrets and home paths)
+  <span class="dim">└  secret hits: 0 · home paths: 0 · 37 files changed</span>
+<b class="dot">●</b> <b>Bash</b>(Commit the index refresh and push main)
 </pre>
   <div class="scroll-hint bottom">↓ 180 more lines</div>
 </div>
 
 <!--
-Claude Code keeps a readable transcript of every session, and both answers are on this very screen: the helper agent's research on the rules, and "drop the CAPTCHA" with its reason in the middle. Nobody finds them by scrolling. A long session is many screens like this. There is no overview, no way to point at a decision, and it sits on the author's laptop where nobody else on the team can see it.
+The answer is on this screen. Three times: the leak count, a false alarm, the scan before the push. Nobody finds it by scrolling. And this is one screen of 24 hours.
 -->
 
 ---
@@ -172,12 +138,23 @@ class: text-center
 </div>
 
 <!--
-Switch to the demo, straight from the wall of text, and answer the reviewer's two questions with the session that produced the pull request.
-1. Open the project: the session "Add a newsletter sign-up" sits in the repo next to the website (.yolo-twice/sessions).
-2. Read its one-line summary, then the turn list.
-3. "Why confirm the email twice?" Open the first turn, switch to the map: the helper agent's frame holds the research on consent rules; the next Claude step explains why it chose double opt-in. (If Claude chose differently in the recording, ask the question to match.)
-4. "Who dropped the spam protection?" Search "CAPTCHA", filter You: it was the club member, in turn 3, with the reason (members found it annoying, and the mailing tool already filters spam).
-5. Copy the link to that step: it opens the same view for a colleague.
+One command installs it. Next slide: the real product, live. We click through it.
+-->
+
+---
+layout: full
+---
+
+<HandOver ui="http://localhost:9656/yolo-twice" script="privacy" />
+
+<!--
+The deck hands over to the real product (.yolo-twice/demos/privacy.json). Page Down steps; after step 6 it comes back to the next slide. Needs the engine: /yolo-twice:yolo-twice.
+1. Yes. 24 hours of AI work, in the repo.
+2. [Page Down] We asked first. One word finds it: "disclosure", our own prompt.
+3. [Page Down] The agent counted every leak. Then masked them: $PROJECT, ~.
+4. [Page Down] A scan alarm. False: it caught its own pattern.
+5. [Page Down] Before the push: 0 secrets, 0 home paths.
+6. [Page Down] The whole fix. One map.
 -->
 
 ---

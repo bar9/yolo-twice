@@ -23,7 +23,7 @@ describe("demo scripts", () => {
     expect(() => parseDemo({ steps: [] })).toThrow(/steps/);
     expect(() => parseDemo({ steps: [{ view: "?v=m" }, { do: [] }] })).toThrow(/step 2 needs a view/);
     expect(() => parseDemo({ steps: [{ view: "", do: [{ click: "#x" }] }] })).toThrow(/step 1: unknown command/);
-    const d = parseDemo({ title: "Pitch", steps: [{ view: "", do: [{ point: "t1" }, { key: "n" }, { wait: 300 }] }] });
+    const d = parseDemo({ title: "Pitch", steps: [{ view: "", do: [{ point: "t1" }, { type: "tilde", ms: 200 }, { key: "n" }, { wait: 300 }] }] });
     expect(d.steps).toHaveLength(1);
     expect(d.title).toBe("Pitch");
   });

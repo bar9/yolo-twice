@@ -10,7 +10,7 @@
  *   in   { yt: "demo", name, step }     load the project's script (once) and show that step
  *        { yt: "demo", script, step }   the same with a script the page keeps itself
  *   out  { yt: "ready" }                the UI is up and listening
- *        { yt: "step", step, steps }    a step was shown
+ *        { yt: "step", step, steps, caption }  a step was shown (the deck can show the caption)
  *        { yt: "nav", dir }             PageDown / PageUp pressed inside the frame: the deck decides
  */
 import { parseUrl, type ViewState } from "./state";
@@ -24,8 +24,8 @@ export type Command =
   | { close: string }
   /** Bring one event's passage to the middle of the text (its id from events.ndjson), opening its part. */
   | { reveal: string }
-  /** Type into the search box, a character at a time. */
-  | { type: string }
+  /** Type into the search box, a character at a time (`ms` per character, default 160). */
+  | { type: string; ms?: number }
   /** A key of the keymap, named as keys.ts names it: "n", "Shift+n", "c", "3", "ArrowDown". */
   | { key: string }
   | { tab: "story" | "results" }
