@@ -136,7 +136,16 @@ export const Timeline = memo(function Timeline(props: {
         {props.wave.map((n, i) => {
           if (!n) return null;
           const h = Math.sqrt(n / peak) * (WAVE - 2);
-          return <rect key={i} x={i * bw + bw * 0.15} y={H - 2 - h} width={bw * 0.7} height={h} className="tl-wave" />;
+          const from = props.start + (i / props.wave.length) * span;
+          const to = props.start + ((i + 1) / props.wave.length) * span;
+          // the full slice height is the hover target, so even a short bar is easy to point at
+          return (
+            <g key={i} className="tl-wave-slot">
+              <title>{`${n} event${n === 1 ? "" : "s"}, ${fmtTime(new Date(from).toISOString())} to ${fmtTime(new Date(to).toISOString())}`}</title>
+              <rect x={i * bw} y={LANE} width={bw} height={WAVE + 4} fill="transparent" />
+              <rect x={i * bw + bw * 0.15} y={H - 2 - h} width={bw * 0.7} height={h} className="tl-wave" />
+            </g>
+          );
         })}
         {props.window && <rect x={wx(props.window[0])} y={0} width={wx(props.window[1]) - wx(props.window[0])} height={H} className="tl-window" />}
         {groups.map((g) => (
@@ -183,7 +192,13 @@ export const Timeline = memo(function Timeline(props: {
       )}
       </div>
       <div className="tl-axis">
-        <span>{fmtTime(new Date(props.start).toISOString())}</span>
+        <span>
+          {fmtTime(new Date(props.start).toISOString())}
+          <span className="tl-legend" title="Grey bars: how many events (prompts, answers, tool calls) happened in each slice of time. Hover a bar for its count.">
+            <i aria-hidden />
+            activity
+          </span>
+        </span>
         {props.window && (
           <span className="tl-window-label">
             Window {fmtTime(new Date(props.start + props.window[0] * 1000).toISOString())} to {fmtTime(new Date(props.start + props.window[1] * 1000).toISOString())}
