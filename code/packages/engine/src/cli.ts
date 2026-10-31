@@ -7,6 +7,7 @@ import { findProjectRoot, Store, Attention } from "@yolo-twice/core";
 import { deriveProject, deriveSession } from "@yolo-twice/analyzers";
 import { ingestProject } from "@yolo-twice/core";
 import { Engine } from "./server.js";
+import { prepareResume } from "./resume.js";
 import { clearEngineState, DEFAULT_PORT, health, homeDir, logFile, pidAlive, readEngineState, VERSION, writeEngineState } from "./state.js";
 
 const args = process.argv.slice(2);
@@ -153,6 +154,22 @@ async function main(): Promise<void> {
       console.log(`attention: ${parsed.data}`);
       return;
     }
+    case "resume": {
+      // resume a session from the project-local .yolo-twice folder, e.g. one a teammate committed
+      const root = findProjectRoot(cwd);
+      const store = new Store(root);
+      const session = args[1] && !args[1].startsWith("--") ? args[1] : undefined;
+      const r = prepareResume(store, root, session, has("force"));
+      const where = r.wrote ? `rebuilt ${r.records} records into ${r.transcript}` : `transcript already present at ${r.transcript}`;
+      if (has("print") || process.env.CLAUDE_PLUGIN_ROOT || !process.stdin.isTTY) {
+        console.log(`${where}\nRun in a terminal inside ${root}:\n  ${r.command.join(" ")}`);
+        break;
+      }
+      console.error(where);
+      const child = spawn(r.command[0]!, r.command.slice(1), { cwd: root, stdio: "inherit" });
+      await new Promise<void>((resolve) => child.on("exit", () => resolve()));
+      break;
+    }
     case "hook": {
       const chunks: Buffer[] = [];
       for await (const c of process.stdin) chunks.push(c as Buffer);
@@ -171,6 +188,7 @@ async function main(): Promise<void> {
   status [--cwd <dir>] [--json]                  engine and project state
   index [--cwd <dir>]                            one-shot ingest + derive, no daemon
   mode <micro|attentive|balanced|yolo>           set the attention detent
+  resume [session] [--cwd <dir>] [--force] [--print]  rebuild a Claude Code transcript from .yolo-twice and run claude --resume
   hook                                           forward a Claude Code hook JSON from stdin`);
   }
 }
