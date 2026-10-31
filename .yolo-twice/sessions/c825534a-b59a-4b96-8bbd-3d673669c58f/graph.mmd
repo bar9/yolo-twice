@@ -1,0 +1,33 @@
+flowchart TD
+  s_c825534a_b59a_4b96_8bbd_3d673669c58f(["Codebase cleanup and error review"])
+  subgraph p1 ["/code-review the whole codebase and look out for …"]
+    direction TD
+    t1["/code-review the whole codebase and look out for blatant / …"]
+    t2["fix all of them."]
+    t3["did you excecute tests?"]
+    t4["yes, restart the engine and test it"]
+    t5["commit this"]
+    t6["yes, commit the session data and push"]
+  end
+  s_c825534a_b59a_4b96_8bbd_3d673669c58f --> t1
+  t1 --> t2
+  t2 --> t3
+  t3 --> t4
+  t4 --> t5
+  t5 --> t6
+  classDef session fill:#1f2937,color:#fff,stroke:#111;
+  classDef phase fill:#e5e7eb,stroke:#9ca3af;
+  classDef turn fill:#dbeafe,stroke:#60a5fa;
+  classDef branch fill:#fde68a,stroke:#d97706;
+  classDef subagent fill:#ede9fe,stroke:#8b5cf6;
+  classDef tool fill:#dcfce7,stroke:#22c55e;
+  classDef error fill:#fee2e2,stroke:#ef4444;
+  classDef text fill:#f3f4f6,stroke:#9ca3af;
+  classDef thinking fill:#f3f4f6,stroke:#d1d5db,stroke-dasharray: 3 3;
+  class s_c825534a_b59a_4b96_8bbd_3d673669c58f session;
+  class t1 turn;
+  class t2 turn;
+  class t3 turn;
+  class t4 turn;
+  class t5 turn;
+  class t6 turn;
