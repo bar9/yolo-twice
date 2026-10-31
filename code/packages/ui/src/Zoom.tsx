@@ -1,12 +1,17 @@
-import { memo, useEffect, useMemo, useRef, useState } from "react";
+import { memo, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
 import { ToolCallView, ToolResultView } from "./ToolCall";
 import { JsonView } from "./Json";
 import { prettyJson } from "./toolview";
-import { Bot, ChevronRight, Coins, Focus, Image, Minus, Plus, RotateCcw, Search, TriangleAlert, Undo2, Wrench } from "lucide-react";
+import { Bot, ChevronRight, Ellipsis, Coins, Focus, Image, Minus, Plus, RotateCcw, Search, TriangleAlert, Undo2, Wrench } from "lucide-react";
 import { ancestors, api, fmtDuration, fmtTime, fmtTokens, walk, type Event, type Granularity, type ImageRef, type StructureNode } from "./api";
 import { DETAIL_LABEL, DETAIL_ORDER, eventKind, KIND, KindIcon, kindStyle, nodeKind, richText } from "./kinds";
 
 const ORDER = DETAIL_ORDER;
+
+export interface ZoomApi {
+  toggle(id: string): void;
+  detail(id: string, dir: 1 | -1): void;
+}
 /** How many matching steps a search opens at Raw; more would bury the page. */
 const AUTO_MAX = 30;
 
@@ -31,6 +36,8 @@ export const Zoom = memo(function Zoom(props: {
   /** A search or filter is active, and these events match it. */
   active?: boolean;
   matches?: Set<string>;
+  /** Fold runs of dimmed (non-matching) parts into one line each. */
+  collapseDim?: boolean;
   onSelect: (id: string) => void;
   onFocus: (id: string) => void;
   onHover: (id: string | undefined) => void;
@@ -38,6 +45,8 @@ export const Zoom = memo(function Zoom(props: {
   onGranularity: (g: Granularity) => void;
   /** Parts set to their own detail, so the page switch can show them. */
   onOverrides: (o: Record<string, Granularity>) => void;
+  /** For the keyboard: open or close a part, step its own detail. */
+  api?: React.Ref<ZoomApi>;
 }) {
   // expansion state keyed by node id survives structure refetches
   const [open, setOpen] = useState<Record<string, boolean>>({ [props.root.id]: true });
@@ -138,6 +147,23 @@ export const Zoom = memo(function Zoom(props: {
   };
 
   const toggle = (id: string) => setOpen((o) => ({ ...o, [id]: !(o[id] ?? id === props.root.id) }));
+  useImperativeHandle(
+    props.api,
+    () => ({
+      toggle,
+      detail(id: string, dir: 1 | -1) {
+        const step = (g: Granularity) => ORDER[Math.min(ORDER.length - 1, Math.max(0, ORDER.indexOf(g) + dir))]!;
+        if (id === props.root.id) return props.onGranularity(step(props.granularity));
+        setOverride((o) => {
+          const { [id]: cur, ...rest } = o;
+          const next = step(cur ?? props.granularity);
+          return next === props.granularity ? rest : { ...rest, [id]: next };
+        });
+        setOpen((o) => ({ ...o, [id]: true }));
+      },
+    }),
+    [props.root.id, props.granularity, props.onGranularity],
+  );
 
   // a selection made elsewhere (graph, timeline, search) opens the path to the node and scrolls to it;
   // switching follow off (the user scrolled up) must not scroll back
@@ -155,14 +181,49 @@ export const Zoom = memo(function Zoom(props: {
     return () => clearTimeout(t);
   }, [props.selected, props.root, props.follow]);
 
-  const render = (node: StructureNode, depth: number, prev?: StructureNode, parent?: StructureNode) => {
+  // runs of non-matching parts fold into one line; a click opens that run, a new search folds again
+  const [openRuns, setOpenRuns] = useState<Set<string>>(new Set());
+  useEffect(() => setOpenRuns(new Set()), [props.query, props.matches]);
+  const keep = (id: string) => !!props.selected && (props.selected === id || props.selected.startsWith(`${id}.`));
+  const children = (node: StructureNode, depth: number) => {
+    const out: React.ReactNode[] = [];
+    let run: number[] = [];
+    const flush = () => {
+      if (!run.length) return;
+      const first = node.children[run[0]!]!;
+      if (openRuns.has(first.id) || run.length === 1 && !first.children.length) out.push(...run.map((i) => render(node.children[i]!, depth + 1, node.children[i - 1], node)));
+      else
+        out.push(
+          <button key={`run-${first.id}`} className="dim-run" onClick={() => setOpenRuns((s) => new Set(s).add(first.id))} title="Show these filtered parts">
+            <Ellipsis size={14} aria-hidden />
+            {run.length} filtered
+          </button>,
+        );
+      run = [];
+    };
+    node.children.forEach((c, i) => {
+      if (props.collapseDim && props.dim.has(c.id) && !keep(c.id)) run.push(i);
+      else {
+        flush();
+        out.push(render(c, depth + 1, i === 0 ? undefined : node.children[i - 1], node));
+      }
+    });
+    flush();
+    return out;
+  };
+
+  const render = (node: StructureNode, depth: number, prev?: StructureNode, parent?: StructureNode): React.ReactNode => {
     const isRoot = depth === 0;
     const isOpen = open[node.id] ?? isRoot;
     const g = override[node.id] ?? props.granularity;
     const gi = ORDER.indexOf(g);
     const key = `${node.id}.${g}`;
-    const text = g === "full" ? undefined : node.text?.[g] ?? fetched[key];
-    if (isOpen && g !== "full" && text === undefined && !pending[key]) void request(node, g);
+    // a tool step is its call: from Medium up it shows the call rendered (and from High its result),
+    // a prose summary of one command would only be worse than the command itself
+    const toolStep = node.kind === "step" && (node.meta?.step_kind === "tool" || node.meta?.step_kind === "tool-error");
+    const asCall = toolStep && g !== "title";
+    const text = g === "full" || asCall ? undefined : node.text?.[g] ?? fetched[key];
+    if (isOpen && g !== "full" && !asCall && text === undefined && !pending[key]) void request(node, g);
     const setHere = (to: Granularity) =>
       isRoot ? props.onGranularity(to) : setOverride((o) => {
         const { [node.id]: _, ...rest } = o;
@@ -178,7 +239,7 @@ export const Zoom = memo(function Zoom(props: {
     const images = imageCount(node, props.events);
     const tokens = node.stats.input_tokens + node.stats.output_tokens;
     const boundary = node.meta?.boundary && node.meta.boundary !== prev?.meta?.boundary ? boundaryText(node, prev) : undefined;
-    const showText = g !== "full" && !(text !== undefined && sameText(text, node.label));
+    const showText = asCall || (g !== "full" && !(text !== undefined && sameText(text, node.label)));
 
     return (
       <div key={node.id} id={`node-${node.id}`} className={cls} style={kindStyle(kind)}>
@@ -265,7 +326,9 @@ export const Zoom = memo(function Zoom(props: {
           <div className="body">
             {(g === "full" || showText || ownImages(node, props.events).length > 0 || isRoot) && (
             <div className="text-block">
-              {g === "full" ? (
+              {asCall && g !== "full" ? (
+                <Events node={node} events={props.events} calls={calls} query={props.query} matches={props.matches} only={g === "abstract" ? "calls" : "bare"} />
+              ) : g === "full" ? (
                 node.level >= 3 ? <Events node={node} events={props.events} calls={calls} query={props.query} matches={props.matches} /> : <p className="prose muted">The full text is in the steps below.</p>
               ) : showText ? (
                 <p className={`prose ${text === undefined ? "muted" : ""}`}>{richText(text ?? structuralFallback(node, g), props.query)}</p>
@@ -289,7 +352,7 @@ export const Zoom = memo(function Zoom(props: {
               </div>
             </div>
             )}
-            {node.children.map((c, i) => render(c, depth + 1, i === 0 ? undefined : node.children[i - 1], node))}
+            {children(node, depth)}
           </div>
         )}
       </div>
@@ -404,19 +467,36 @@ function RawText({ text }: { text: string }) {
 const PROSE = new Set(["user.prompt", "assistant.text", "compaction"]);
 
 /** Raw events of a step (L3) in append order: words as prose, tool input and output as code. */
-function Events({ node, events, calls, query, matches }: { node: StructureNode; events?: Map<string, Event>; calls: Map<string, Event>; query?: string; matches?: Set<string> }) {
+function Events({
+  node,
+  events,
+  calls,
+  query,
+  matches,
+  only,
+}: {
+  node: StructureNode;
+  events?: Map<string, Event>;
+  calls: Map<string, Event>;
+  query?: string;
+  matches?: Set<string>;
+  /** "calls": only the tool calls, without headers; "bare": calls and results without headers. */
+  only?: "calls" | "bare";
+}) {
   if (!events) return <p className="prose muted">Loading events…</p>;
   const ids = node.event_ids ?? [];
   return (
-    <div className="events">
+    <div className={`events ${only ? "bare" : ""}`}>
       {ids.map((id) => {
         const e = events.get(id);
         if (!e) return null;
+        if (only === "calls" && e.kind !== "tool.call") return null;
+        if (only === "bare" && (e.kind !== "tool.call" && e.kind !== "tool.result" || (e.kind === "tool.result" && !e.text.trim()))) return null;
         const k = eventKind(e);
         const text = e.text || (e.data?.hidden ? "Hidden by Claude Code" : "");
         return (
           <div key={id} className={`event ${e.kind.replace(".", "-")} ${matches?.has(id) ? "match" : ""}`} style={kindStyle(k)}>
-            <div className="event-head">
+            {!only && <div className="event-head">
               <span className="kind">
                 <KindIcon kind={k} size={13} />
                 {e.kind === "tool.result" ? "Result" : KIND[k].label}
@@ -429,7 +509,7 @@ function Events({ node, events, calls, query, matches }: { node: StructureNode; 
                 </span>
               )}
               <span className="time">{fmtTime(e.ts)}</span>
-            </div>
+            </div>}
             {PROSE.has(e.kind) ? (
               <p className="event-prose">{richText(text, query)}</p>
             ) : e.kind === "tool.call" ? (

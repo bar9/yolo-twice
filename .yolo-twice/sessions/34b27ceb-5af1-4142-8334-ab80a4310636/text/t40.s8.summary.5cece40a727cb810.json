@@ -1,0 +1,9 @@
+{
+  "analyzer": "structural",
+  "created": "2026-10-31T15:29:16.945Z",
+  "granularity": "summary",
+  "hash": "5cece40a727cb810",
+  "node": "t40.s8",
+  "text": "[assistant.text] I've changed the wording, and the same words now appear everywhere this feature shows up: - **The button** says what it does next: **\"Hide filtered\"** while everything is shown, **\"Show filtered\"** while the filtered parts are folded away. The icon changes with it (fold or unfold). The tooltip says the button affects both the text and the graph. - **Folded lines in the text** read \"⋯ 35 filtered\". Clicking one shows those filtered parts. - **Folded boxes in the graph** read \"⋯ 2 filtered\". Because the label now names the action, the button no longer looks \"pressed\"; that styling would have contradicted it. I reran the folding checks in a browser with the new labels, and folding, unfolding and hovering behave as before. All 63 tests pass. Committed as a84fde2, not pushed. …",
+  "version": "2"
+}

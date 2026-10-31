@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T15:09:25.874Z",
+  "granularity": "title",
+  "hash": "b15856ee7ce3fc83",
+  "node": "t5.s52.a.s13",
+  "text": "Add fixture-backed mock engine on port 9656 for UI development",
+  "version": "2"
+}

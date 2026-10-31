@@ -374,6 +374,28 @@ URL form:
 
 Example: `http://127.0.0.1:9656/yolo-twice/34b27c/t2?k=t,e&x=t2.s4`
 
+### Keyboard
+
+Four axes, one key family each, so the keymap can grow without reshuffling: ← → move the
+scope (the breadcrumb runs left to right), ↑ ↓ the selection (the reader runs top to bottom),
+− + the detail, letters and digits the filters and views. One table (`ui/src/keys.ts`) drives
+both the handling and the cheat sheet (`?`, also in the settings), so they cannot drift apart.
+Keys work while focus is not in a text field, menu or dialog; Ctrl, ⌘ and Alt combinations stay
+with the browser; the graph canvas keeps its own arrows and − + 0 while it has focus.
+
+| Keys | Action |
+|---|---|
+| ↑ ↓, k j | previous / next visible part (reader order, graph order in Map, result order on Results) |
+| → or Enter, ← or Esc | zoom into the selected part, widen one level (a time window is cleared first) |
+| ⇧ ←, Space, Home, End | widen to the top, open or close the part, first part, newest part and follow |
+| / then Enter, n, ⇧ N | search and jump to the first match, next and previous match |
+| 1 to 8, h, x | kind filters in chip order, hide or show filtered, clear search, filters and window |
+| − +, `,` `.` | detail of the whole page, detail of the selected part only |
+| v, f, p, c, ? | cycle Read, Split, Map; follow; pin; catch me up; cheat sheet |
+
+When nothing matches, the filter bar offers "← Search the phase" (or turn, session, project);
+widening lands on the first match.
+
 Filtering and search run in the browser over the loaded session events, so linking is
 instant. At the project root the same filters go to the engine and search every session.
 

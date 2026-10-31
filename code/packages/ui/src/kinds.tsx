@@ -83,12 +83,43 @@ export function richText(text: string, mark?: string): (string | React.ReactElem
   const out: (string | React.ReactElement)[] = [];
   parts.forEach((p, i) => {
     if (p.startsWith("`") && p.endsWith("`") && p.length > 2) out.push(<code key={i}>{p.slice(1, -1)}</code>);
-    else if (p) out.push(...highlight(p, mark, i));
+    else if (p) out.push(...linkify(p, mark, i));
   });
   return out;
 }
 
-function highlight(text: string, mark: string | undefined, key: number): (string | React.ReactElement)[] {
+/** http(s) URLs; punctuation that ends a sentence or closes a bracket stays outside the link. */
+const URL_RE = /\bhttps?:\/\/[^\s<>"'`]+/g;
+
+/** Text with its URLs as links: links into this app stay in the tab (they are deep links), others open a new one. */
+export function linkify(text: string, mark?: string, key: number | string = 0): (string | React.ReactElement)[] {
+  const out: (string | React.ReactElement)[] = [];
+  let at = 0;
+  for (const m of text.matchAll(URL_RE)) {
+    let url = m[0];
+    const trail = /[.,;:!?)\]}]+$/.exec(url);
+    // keep a closing bracket that belongs to the URL, e.g. https://en.wikipedia.org/wiki/X_(y)
+    if (trail && !(trail[0].startsWith(")") && url.includes("("))) url = url.slice(0, -trail[0].length);
+    const start = m.index!;
+    if (start > at) out.push(...highlight(text.slice(at, start), mark, `${key}.${at}`));
+    let local = false;
+    try {
+      local = new URL(url).origin === location.origin;
+    } catch {
+      /* not a URL after all */
+    }
+    out.push(
+      <a key={`${key}.u${start}`} href={url} className="link" {...(local ? {} : { target: "_blank", rel: "noreferrer" })} onClick={(e) => e.stopPropagation()}>
+        {url}
+      </a>,
+    );
+    at = start + url.length;
+  }
+  if (at < text.length) out.push(...highlight(text.slice(at), mark, `${key}.${at}`));
+  return out;
+}
+
+function highlight(text: string, mark: string | undefined, key: number | string): (string | React.ReactElement)[] {
   const term = mark?.trim();
   if (!term || term.length < 2) return [text];
   const re = new RegExp(`(${term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`, "gi");

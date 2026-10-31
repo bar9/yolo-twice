@@ -1,0 +1,9 @@
+{
+  "analyzer": "structural",
+  "created": "2026-10-31T15:18:46.397Z",
+  "granularity": "abstract",
+  "hash": "214fdd15ee020b33",
+  "node": "t37.s4",
+  "text": "[tool Bash] {\"command\":\"cd $PROJECT/code/packages/ui/src && grep -n \\\"node.children.map((c, i) => render\\\" Zoom.tsx; grep -n \\\" matches?: Set<string>;\\\" Zoom.tsx; grep -n \\\"props.matches\\\" FilterBar.tsx | head -3; grep -n \\\"onCodes: (k: FilterCode\\\\[\\\\]) => void;\\\" FilterBar.tsx; grep -n \\\"<FilterB…",
+  "version": "2"
+}

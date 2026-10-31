@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T15:31:54.119Z",
+  "granularity": "summary",
+  "hash": "73e70dcda253f0f4",
+  "node": "t41.s11",
+  "text": "Each level's popover text now states its behaviour: Micro management summarizes every turn and phase within seconds, Attentive at each turn end, Balanced at each phase end, and Yolo summarizes nothing in the background, only when a part is opened. The hourly estimate reads \"Less than one call an hour\" when it rounds to zero, and the session-length sentence was dropped. The current setting is Yolo, so that text shows. The slider was not moved during testing because it changes the real engine setting. Committed as c5b52f5, not pushed; reload the tab to see it.",
+  "version": "2"
+}

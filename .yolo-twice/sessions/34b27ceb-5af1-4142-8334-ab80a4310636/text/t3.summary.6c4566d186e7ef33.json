@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T15:23:43.918Z",
+  "granularity": "summary",
+  "hash": "6c4566d186e7ef33",
+  "node": "t3",
+  "text": "- Zoom: documentation/design.md now has two independent axes. Structural levels run from L-1 (project) to L4 (raw record). Text granularities are title, abstract, summary and full, and they apply to every node, including the top. Each is a hash-keyed artifact under sessions/<id>/text/.\n- pele (obsidianmd/pele, MIT, npm 1.13.0) has a synchronous render() that returns SVG. The design uses it in a shared markdown-it plugin for VitePress and Slidev, and the UI draws the flow graph from a committed graph.mmd.\n- gh confirmed bar9/yolo-twice is public. The install line `claude plugin install yolo-twice --marketplace bar9/yolo-twice` was checked against the CLI help.\n- readme.md is renamed to README.md and rewritten. It has a status banner, two mermaid diagrams and a \"standing on shoulders\" table crediting Claudescope, claude-code-history-viewer, cc_transcript_viewer, claude-code-transcripts, ccusage and pele.\n- Nothing is committed. license.txt still has the template placeholder.",
+  "version": "2"
+}

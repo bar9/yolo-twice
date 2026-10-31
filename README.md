@@ -49,6 +49,9 @@ Inside any Claude Code session (plugin commands are namespaced, so the command i
 /yolo-twice:yolo-twice resume [id]      rebuild a committed session's transcript and print the claude --resume command
 ```
 
+In the UI, press `?` for the keyboard shortcuts: ← → move between levels, ↑ ↓ through parts,
+− + change the detail, `/` searches.
+
 The same commands work from a terminal via the engine CLI, for example `yolo-twice status` or
 `yolo-twice index` for a one-shot index without the daemon.
 

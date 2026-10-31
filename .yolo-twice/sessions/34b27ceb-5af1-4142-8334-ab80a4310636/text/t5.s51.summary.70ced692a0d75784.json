@@ -1,0 +1,9 @@
+{
+  "analyzer": "structural",
+  "created": "2026-10-31T15:23:41.203Z",
+  "granularity": "summary",
+  "hash": "70ced692a0d75784",
+  "node": "t5.s51",
+  "text": "[tool Agent] {\"description\":\"Build engine daemon and plugin\",\"subagent_type\":\"fork\",\"prompt\":\"You are track A of the yolo-twice scaffold: build `code/packages/engine` (the daemon + CLI) and `code/plugin` (the Claude Code plugin) plus the root marketplace file. Two other forks are working in parallel: track B owns `code/packages/ui/**` only, track C owns `code/packages/pele-markdown/**`, `code/site/**`, `code/pitch/**`, `.github/**`. Do not touch their directories. You may edit: `code/packages/engine/**`, `code/plugin/**`, `$PROJECT/.claude-plugin/marketplace.json`, and the \\\"Use\\\" section of `$PROJECT/README.md` (only to state the exact slash command names you verified). Do not commit.\\n\\nContract: `$PROJECT/code/API.md` is the HTTP/SSE/CLI contract the UI track is coding against. Impleme…",
+  "version": "2"
+}

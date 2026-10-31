@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T15:27:42.210Z",
+  "granularity": "summary",
+  "hash": "7e1f7d74cd921c42",
+  "node": "t39.s16",
+  "text": "Tool-call and token counts now always hold their space and only become visible on hover, so rows no longer re-wrap titles. A before/after measurement showed the row size unchanged. With \"Hide the rest\" on, each run of parts without matches folds in the graph into one dashed grey \"⋯ N without matches\" box. With the Errors filter on the first phase, the graph drops from 25 boxes to 17. Limitations: folded boxes can't be clicked open, and the \"22 turns\" count still reflects the unfolded graph. A new unit test covers folding; all 63 tests pass. Committed as e86630d, not pushed.",
+  "version": "2"
+}

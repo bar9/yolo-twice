@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { Braces, ChevronRight, Code2 } from "lucide-react";
+import { linkify } from "./kinds";
 import { Code } from "./ToolCall";
 import { splitFences } from "./toolview";
 
@@ -62,14 +63,8 @@ function Scalar({ v }: { v: unknown }) {
   if (typeof v === "number") return <span className="json-num">{v.toLocaleString()}</span>;
   const s = String(v);
   if (s === "") return <span className="json-null">empty</span>;
-  if (/^https?:\/\/\S+$/.test(s))
-    return (
-      <a className="json-link" href={s} target="_blank" rel="noreferrer">
-        {s}
-      </a>
-    );
   if (/^(\/|~\/|\.\.?\/)[^\s]*$/.test(s) || /^[\w.-]+\.\w{1,5}$/.test(s)) return <code className="json-path">{s}</code>;
-  return <span className="json-str">{s}</span>;
+  return <span className="json-str">{linkify(s)}</span>;
 }
 
 /** A long or multi-line string: prose with its fenced code as code. */
@@ -77,7 +72,7 @@ function TextBlock({ s }: { s: string }) {
   const parts = useMemo(() => splitFences(s), [s]);
   return (
     <div className="json-text">
-      {parts.map((p, i) => (p.kind === "code" ? <Code key={i} text={p.text} lang={p.lang} /> : <p key={i}>{p.text.replace(/^\n+|\n+$/g, "")}</p>))}
+      {parts.map((p, i) => (p.kind === "code" ? <Code key={i} text={p.text} lang={p.lang} /> : <p key={i}>{linkify(p.text.replace(/^\n+|\n+$/g, ""))}</p>))}
     </div>
   );
 }

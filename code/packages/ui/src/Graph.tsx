@@ -16,7 +16,7 @@ import {
 } from "@xyflow/react";
 import "@xyflow/react/dist/base.css";
 import { graphlib, layout } from "@dagrejs/dagre";
-import { Coins, Maximize, Minus, Plus, Timer, Type, Wrench } from "lucide-react";
+import { Coins, Ellipsis, Maximize, Minus, Plus, Timer, Type, Wrench } from "lucide-react";
 import type { FlowClass, FlowGraph, FlowNode } from "@yolo-twice/analyzers/graph";
 import { fmtDuration, fmtTokens } from "./api";
 import { KIND, KindIcon, kindStyle, nodeKind, type Kind } from "./kinds";
@@ -159,8 +159,26 @@ function Stats({ n }: { n: FlowNode }) {
   );
 }
 
-const StepNode = memo(function StepNode({ data }: NodeProps<Node<BoxData>>) {
+/** A "⋯ N filtered" placeholder from "Hide filtered" (scope.ts foldTree). */
+const isFold = (n: FlowNode) => n.ref.includes(".fold");
+
+const FoldNode = memo(function FoldNode({ data }: NodeProps<Node<BoxData>>) {
+  return (
+    <BaseNode className={cn("flow-box is-fold", data.state)} style={{ width: W, height: H }} title="Show the filtered parts">
+      <BaseHandle type="target" position={Position.Top} isConnectable={false} />
+      <BaseNodeContent className="flex h-full flex-row items-center gap-2">
+        <Ellipsis size={14} aria-hidden />
+        <p>{data.flow.label.replace(/^⋯\s*/, "")}</p>
+      </BaseNodeContent>
+      <BaseHandle type="source" position={Position.Bottom} isConnectable={false} />
+    </BaseNode>
+  );
+});
+
+const StepNode = memo(function StepNode(props: NodeProps<Node<BoxData>>) {
+  const { data } = props;
   const n = data.flow;
+  if (isFold(n)) return <FoldNode {...props} />;
   const { title, badge } = caption(n, data.kind);
   return (
     <BaseNode className={cn("flow-box", `cls-${n.cls}`, data.state)} style={{ ...kindStyle(data.kind), width: W, height: H }}>
@@ -203,7 +221,7 @@ const SessionNode = memo(function SessionNode({ data }: NodeProps<Node<BoxData>>
 });
 
 const GroupNode = memo(function GroupNode({ data }: NodeProps<Node<BoxData>>) {
-  return <LabeledGroupNode className={cn("flow-group", `cls-${data.flow.cls}`, data.state)} style={kindStyle(data.kind)} label={data.flow.label} icon={<KindIcon kind={data.kind} size={12} />} />;
+  return <LabeledGroupNode className={cn("flow-group", `cls-${data.flow.cls}`, isFold(data.flow) && "is-fold", data.state)} style={isFold(data.flow) ? undefined : kindStyle(data.kind)} label={data.flow.label} icon={<KindIcon kind={data.kind} size={12} />} />;
 });
 
 const nodeTypes = { step: StepNode, session: SessionNode, group: GroupNode };
@@ -436,6 +454,8 @@ function FlowMap(props: Props) {
             ArrowRight: () => panBy(-step, 0),
             ArrowUp: () => panBy(0, step),
             ArrowDown: () => panBy(0, -step),
+            // give the keys back to the page
+            Escape: () => host.current?.blur(),
           };
           const fn = moves[e.key];
           if (fn) {
@@ -455,6 +475,11 @@ function FlowMap(props: Props) {
           zoomOnScroll={false}
           zoomOnPinch
           zoomOnDoubleClick={false}
+          // React Flow listens page-wide (Space pans, Backspace deletes, Shift box-selects) and would eat the page's keys
+          panActivationKeyCode={null}
+          deleteKeyCode={null}
+          selectionKeyCode={null}
+          multiSelectionKeyCode={null}
           nodesDraggable={false}
           nodesConnectable={false}
           nodesFocusable={false}
@@ -469,7 +494,9 @@ function FlowMap(props: Props) {
           onNodeMouseMove={hoverNode as never}
           onNodeMouseLeave={() => props.onHover(undefined)}
           onPaneMouseLeave={() => props.onHover(undefined)}
-          onMoveStart={() => props.onHover(undefined)}
+          // scroll-panning reports a gesture's first tick only as its start: count start and end as moves too
+          onMoveStart={(e, v) => (props.onHover(undefined), onMove(e, v))}
+          onMoveEnd={onMove}
         >
           <Background variant={BackgroundVariant.Dots} gap={18} size={1} color="var(--rule-strong)" />
           <MiniMap

@@ -1,0 +1,9 @@
+{
+  "analyzer": "structural",
+  "created": "2026-10-31T15:09:12.022Z",
+  "granularity": "summary",
+  "hash": "b24a93ff226eba13",
+  "node": "t5.s52.a.s13",
+  "text": "[tool Bash] {\"command\":\"cd $PROJECT/code/packages/ui && cat > mock/server.ts <<'EOF'\\n/**\\n * Mock engine for UI development: ingests the fixture session into a temp dir and serves\\n * the API.md endpoints on 9656. Run with `bun run mock`. Replaced by @yolo-twice/engine.\\n */\\nimport fs from \\\"node:fs\\\";\\nimport path from \\\"node:path\\\";\\nimport { ingestProject, Store, type Attention, type Granularity } from \\\"@yolo-twice/core\\\";\\nimport { deriveProject, deriveSession, findNode, nodeFullText, SearchIndex, StructuralSummarizer, TextCache, toMermaid, inputHash } from \\\"@yolo-twice/analyzers\\\";\\nimport { FIXTURE_CWD, FIXTURE_SESSION, tempFixture } from \\\"../../../fixtures/helper\\\";\\n\\nconst fx = tempFixture(\\\"ui-mock\\\");\\nconst store = new Store(fx.projectRoot);\\ningestProject({ cwd: FIXTURE_…",
+  "version": "2"
+}

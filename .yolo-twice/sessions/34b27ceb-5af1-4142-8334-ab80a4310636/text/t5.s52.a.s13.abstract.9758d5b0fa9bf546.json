@@ -1,0 +1,9 @@
+{
+  "analyzer": "structural",
+  "created": "2026-10-31T15:09:07.442Z",
+  "granularity": "abstract",
+  "hash": "9758d5b0fa9bf546",
+  "node": "t5.s52.a.s13",
+  "text": "[tool Bash] {\"command\":\"cd $PROJECT/code/packages/ui && cat > mock/server.ts <<'EOF'\\n/**\\n * Mock engine for UI development: ingests the fixture session into a temp dir and serves\\n * the API.md endpoints on 9656. Run with `bun run mock`. Replaced by @yolo-twice/engine.\\n */\\nimport fs from \\\"node…",
+  "version": "2"
+}

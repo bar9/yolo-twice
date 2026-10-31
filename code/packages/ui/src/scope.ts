@@ -172,3 +172,34 @@ export function followTarget(root: StructureNode, focus: StructureNode | undefin
   const same = [...path].reverse().find((n) => n.kind === focus.kind && n.level === focus.level) ?? path.find((n) => n.level === focus.level);
   return { sel: leaf.id, focus: same && same.id !== root.id ? same.id : undefined };
 }
+
+/**
+ * A copy of the tree for drawing with "Hide filtered": each run of consecutive parts without
+ * matches becomes one placeholder (`<first id>.fold`, "⋯ N filtered"). A folded phase keeps
+ * one placeholder turn so it still draws as a box.
+ */
+export function foldTree(node: StructureNode, dim: Set<string>): StructureNode {
+  const kids: StructureNode[] = [];
+  let run: StructureNode[] = [];
+  const flush = () => {
+    if (!run.length) return;
+    if (run.length === 1 && !run[0]!.children.length) kids.push(run[0]!);
+    else {
+      const first = run[0]!;
+      const label = `⋯ ${run.length} filtered`;
+      const placeholder: StructureNode = { ...first, id: `${first.id}.fold`, label, children: [], event_ids: [], meta: { step_kind: "thinking" }, text: undefined };
+      if (first.kind === "phase") placeholder.children = [{ ...placeholder, id: `${first.id}.fold.t`, kind: "turn", level: first.level + 1 }];
+      kids.push(placeholder);
+    }
+    run = [];
+  };
+  for (const c of node.children) {
+    if (dim.has(c.id)) run.push(c);
+    else {
+      flush();
+      kids.push(foldTree(c, dim));
+    }
+  }
+  flush();
+  return { ...node, children: kids };
+}

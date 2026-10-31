@@ -1,0 +1,9 @@
+{
+  "analyzer": "structural",
+  "created": "2026-10-31T15:23:42.997Z",
+  "granularity": "summary",
+  "hash": "2f0049b85292d866",
+  "node": "t2",
+  "text": "[user.prompt] consider tradeof near realtime updates ( costly in CPU and tokens) vs low frequency. Can we give the user the choice, ie slider \"micro management\" <---> \"yolo\" [assistant.thinking] [assistant.text] Good question, and it exposes something the design glossed over: not all layers cost the same, so the slider should not throttle everything uniformly. **Where the cost actually sits** | Layer | Cost per event | Realtime safe? | |---|---|---| | Ingest, normalize, redact, append | microseconds, linear in new bytes | yes, always | | Structural tree and search index | milliseconds, incremental | yes | | Flow graph re-layout in the browser | noticeable with thousands of nodes | throttle | | Semantic summaries via `claude -p` | seconds to minutes, thousands of tokens, one Node process s…",
+  "version": "2"
+}

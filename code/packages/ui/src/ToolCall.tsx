@@ -13,7 +13,7 @@ import yaml from "highlight.js/lib/languages/yaml";
 import { ExternalLink, FileText, Scissors } from "lucide-react";
 import type { Event } from "./api";
 import { JsonView } from "./Json";
-import { richText } from "./kinds";
+import { linkify, richText } from "./kinds";
 import { langForPath, parseInput, prettyJson, splitFences, splitGutter, splitHeredocs, type Lang } from "./toolview";
 
 for (const [name, lang] of Object.entries({ bash, css, diff, javascript, json, markdown, python, typescript, xml, yaml })) hljs.registerLanguage(name, lang);
@@ -41,7 +41,7 @@ export function Code({ text, lang, start, caption }: { text: string; lang: Lang;
             {Array.from({ length: lines }, (_, i) => start + i).join("\n")}
           </pre>
         )}
-        {html !== undefined ? <pre className="hljs" dangerouslySetInnerHTML={{ __html: html }} /> : <pre>{text}</pre>}
+        {html !== undefined ? <pre className="hljs" dangerouslySetInnerHTML={{ __html: html }} /> : <pre>{lang === "plaintext" ? linkify(text) : text}</pre>}
       </div>
     </figure>
   );
@@ -214,7 +214,7 @@ export function ToolResultView({ event, call }: { event: Event; call?: Event }) 
   }, [text, call]);
   return (
     <div className={`tool-result ${event.data?.is_error ? "error" : ""}`}>
-      {json ? <JsonView value={json.value} source={json.source} /> : parts.map((p, i) => (p.kind === "code" ? <Code key={i} text={p.text} lang={p.lang} start={p.start} /> : <p key={i} className="tool-text">{p.text.trim()}</p>))}
+      {json ? <JsonView value={json.value} source={json.source} /> : parts.map((p, i) => (p.kind === "code" ? <Code key={i} text={p.text} lang={p.lang} start={p.start} /> : <p key={i} className="tool-text">{linkify(p.text.trim())}</p>))}
     </div>
   );
 }

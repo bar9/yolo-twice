@@ -1,0 +1,9 @@
+{
+  "analyzer": "structural",
+  "created": "2026-10-31T15:23:28.137Z",
+  "granularity": "summary",
+  "hash": "91e425c8065fe746",
+  "node": "t38.s11",
+  "text": "[assistant.text] URLs in the transcript are now clickable links. That covers summaries, your prompts, Claude's replies, search snippets and plain-text tool output. - **yolo-twice links** open in the same tab, because they're links straight into a view. Your example `http://127.0.0.1:9656/yolo-twice/~34b27c?q=input&k=u&z=f` takes you to that search. - **Other links** open in a new tab. - **Punctuation:** a full stop or closing bracket at the end of a sentence stays outside the link. A bracket that is part of the address, as in Wikipedia-style addresses, stays in it. - **Rows:** clicking a link inside a row doesn't also expand or collapse the row. I checked it on your own prompt: the address shows as a link with exactly the right target, and clicking it opened that search. Links in syntax-h…",
+  "version": "2"
+}

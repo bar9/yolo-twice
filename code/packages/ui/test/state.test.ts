@@ -3,7 +3,7 @@ import { ingestProject, Store } from "@yolo-twice/core";
 import { buildStructure } from "@yolo-twice/analyzers/structure";
 import { SearchIndex } from "@yolo-twice/analyzers/search";
 import { EMPTY, isNavigation, parseUrl, resolveId, shortId, toUrl, type ViewState } from "../src/state";
-import { computeScope, followTarget, latestLeaf, snapWindow } from "../src/scope";
+import { computeScope, foldTree, followTarget, latestLeaf, snapWindow } from "../src/scope";
 import { FIXTURE_CWD, FIXTURE_SESSION, tempFixture } from "../../../fixtures/helper";
 
 describe("URL state", () => {
@@ -88,6 +88,15 @@ describe("scope", () => {
       expect(nothing.active).toBe(true);
       expect(nothing.matches.size).toBe(0);
       expect(nothing.dim.size).toBe(0);
+      // "Hide filtered" in the graph: runs without matches fold into one placeholder each
+      const errs = computeScope(root, index, { q: "", k: ["e"] });
+      const folded = foldTree(root, errs.dim);
+      const ids = (n: typeof root): string[] => [n.id, ...n.children.flatMap(ids)];
+      const all = ids(folded);
+      expect(all.some((id) => id.endsWith(".fold"))).toBe(true);
+      // every part with a match is still drawn, and the picture got smaller
+      for (const id of ids(root)) if (!errs.dim.has(id)) expect(all).toContain(id);
+      expect(all.length).toBeLessThan(ids(root).length);
     } finally {
       fx.cleanup();
     }

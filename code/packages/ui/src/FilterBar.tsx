@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from "react";
-import { ChevronDown, Search, X } from "lucide-react";
+import { ArrowLeft, ChevronDown, FoldVertical, Search, UnfoldVertical, X } from "lucide-react";
 import type { FilterCode } from "@yolo-twice/analyzers/search";
 import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Kbd } from "@/components/ui/kbd";
 import { KIND, kindStyle, type Kind } from "./kinds";
 import { Tip } from "./Tip";
+import { hint } from "./keys";
 
 /** Chip codes in display order. Codes are OR'd; tool chips live in the tools menu. */
 export const CHIPS: { code: FilterCode; kind: Kind; label: string; title: string }[] = [
@@ -30,6 +31,13 @@ export function FilterBar(props: {
   scopeLabel: string;
   onQuery: (q: string) => void;
   onCodes: (k: FilterCode[]) => void;
+  /** Whether parts without matches are folded away in the text. */
+  folded: boolean;
+  onFolded: (folded: boolean) => void;
+  /** Enter in the search box. */
+  onSubmit: () => void;
+  /** When nothing matches: search one level wider, e.g. "Search the phase". */
+  widen?: { label: string; run: () => void };
 }) {
   const input = useRef<HTMLInputElement>(null);
   const [draft, setDraft] = useState(props.q);
@@ -48,19 +56,6 @@ export function FilterBar(props: {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [draft]);
 
-  // "/" focuses the query box from anywhere
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      const t = e.target as HTMLElement;
-      if (e.key === "/" && !/input|textarea|select/i.test(t.tagName)) {
-        e.preventDefault();
-        input.current?.focus();
-      }
-    };
-    addEventListener("keydown", onKey);
-    return () => removeEventListener("keydown", onKey);
-  }, []);
-
   const toggle = (code: FilterCode) => props.onCodes(props.k.includes(code) ? props.k.filter((c) => c !== code) : [...props.k, code]);
   const toolCodes = props.k.filter((c) => c.startsWith("t:"));
   const active = Boolean(props.q) || props.k.length > 0;
@@ -77,6 +72,13 @@ export function FilterBar(props: {
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
           onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              // search now and jump to the first match
+              send(draft);
+              (e.target as HTMLInputElement).blur();
+              props.onSubmit();
+              return;
+            }
             if (e.key === "Escape") {
               if (draft) setDraft("");
               (e.target as HTMLInputElement).blur();
@@ -92,7 +94,7 @@ export function FilterBar(props: {
           const Icon = KIND[c.kind].icon;
           const on = props.k.includes(c.code);
           return (
-            <Tip key={c.code} label={c.title}>
+            <Tip key={c.code} label={`${c.title} (${CHIPS.indexOf(c) + 1})`}>
               <button className={`chip ${on ? "on" : ""}`} style={kindStyle(c.kind)} onClick={() => toggle(c.code)} aria-pressed={on}>
                 <Icon aria-hidden />
                 {c.label}
@@ -127,6 +129,20 @@ export function FilterBar(props: {
       <span className={`match-count ${active && props.matches === 0 ? "none" : ""}`} aria-live="polite">
         {!active ? "" : props.matches === 0 ? `Nothing matches in ${props.scopeLabel}` : `${props.matches} match${props.matches === 1 ? "" : "es"} in ${props.scopeLabel}`}
       </span>
+      {active && props.matches === 0 && props.widen && (
+        <button className="chip widen" onClick={props.widen.run} title="Widen the scope one level (←)">
+          <ArrowLeft aria-hidden />
+          {props.widen.label}
+        </button>
+      )}
+      {active && props.matches > 0 && (
+        <Tip label={props.folded ? `Show the parts without matches again, in the text and the graph${hint("fold")}.` : `Fold the parts without matches into one line each, in the text and the graph${hint("fold")}.`}>
+          <button className="chip fold-toggle" onClick={() => props.onFolded(!props.folded)}>
+            {props.folded ? <UnfoldVertical aria-hidden /> : <FoldVertical aria-hidden />}
+            {props.folded ? "Show filtered" : "Hide filtered"}
+          </button>
+        </Tip>
+      )}
       {active && (
         <button className="chip" onClick={() => (setDraft(""), send(""), props.onCodes([]))}>
           <X aria-hidden />
