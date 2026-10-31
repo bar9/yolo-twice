@@ -19,7 +19,7 @@ most recently registered project is used. All JSON uses the types from `@yolo-tw
 | GET | `/api/sessions/:id/events` | `project`, `after=<event id>`, `limit` (default 500) | `{ events: Event[], next?: string }` in append order |
 | POST | `/api/sessions/:id/text` | `{ project, node, granularity }` | `TextArtifact` (lazy summarization; computed on demand, cached by hash; may take seconds; falls back to the structural summarizer when the CLI is unavailable, with `analyzer: "structural"`) |
 | GET | `/api/sessions/:id/digest` | `project`, `since=<event id>` | `{ since, until, events, text }` "catch me up": summary of everything after `since` |
-| GET | `/api/search` | `project`, `q`, `session?`, `limit?` | `{ hits: SearchHit[] }` |
+| GET | `/api/search` | `project`, `q`, `session?`, `k?`, `from?`, `to?`, `limit?` (default 50) | `{ hits: SearchHit[], tools: string[] }`. `k` is a comma list of filter codes (`u` user prompts, `a` assistant text, `h` thinking, `t` tool calls, `t:Name` one tool, `e` tool errors, `s` subagents, `c` compactions and commands; codes are OR'd). `from`/`to` are ISO timestamps. Without `session` the whole project is searched. An empty `q` with a filter lists matching events in order; an empty `q` without a filter returns no hits. `tools` lists tool names seen, most used first |
 | GET | `/api/config` | `project` | `Config` |
 | PUT | `/api/config` | `{ project, attention }` | `Config` (persisted to `.yolo-twice/config.json`, broadcast on the stream) |
 | GET | `/api/stream` | `project` | Server-Sent Events, see below |

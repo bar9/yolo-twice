@@ -1,3 +1,4 @@
+import { parseCodes } from "@yolo-twice/analyzers";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -151,8 +152,11 @@ export class Engine {
     app.get("/api/search", (c) => {
       const rt = need(c.req.query("project"));
       const q = c.req.query("q") ?? "";
-      if (!q.trim()) return c.json({ hits: [] });
-      return c.json({ hits: rt.search.search(q, { session: c.req.query("session"), limit: Number(c.req.query("limit") ?? 50) }) });
+      const codes = parseCodes(c.req.query("k"));
+      // an empty query lists matching events in order, but only when something narrows it
+      if (!q.trim() && codes.length === 0) return c.json({ hits: [] });
+      const filter = { session: c.req.query("session") || undefined, codes, from: c.req.query("from") || undefined, to: c.req.query("to") || undefined };
+      return c.json({ hits: rt.search.search(q, { ...filter, limit: Number(c.req.query("limit") ?? 50) }), tools: rt.search.tools() });
     });
 
     app.get("/api/config", (c) => c.json(need(c.req.query("project")).config()));

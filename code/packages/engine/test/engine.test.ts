@@ -49,6 +49,14 @@ describe("engine", () => {
     expect(page2.events[0]!.id).not.toBe(ev.events[0]!.id);
     const hits = (await (await fetch(`${base}/api/search?${q}&q=salt`)).json()) as { hits: { id: string }[] };
     expect(hits.hits.map((h) => h.id)).toContain("a7");
+    // filters: listing without a query, kinds OR'd, tool codes, time window, project-wide
+    const get = async (qs: string) => (await (await fetch(`${base}/api/search?${q}&${qs}`)).json()) as { hits: { id: string; kind: string }[]; tools: string[] };
+    expect((await get("k=u")).hits.map((h) => h.id)).toEqual(["u1", "u7", "u9", "u12"]);
+    expect((await get("k=e")).hits.map((h) => h.id)).toEqual(["u6"]);
+    expect((await get("q=test&k=u")).hits.every((h) => h.kind === "user.prompt")).toBe(true);
+    expect((await get("k=t:Bash")).tools[0]).toBe("Bash");
+    expect((await get("k=u&to=2026-10-31T08:01:00.000Z")).hits.map((h) => h.id)).toEqual(["u1"]);
+    expect((await get("q=")).hits).toEqual([]);
     const cfg = (await (await fetch(`${base}/api/config`, { method: "PUT", headers: { "content-type": "application/json" }, body: JSON.stringify({ project, attention: "yolo" }) })).json()) as { attention: string };
     expect(cfg.attention).toBe("yolo");
     expect(((await (await fetch(`${base}/api/config?${q}`)).json()) as { attention: string }).attention).toBe("yolo");

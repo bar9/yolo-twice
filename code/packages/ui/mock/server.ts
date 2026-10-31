@@ -5,7 +5,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { ingestProject, Store, type Attention, type Granularity } from "@yolo-twice/core";
-import { deriveProject, deriveSession, findNode, nodeFullText, SearchIndex, StructuralSummarizer, TextCache, toMermaid, inputHash } from "@yolo-twice/analyzers";
+import { parseCodes, deriveProject, deriveSession, findNode, nodeFullText, SearchIndex, StructuralSummarizer, TextCache, toMermaid, inputHash } from "@yolo-twice/analyzers";
 import { FIXTURE_CWD, FIXTURE_SESSION, tempFixture } from "../../../fixtures/helper";
 
 const fx = tempFixture("ui-mock");
@@ -43,8 +43,12 @@ Bun.serve({
       return json(cfg);
     }
     if (p === "/api/search") {
+      // same semantics as the engine: empty query lists matches when a filter narrows it
       const q = url.searchParams.get("q") ?? "";
-      return json({ hits: q ? search.search(q, { session: url.searchParams.get("session") ?? undefined }) : [] });
+      const codes = parseCodes(url.searchParams.get("k"));
+      if (!q.trim() && codes.length === 0) return json({ hits: [] });
+      const sp = (k: string) => url.searchParams.get(k) || undefined;
+      return json({ hits: search.search(q, { session: sp("session"), codes, from: sp("from"), to: sp("to"), limit: Number(sp("limit") ?? 50) }), tools: search.tools() });
     }
     if (p === "/api/stream") {
       const stream = new ReadableStream({
