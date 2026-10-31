@@ -1,7 +1,7 @@
 ---
 theme: default
 title: yolo-twice
-info: Long AI coding sessions are a black box. yolo-twice makes them something a team can find, share and review. BaselHack 2026.
+info: Long AI coding sessions are hard to look at afterwards. yolo-twice keeps them with the code so a team can find, share and review them. BaselHack 2026.
 colorSchema: dark
 fonts:
   sans: Inter
@@ -18,29 +18,29 @@ mdc: true
 <img src="./assets/wordmark.png" class="cover-bg" alt="yolo-twice wordmark: YOLO, with the last O struck through by an orange brush-stroke T" />
 
 <div class="cover-band">
-  <p class="cover-tag">What did the AI do, and why?</p>
+  <p class="cover-tag">Give your AI conversations the attention they deserve.</p>
   <p class="cover-team">BaselHack 2026 · Matthias Cullmann · Roland Brand · Jan Babin · Thomas Schöller</p>
 </div>
 
 <!--
-0:00–0:10. Hi, we are yolo-twice. We want to talk about a question every team that works with AI coding agents runs into: what did the AI actually do, and why?
+Hi, we are yolo-twice. The name: YOLO, "you only live once", is also the nickname for letting an agent run without asking for approval. Such a session happens once and is then gone. We record it with the code, so it can be looked at a second time. We want to talk about a question every team that works with AI coding agents runs into: what did the AI actually do, and why?
 -->
 
 ---
 
 <div class="kicker">01 · The scene</div>
 
-# Three hours of AI work. One fair question.
+# A review question after a long AI session
 
 <div class="pr">
   <div class="pr-head">
     <span class="pr-state">Open</span>
-    <span class="pr-title">Add a login to the API <span class="dim">#142</span></span>
-    <span class="pr-meta"><span>written with an AI agent · 3h 12m</span><span class="add">+2,431</span><span class="del">−187</span></span>
+    <span class="pr-title">Add a newsletter sign-up <span class="dim">#142</span></span>
+    <span class="pr-meta"><span>written with an AI agent</span><span class="add">+286</span><span class="del">−9</span></span>
   </div>
   <div v-click class="comment">
     <div class="who"><span class="avatar">MR</span> Reviewer</div>
-    <p>Why this kind of encryption? And who decided to drop the protection against password guessing?</p>
+    <p>Why do people have to confirm their email twice? And who decided to drop the spam protection ???</p>
   </div>
   <div v-click class="comment reply">
     <div class="who"><span class="avatar">YOU</span> Author</div>
@@ -48,83 +48,227 @@ mdc: true
   </div>
 </div>
 
+<div v-click />
+<IncomingCall :active="$clicks >= 3" :sound="$renderContext === 'slide'" avatar="./assets/silo-avatar.png" />
+
 <!--
-0:10–0:35. A scene everyone recognises. A developer works with an AI agent all afternoon; the result is a big change. A reviewer asks a perfectly reasonable question. (For developers: RS256 and rate limiting.) The author was there, sort of: approved things, went for coffee, came back. The answer exists. Finding it is the problem.
+A common situation. Someone from the running club works with an AI agent all afternoon on the club website; the result is a new newsletter sign-up. A reviewer asks two perfectly reasonable questions: why the double confirmation, and where the spam protection went. The author was there, sort of: approved things, went for coffee, came back. The answer is recorded somewhere; finding it takes time.
+
+[click] And then the tech lead calls: "Can you explain the newsletter change before we merge?" (The ringtone plays in the audience window only.)
 -->
 
 ---
-
-<div class="split">
-<div class="split-text">
 
 <div class="kicker">02 · Scrolling back</div>
 
-# The record exists. It just isn't usable.
-
-Claude Code keeps a readable transcript of every session. But three hours of work is hundreds of screens like this one.
-
-<ul class="plain">
-  <li><b>No overview.</b> You read it in order, start to finish.</li>
-  <li><b>No way to point at a decision.</b> You scroll and hope.</li>
-  <li><b>Stuck on one laptop.</b> Nobody else on the team can see it.</li>
-</ul>
-
-</div>
-<div class="term tall">
+# The transcript
+<div class="term wall">
   <div class="term-bar"><span></span><span></span><span></span><em>Claude Code</em></div>
-  <div class="scroll-hint">↑ 187 more turns</div>
+  <div class="scroll-hint">↑ 1,240 more lines</div>
 <pre>
-<b class="u">&gt;</b> Add a /login endpoint to the API
-<i></i>
-<b class="dot">●</b> I'll start by looking at the existing routes.
-<i></i>
-<b class="dot">●</b> <b>Read</b>(src/routes/auth.ts)
-  <span class="dim">└  Read 42 lines</span>
-<i></i>
-<b class="dot">●</b> <b>Task</b>(Research JWT best practices)
-  <span class="dim">└  Done (6 tool uses · 18.2k tokens · 41s)</span>
-<i></i>
-<b class="dot">●</b> <b>Update</b>(src/routes/auth.ts)
-  <span class="dim">└  Updated with 38 additions and 4 removals</span>
-<i></i>
-<b class="dot">●</b> <b>Bash</b>(npm test)
-  <span class="dim">└</span>  <span class="err">✗ login returns 401 for valid user</span>
-     <span class="dim">29 passed, 1 failed</span>
-<i></i>
-<b class="dot">●</b> One test fails: the hash comparison uses
-  the wrong salt. Fixing it.
-<i></i>
-<b class="u">&gt;</b> Also add rate limiting to the login endpoint
-<i></i>
-<b class="u">&gt;</b> Actually, skip rate limiting; just fix the
-  failing login test
+<b class="u">&gt;</b> Add a newsletter sign-up to the website. Before building it, have a helper agent find out what the
+  rules and good practice are for collecting email addresses in Switzerland and the EU, then decide
+  how to do it and explain why.
+<b class="dot">●</b> I'll look at the current site first, then send a helper agent to research the rules.
+<b class="dot">●</b> <b>Read</b>(index.html)
+  <span class="dim">└  Read 64 lines</span>
+<b class="dot">●</b> <b>Read</b>(training.html)
+  <span class="dim">└  Read 48 lines</span>
+<b class="dot">●</b> <b>Read</b>(server.js)
+  <span class="dim">└  Read 37 lines</span>
+<b class="dot">●</b> <b>Read</b>(style.css)
+  <span class="dim">└  Read 122 lines</span>
+<b class="dot">●</b> <b>Agent</b>(Research rules for newsletter sign-ups in CH and EU)
+  <span class="dim">└  Done (11 tool uses · 27.3k tokens · 58s)</span>
+<b class="dot">●</b> Summary of the research: the Swiss data protection act (revDSG) and the EU GDPR both expect clear,
+  freely given consent that you can prove later. Good practice is double opt-in: people confirm by
+  clicking a link in an email, which proves the address is theirs and keeps a record of consent.
+<b class="dot">●</b> I will use double opt-in, store the date of consent, and add an unsubscribe link to every email.
+<b class="dot">●</b> <b>Write</b>(signup.html)
+  <span class="dim">└  Wrote 41 lines</span>
+<b class="dot">●</b> <b>Update</b>(index.html)
+  <span class="dim">└  Updated with 12 additions</span>
+<b class="dot">●</b> <b>Write</b>(confirm.html)
+  <span class="dim">└  Wrote 26 lines</span>
+<b class="dot">●</b> <b>Update</b>(server.js)
+  <span class="dim">└  Updated with 58 additions and 3 removals</span>
+<b class="dot">●</b> <b>Update</b>(style.css)
+  <span class="dim">└  Updated with 34 additions</span>
+<b class="dot">●</b> <b>Bash</b>(node server.js &amp; curl -s -X POST localhost:3000/signup -d email=test@example.ch)
+  <span class="err">└  {"ok":false,"error":"mail transport not configured"}</span>
+<b class="dot">●</b> Sending the confirmation email needs a mail setting. For local testing I will write emails to a file.
+<b class="dot">●</b> <b>Update</b>(server.js)
+  <span class="dim">└  Updated with 9 additions and 2 removals</span>
+<b class="dot">●</b> <b>Bash</b>(curl -s -X POST localhost:3000/signup -d email=test@example.ch)
+  <span class="dim">└  {"ok":true,"status":"confirmation sent"}</span>
+<b class="dot">●</b> <b>Bash</b>(cat outbox/latest.txt)
+  <span class="dim">└  To: test@example.ch · Subject: Please confirm your newsletter sign-up</span>
+<b class="dot">●</b> Done: the form sends a confirmation email; only confirmed addresses get the newsletter.
+<b class="u">&gt;</b> Also add a CAPTCHA to the sign-up form, so bots can't flood us with fake sign-ups.
+<b class="dot">●</b> I will add a simple puzzle CAPTCHA that is checked on the server before saving an address.
+<b class="dot">●</b> <b>Write</b>(captcha.js)
+  <span class="dim">└  Wrote 44 lines</span>
+<b class="dot">●</b> <b>Update</b>(signup.html)
+  <span class="dim">└  Updated with 9 additions</span>
+<b class="dot">●</b> <b>Update</b>(server.js)
+  <span class="dim">└  Updated with 17 additions</span>
+<b class="dot">●</b> <b>Bash</b>(curl -s -X POST localhost:3000/signup -d email=bot@spam.example)
+  <span class="dim">└  {"ok":false,"error":"captcha missing"}</span>
+<b class="u">&gt;</b> Actually, drop the CAPTCHA: our members find it annoying, and our mailing tool already filters out
+  spam sign-ups. Remove it again.
+<b class="dot">●</b> Understood. Removing the CAPTCHA from the form and the server.
+<b class="dot">●</b> <b>Bash</b>(rm captcha.js)
+  <span class="dim">└</span>
+<b class="dot">●</b> <b>Update</b>(signup.html)
+  <span class="dim">└  Updated with 9 removals</span>
+<b class="dot">●</b> <b>Update</b>(server.js)
+  <span class="dim">└  Updated with 17 removals</span>
+<b class="dot">●</b> <b>Bash</b>(curl -s -X POST localhost:3000/signup -d email=test2@example.ch)
+  <span class="dim">└  {"ok":true,"status":"confirmation sent"}</span>
+<b class="u">&gt;</b> Add a short, friendly privacy note under the sign-up form.
+<b class="dot">●</b> A short note in plain words: what we store, why, and how to unsubscribe.
+<b class="dot">●</b> <b>Read</b>(signup.html)
+  <span class="dim">└  Read 32 lines</span>
+<b class="dot">●</b> <b>Read</b>(contact.html)
+  <span class="dim">└  Read 39 lines</span>
+<b class="dot">●</b> The contact page already names the club's privacy contact. I will link to it from the note.
+<b class="dot">●</b> <b>Update</b>(signup.html)
+  <span class="dim">└  Updated with 7 additions</span>
+<b class="dot">●</b> <b>Update</b>(style.css)
+  <span class="dim">└  Updated with 6 additions</span>
+<b class="dot">●</b> <b>Bash</b>(node server.js &amp; curl -s localhost:3000/signup.html | grep -c privacy)
+  <span class="dim">└  2</span>
+<b class="dot">●</b> <b>Bash</b>(npx html-validate index.html signup.html confirm.html)
+  <span class="dim">└  0 errors, 0 warnings</span>
+<b class="dot">●</b> The note is in place and all pages validate.
+<b class="u">&gt;</b> Commit this as "Add a newsletter sign-up".
+<b class="dot">●</b> <b>Bash</b>(git status --short)
+  <span class="dim">└  M index.html · M server.js · M style.css · ?? signup.html · ?? confirm.html</span>
+<b class="dot">●</b> <b>Bash</b>(git add -A &amp;&amp; git commit -m "Add a newsletter sign-up")
+  <span class="dim">└  [main 63a2b55] Add a newsletter sign-up · 6 files changed, 286 insertions(+), 9 deletions(-)</span>
 </pre>
-  <div class="scroll-hint bottom">↓ 24 more turns</div>
-</div>
+  <div class="scroll-hint bottom">↓ 180 more lines</div>
 </div>
 
 <!--
-0:35–0:55. Be fair to Claude Code: the transcript is good, and both answers are on this very screen (the research task, and "skip rate limiting" at the bottom). But this is one screen of hundreds, in order, and only on the author's laptop.
+Claude Code keeps a readable transcript of every session, and both answers are on this very screen: the helper agent's research on the rules, and "drop the CAPTCHA" with its reason in the middle. Nobody finds them by scrolling. A long session is many screens like this. There is no overview, no way to point at a decision, and it sits on the author's laptop where nobody else on the team can see it.
+-->
+
+---
+layout: center
+class: text-center
+---
+
+<div class="kicker">03 · Demo</div>
+
+# Live demo
+
+<div class="term narrow">
+  <div class="term-bar"><span></span><span></span><span></span><em>Claude Code</em></div>
+<pre>
+<span class="prompt">&#36;</span> claude plugin install yolo-twice --marketplace bar9/yolo-twice
+<b class="u">&gt;</b> /yolo-twice:yolo-twice
+</pre>
+</div>
+
+<!--
+Switch to the demo, straight from the wall of text, and answer the reviewer's two questions with the session that produced the pull request.
+1. Open the project: the session "Add a newsletter sign-up" sits in the repo next to the website (.yolo-twice/sessions).
+2. Read its one-line summary, then the turn list.
+3. "Why confirm the email twice?" Open the first turn, switch to the map: the helper agent's frame holds the research on consent rules; the next Claude step explains why it chose double opt-in. (If Claude chose differently in the recording, ask the question to match.)
+4. "Who dropped the spam protection?" Search "CAPTCHA", filter You: it was the club member, in turn 3, with the reason (members found it annoying, and the mailing tool already filters spam).
+5. Copy the link to that step: it opens the same view for a colleague.
 -->
 
 ---
 
-<div class="split">
-<div class="split-text">
+<div class="kicker">04 · Benefits</div>
 
-<div class="kicker">03 · The gap</div>
+# Find, share, review, continue
 
-# For the team, AI work is a black box.
-
-<div class="rows">
-  <div class="row"><span class="tag t-find">find</span><div><b>"Where is last Tuesday's session?"</b><span>Not in the project. It leaves with the laptop.</span></div></div>
-  <div class="row"><span class="tag t-share">share</span><div><b>"Look at the moment it chose this."</b><span>There is no link to send.</span></div></div>
-  <div class="row"><span class="tag t-review">review</span><div><b>"Why does the code look like this?"</b><span>Reviews see the result, never the reasoning.</span></div></div>
+<div class="solo">
+<div class="term">
+  <div class="term-bar"><span></span><span></span><span></span><em>terminal</em></div>
+<pre>
+<span class="tag t-find">find</span>
+<span class="prompt">&#36;</span> git log --oneline -- .yolo-twice/sessions
+<span class="hash">63a2b55</span> Add a newsletter sign-up
+<i></i>
+<span class="tag t-share">share</span>
+<span class="ok">→ localhost:9656/api/7f825b/t4</span>
+<i></i>
+<span class="tag t-review">review</span>
+<span class="prompt">&#36;</span> gh pr diff 142 --name-only | grep yolo
+<span class="ok">.yolo-twice/sessions/7f825bc9/events.ndjson</span>
+<i></i>
+<span class="tag t-continue">continue</span>
+<span class="prompt">&#36;</span> yolo-twice resume 7f825bc9
+<span class="ok">✓ claude --resume … --fork-session</span>
+</pre>
+</div>
 </div>
 
-<p class="punch">More and more decisions are made in these conversations. None of them are reviewed.</p>
+<!--
+The same three questions, plus one. Sessions can be found later: they stay with the project, also when people move on. A link opens a specific step for others on the team. Reviewers can see the reasoning in addition to the resulting code. And a colleague can resume the session on their own machine. Back to the reviewer: they open the link, land on the exchange, and have the answer. As more code is written with AI agents, it becomes more useful to know why it was written that way.
+-->
 
+---
+
+<div class="kicker">05 · Values</div>
+
+# What we care about
+
+<div class="hood tiles values">
+  <div class="card"><b>Transparency</b><span>The reasoning is reviewable, not only the result</span></div>
+  <div class="card"><b>Privacy</b><span>Runs locally, secrets removed before saving</span></div>
+  <div class="card"><b>Openness</b><span>Plain files in your repo, MIT licensed</span></div>
+  <div class="card"><b>Economy</b><span>Structure without AI, summaries only when asked</span></div>
 </div>
+
+<!--
+Transparency: as more code is written with AI agents, the reasoning behind it should be as reviewable as the code. Privacy: everything runs on your machine; passwords, keys and personal folder names are removed before anything is written, and you decide what to commit. Openness: plain JSON and text files that any tool can read, and the project is open source. Economy: chapters, exchanges and helper agents come straight from the transcript with no model call; short summaries are written by Claude only when wanted, cached, and the cost is shown.
+-->
+
+---
+
+<div class="kicker">06 · Outlook</div>
+
+# Outlook
+
+<div class="road">
+  <div class="card"><span class="when">next</span><b>More agents</b><span>Beyond Claude Code</span></div>
+  <div class="card"><span class="when">next</span><b>Comments</b><span>Discuss a step where it happened</span></div>
+  <div class="card"><span class="when">later</span><b>Agents that remember</b><span>The AI searches its own history</span></div>
+</div>
+
+<!--
+Where we would take it. Support for other coding agents beyond Claude Code. Comments on saved sessions, so a review discussion can sit on the exact step it is about. And letting the AI search its own history, so the next session can build on what earlier ones decided and why.
+-->
+
+---
+
+<div class="kicker">07 · Thanks</div>
+
+# Thank you
+
+<div class="team big">
+  <p>Matthias Cullmann · Roland Brand · Jan Babin · Thomas Schöller</p>
+  <p class="dim"><a href="https://github.com/bar9/yolo-twice">github.com/bar9/yolo-twice</a></p>
+</div>
+
+<p class="credits">Built on ideas from Claudescope, claude-code-history-viewer and cc_transcript_viewer · diagrams by pele</p>
+
+<!--
+Thanks to the projects that came before us: Claudescope, claude-code-history-viewer, cc_transcript_viewer; every diagram is rendered with pele. The site is bar9.github.io/yolo-twice.
+-->
+
+---
+
+<div class="kicker">Backup · The gap</div>
+
+# Find, share, review: not for AI sessions
+
+<div class="solo">
 <div class="term">
   <div class="term-bar"><span></span><span></span><span></span><em>terminal</em></div>
 <pre>
@@ -139,246 +283,104 @@ Claude Code keeps a readable transcript of every session. But three hours of wor
 <i></i>
 <span class="tag t-review">review</span>
 <span class="prompt">&#36;</span> gh pr diff 142 --name-only
-src/routes/auth.ts
-src/routes/auth.test.ts
-<span class="dim">… 36 more files of code</span>
+<span class="dim">… 6 files of code</span>
 <span class="err">› 0 files of conversation</span>
 </pre>
 </div>
 </div>
 
 <!--
-0:55–1:20. Find, share, review: three things every team does with code, every day. Try them on the AI session and you get nothing (the terminal on the right is the developer's version of the same story). The point to land: more and more engineering decisions are made in that conversation, and it is the one part of the work nobody reviews.
+Find, share, review: three things every team does with code, every day. "Where is last Tuesday's session?" It is not in the project; it leaves with the laptop. "Look at the moment it chose this." There is no link to send. "Why does the code look like this?" Reviews see the result, not the reasoning. More design decisions are made in these conversations, and they are rarely part of a review.
 -->
 
 ---
 
-<div class="split">
-<div class="split-text">
+<div class="kicker">Backup · The idea</div>
 
-<div class="kicker">04 · The idea</div>
+# Keep the session with the code
 
-# Keep the conversation with the code.
-
-We treat an AI session like source code: saved in the project, versioned, shared with the team, and reviewed in the same pull request.
-
-<p class="new">Existing tools show you a transcript. We make it part of the project, readable at any level of detail.</p>
-
-<div class="chips">
-  <span>saved with the project</span><span>versioned</span><span>shareable</span><span>reviewable</span><span>resumable</span>
-</div>
-
-</div>
-<div>
+<div class="solo">
 <div class="term">
   <div class="term-bar"><span></span><span></span><span></span><em>terminal</em></div>
 <pre>
 <span class="prompt">&#36;</span> git show --stat HEAD
 <span class="hash">commit 63a2b55</span>
-    Add a login to the API
+    Add a newsletter sign-up
 <i></i>
- src/routes/auth.ts               |  42 <span class="add">++++</span><span class="del">-</span>
- src/routes/auth.test.ts          |  31 <span class="add">+++</span>
+ index.html                       |  42 <span class="add">++++</span><span class="del">-</span>
+ server.js                        |  31 <span class="add">+++</span>
 <span class="hl"> .yolo-twice/sessions/7f825bc9/
    meta.json                      |   9 <span class="add">+</span>
    events.ndjson                  | 412 <span class="add">++++++++</span>
-   structure.json                 |  96 <span class="add">++</span>
-   graph.mmd                      |  18 <span class="add">+</span></span>
+   structure.json                 |  96 <span class="add">++</span></span>
 </pre>
-</div>
-<p class="caption">One change, one commit: the code, and the conversation that produced it.</p>
 </div>
 </div>
 
 <!--
-1:20–1:35. We already know how to make work transparent to a team: put it in version control. So we do exactly that with the AI session. Same change, same review. That is what is new: transcript viewers exist and we learned from them, but they show a list on one machine. We make the session part of the project.
+We already know how to make work visible to a team: put it in version control. We store the AI session in the project, next to the code it produced, so it can be versioned, shared and looked at in the same pull request. Existing viewers show a transcript on one machine; we learned from them. The difference is that the session becomes part of the project, readable at several levels of detail.
 -->
 
 ---
 
-<div class="kicker">05 · How it works: record</div>
+<div class="kicker">Backup · Record</div>
 
-# Recorded automatically. Private by default.
+# Recorded in the background
 
-<div class="grid grid-cols-2 gap-10 pt-2 items-center">
-<div>
+<div class="diagram">
 
-<Pele text="flowchart TB
+<Pele text="flowchart LR
   CC[AI coding session] --> ENG[yolo-twice, on your machine]
   ENG --> R[secrets removed]
   R --> STORE[(saved in the project)]" />
 
 </div>
-<div class="facts">
-
-<p><b>Nothing to do.</b> It records while you work, in the background.</p>
-<p><b>Private.</b> Passwords, keys and personal folder names are removed before anything is saved.</p>
-<p><b>Open.</b> Plain text files that any tool can read. No lock-in.</p>
-<p><b>Made for teams.</b> Everyone's sessions sit side by side without getting in each other's way.</p>
-
-</div>
-</div>
 
 <!--
-1:35–1:55. For developers: a Claude Code plugin with hooks, plus a small local engine. Redaction happens before anything touches disk, paths become $PROJECT and ~, one folder per session so there are no merge conflicts. You decide whether to commit it.
+Nothing to do: it records while you work. Passwords, keys and personal folder names are removed before anything is saved. The files are plain JSON and text that other tools can read, and there is one folder per session, so sessions from several people do not conflict. For developers: a Claude Code plugin with hooks plus a small local engine. You decide whether to commit it.
 -->
 
 ---
 
-<div class="kicker">06 · How it works: read</div>
+<div class="kicker">Backup · Read</div>
 
-# From one sentence to every detail.
+# From one line to every detail
 
-<div class="grid grid-cols-2 gap-8 pt-2">
-<div class="zoom">
-
-<div class="z z1"><span class="lvl">in one line</span>Added a login and fixed the tests</div>
-<div class="z z2"><span class="lvl">in three sentences</span>Added a login with secure tokens, following a research step by a helper agent. Password-guessing protection was requested, then dropped by the developer. Fixed a bug that failed one test.</div>
-<div class="z z3"><span class="lvl">chapters</span>3 chapters · 7 exchanges · 1 helper · 1 change of plan</div>
-<div class="z z4"><span class="lvl">one exchange</span>"Actually, skip rate limiting; just fix the failing login test"</div>
-<div class="z z5"><span class="lvl">raw log</span>{"type":"user","message":{"role":"user",…</div>
-
-</div>
-<div>
-
-<Pele text="flowchart TB
-  t1[Add a login]
-  a1[[Helper: research tokens]]
-  t2[Also protect against guessing]
-  t3[Skip that, fix the test]
-  t4[Write the changelog]
-  t1 -.-> a1
-  t1 --> t2
-  t1 -. new plan .-> t3
-  t3 --> t4
-  classDef branch fill:#3a2e10,stroke:#e3b341,color:#f6d27a;
-  classDef subagent fill:#2a1f45,stroke:#bc8cff,color:#d2b8ff;
-  class t3 branch; class a1 subagent;" />
-
-<p class="caption center">Every detour stays visible. The yellow branch answers the reviewer.</p>
-
-</div>
-</div>
+<img src="./assets/ui-split.png" class="shot" alt="yolo-twice: a session summary on the left, its turns as a graph on the right" />
 
 <!--
-1:55–2:15. Left: the same session at five levels of detail. Managers read the top line; developers go all the way down. The structure needs no AI at all; the short summaries are written by Claude itself, cached, and only as often as you allow. Right: the session as a map, not a list. The yellow branch is exactly where rate limiting was dropped.
+The session in yolo-twice: a timeline at the top, the story on the left, the map on the right. Detail goes from a one-line summary through chapters and single exchanges down to the raw log. Some readers only need the top line; others go down to the raw log. The structure needs no AI; the short summaries are written by Claude, cached, and only as often as you allow.
 -->
 
 ---
 
-<div class="kicker">07 · Under the hood</div>
+<div class="kicker">Backup · Map</div>
 
-# Incremental, private, cheap to run.
+# Every step, every helper agent
 
-<div class="hood">
-  <div class="card"><b>Incremental and repeatable</b><p>Reads only what is new since last time. Run it twice: identical output, byte for byte.</p></div>
-  <div class="card"><b>Secrets removed on the way in</b><p>Redaction runs before anything is written. Paths become <code>$PROJECT</code> and <code>~</code>, so no personal details reach the repo.</p></div>
-  <div class="card"><b>Structure without AI</b><p>Chapters, exchanges, tool calls, helper agents and changes of plan come straight from the transcript. No model call, no cost.</p></div>
-  <div class="card"><b>Summaries only when wanted</b><p>Written by Claude itself, cached by content, and only as often as the attention setting allows. The cost is shown.</p></div>
-  <div class="card"><b>Live</b><p>Claude Code hooks notify a local engine; the browser updates over Server-Sent Events while the agent works.</p></div>
-  <div class="card"><b>Portable sessions</b><p><code>resume</code> rebuilds a working Claude Code transcript from the saved events, on any teammate's machine.</p></div>
-</div>
-
-<p class="stack">TypeScript · Bun and Node · React · Claude Code plugin · 50 tests, 343 assertions · open source (MIT)</p>
+<img src="./assets/ui-map.png" class="shot" alt="yolo-twice map: three helper agents working in parallel, each in its own frame" />
 
 <!--
-2:15–2:30. For the technical judges, in one breath: incremental and idempotent ingestion, redaction before write, structural analysis with no model at all, lazy cached summaries under a cost budget, live updates, and resume across machines. Managers can skip this slide; the next one is what it means for them.
+One exchange as a map: here three helper agents were started in parallel, each in its own frame with its own steps. Changes of plan stay visible as their own branch; that is where the reviewer finds where the CAPTCHA was dropped.
 -->
 
 ---
 
-<div class="split">
-<div class="split-text">
+<div class="kicker">Backup · Under the hood</div>
 
-<div class="kicker">08 · What changes</div>
+# Implementation
 
-# Same questions. Now they have answers.
-
-<div class="rows">
-  <div class="row"><span class="tag t-find">find</span><div><b>Nothing gets lost.</b><span>Sessions stay with the project, even when people move on.</span></div></div>
-  <div class="row"><span class="tag t-share">share</span><div><b>Discuss the exact moment.</b><span>A link opens the decision, for anyone on the team.</span></div></div>
-  <div class="row"><span class="tag t-review">review</span><div><b>Reviews cover the reasoning.</b><span>Not just the result.</span></div></div>
-  <div class="row"><span class="tag t-continue">continue</span><div><b>Anyone can pick up the work.</b><span>A colleague continues the session on their own machine.</span></div></div>
+<div class="hood tiles">
+  <div class="card"><b>Incremental</b></div>
+  <div class="card"><b>Redacted on the way in</b></div>
+  <div class="card"><b>Structure without AI</b></div>
+  <div class="card"><b>Cached summaries</b></div>
+  <div class="card"><b>Live</b></div>
+  <div class="card"><b>Resumable anywhere</b></div>
 </div>
 
-<p class="punch">As AI writes more of our software, knowing <em>why</em> it was written that way becomes part of quality, trust and accountability.</p>
-
-</div>
-<div class="term">
-  <div class="term-bar"><span></span><span></span><span></span><em>terminal</em></div>
-<pre>
-<span class="tag t-find">find</span>
-<span class="prompt">&#36;</span> git log --oneline -- .yolo-twice/sessions
-<span class="hash">63a2b55</span> Add a login to the API
-<i></i>
-<span class="tag t-share">share</span>
-<span class="ok">→ localhost:9656/api/7f825b/t4</span>
-<span class="dim">  same view for anyone with the repo</span>
-<i></i>
-<span class="tag t-review">review</span>
-<span class="prompt">&#36;</span> gh pr diff 142 --name-only | grep yolo
-<span class="ok">.yolo-twice/sessions/7f825bc9/events.ndjson</span>
-<i></i>
-<span class="tag t-continue">continue</span>
-<span class="prompt">&#36;</span> yolo-twice resume 7f825bc9
-<span class="ok">✓ transcript rebuilt for this machine</span>
-<span class="ok">✓ claude --resume … --fork-session</span>
-</pre>
-</div>
-</div>
+<p class="stack">TypeScript · Bun · React · Claude Code plugin · 63 tests · MIT</p>
 
 <!--
-2:30–2:45. The mirror of the black-box slide: the same three questions, plus one. Back to Friday: the reviewer opens the link, lands on the exact exchange, and has the answer. And the bigger picture: as agents write more of our software, the reasoning behind it is part of quality, trust and accountability. That is the transparency we are after, built on tools teams already use.
--->
-
----
-layout: center
-class: text-center
----
-
-<div class="kicker">09 · Proof</div>
-
-# We built yolo-twice with yolo-twice.
-
-<p class="lead">This project keeps the AI sessions that built it, right next to its code. Let's open one.</p>
-
-<div class="term narrow">
-  <div class="term-bar"><span></span><span></span><span></span><em>Claude Code</em></div>
-<pre>
-<span class="prompt">&#36;</span> claude plugin install yolo-twice --marketplace bar9/yolo-twice
-<b class="u">&gt;</b> /yolo-twice:yolo-twice
-</pre>
-</div>
-
-<div class="pt-6 text-xl demo">→ live demo</div>
-
-<!--
-2:45–2:55. We used it on ourselves all weekend. Switch to the demo: open the committed build session, start from the one-line summary, open a chapter, then one decision, and show the map.
--->
-
----
-
-<div class="kicker">10 · Thanks</div>
-
-# Thank you.
-
-<div class="facts wide">
-
-<p>We learned from the viewers that came first:
-<a href="https://github.com/vladar107/claudescope">Claudescope</a>,
-<a href="https://github.com/jhlee0409/claude-code-history-viewer">claude-code-history-viewer</a>,
-<a href="https://github.com/tim-hua-01/cc_transcript_viewer">cc_transcript_viewer</a>.
-Every diagram in this deck is rendered with <a href="https://github.com/obsidianmd/pele">pele</a>.</p>
-
-<p><b>Next:</b> support for AI agents beyond Claude Code, comments on saved sessions, and letting the AI search its own history.</p>
-
-</div>
-
-<div class="team">
-  <p>Matthias Cullmann · Roland Brand · Jan Babin · Thomas Schöller</p>
-  <p class="dim">Open source (MIT) · <a href="https://github.com/bar9/yolo-twice">github.com/bar9/yolo-twice</a> · <a href="https://bar9.github.io/yolo-twice/">bar9.github.io/yolo-twice</a></p>
-</div>
-
-<!--
-2:55–3:00. Credit to the projects before us. Thank you.
+For the technical audience, briefly. Incremental and repeatable: it reads only what is new, and running it twice gives identical output. Redaction runs before anything is written; paths become $PROJECT and ~. Chapters, exchanges, tool calls, helper agents and changes of plan come straight from the transcript, with no model call. Summaries are written by Claude, cached by content, and only as often as the attention setting allows; the cost is shown. Hooks notify a local engine and the browser updates live. resume rebuilds a working Claude Code transcript on any teammate's machine.
 -->
