@@ -4,23 +4,39 @@
   "description": "Insights into long-running Claude Code sessions: semantic zoom, live flow graph, project-local history.",
   "type": "module",
   "license": "MIT",
-  "repository": "https://github.com/bar9/yolo-twice",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bar9/yolo-twice.git"
+  },
   "homepage": "https://bar9.github.io/yolo-twice/",
-  "bin": { "yolo-twice": "./dist/cli.js" },
+  "bin": {
+    "yolo-twice": "dist/cli.js"
+  },
   "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
-  "files": ["dist"],
+  "files": [
+    "dist",
+    "ui"
+  ],
   "scripts": {
     "build": "tsc -b",
     "typecheck": "tsc -b",
-    "start": "bun run src/cli.ts start --foreground"
+    "start": "bun run src/cli.ts start --foreground",
+    "bundle": "rm -rf dist ui && esbuild src/cli.ts src/index.ts --bundle --platform=node --format=esm --target=node20 --conditions=bun --outdir=dist --external:hono --external:@hono/node-server --external:chokidar --external:minisearch --external:zod && cp -r ../ui/dist ui",
+    "prepack": "npm run bundle"
   },
   "dependencies": {
     "@hono/node-server": "^2.1.5",
+    "chokidar": "^6.0.0",
+    "hono": "^4.13.14",
+    "minisearch": "^7.0.0",
+    "zod": "^4.0.0"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {
     "@yolo-twice/analyzers": "workspace:*",
     "@yolo-twice/core": "workspace:*",
-    "chokidar": "^6.0.0",
-    "hono": "^4.13.14"
-  },
-  "engines": { "node": ">=20" }
+    "esbuild": "^0.25.0"
+  }
 }

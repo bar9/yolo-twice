@@ -1,0 +1,38 @@
+name: Publish to npm
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+  id-token: write # npm trusted publishing (OIDC) + provenance
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+      - name: Install
+        working-directory: code
+        run: bun install --frozen-lockfile
+      - name: Check tag matches package version
+        working-directory: code/packages/engine
+        run: |
+          v=$(node -p "require('./package.json').version")
+          if [ "v$v" != "$GITHUB_REF_NAME" ]; then
+            echo "::error::tag $GITHUB_REF_NAME does not match package.json version $v"; exit 1
+          fi
+      - name: Build UI
+        working-directory: code/packages/ui
+        run: bun run build
+      - name: Publish
+        working-directory: code/packages/engine
+        run: npm publish --access public
