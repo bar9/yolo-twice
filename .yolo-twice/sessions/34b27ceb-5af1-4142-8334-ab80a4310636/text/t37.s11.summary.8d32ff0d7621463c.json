@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T15:57:10.334Z",
+  "granularity": "summary",
+  "hash": "8d32ff0d7621463c",
+  "node": "t37.s11",
+  "text": "Wrote /tmp/claude-1000/<project-slug>/34b27ceb-5af1-4142-8334-ab80a4310636/scratchpad/pw/smoke-flow.mjs, a Playwright script that opens the split view and the map view (?v=m) at http://127.0.0.1:9656/yolo-twice/34b27c. For each it counts `.react-flow__node`, saves a screenshot, and collects page and console errors. The run failed before any page loaded: Playwright's headless_shell binary is missing from ~/.cache/ms-playwright (chromium_headless_shell-1169). Fix by running `npx playwright install` in that pw directory, then rerun. No node counts or errors were observed yet.",
+  "version": "2"
+}

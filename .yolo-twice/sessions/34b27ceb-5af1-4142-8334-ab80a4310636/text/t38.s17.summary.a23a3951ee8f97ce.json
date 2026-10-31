@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T16:01:15.846Z",
+  "granularity": "summary",
+  "hash": "a23a3951ee8f97ce",
+  "node": "t38.s17",
+  "text": "A dry-run merge of main into ui/react-flow-graph, without touching the working tree, shows only 10 conflicts: App.tsx (2), Graph.tsx (1), ToolCall.tsx (2), Zoom.tsx (1), styles.css (2), and three session data files, where main's copy wins. Main changed only two lines in Graph.tsx since the split, so the branch's new graph builder stays and folded runs from scope.ts feed into it. Three gaps need fixing in the same merge: folded \"⋯ N filtered\" boxes need a compact dashed style, clicking one should open the hidden run, and hover greying must carry over. Plan is a merge commit, full tests and browser checks, then merge into main without pushing, under an hour. Awaiting go-ahead.",
+  "version": "2"
+}
