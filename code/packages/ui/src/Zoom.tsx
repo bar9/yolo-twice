@@ -100,7 +100,7 @@ export function Zoom(props: {
             </div>
             {g === "full" ? (
               node.level >= 3 ? <Events node={node} events={props.events} /> : <p className="muted">Expand the children below to read the full text.</p>
-            ) : (
+            ) : text !== undefined && sameText(text, node.label) ? null : (
               <p className={`text ${text === undefined ? "muted" : ""}`}>{text ?? structuralFallback(node, g)}</p>
             )}
             {node.children.map((c, i) => render(c, depth + 1, i === 0 ? undefined : node.children[i - 1]!.meta?.boundary))}
@@ -111,6 +111,14 @@ export function Zoom(props: {
   };
 
   return <div className="zoom">{render(props.root, 0)}</div>;
+}
+
+/** A text that only repeats the heading (a one-line prompt is its own title) is not shown twice. */
+function sameText(text: string, label: string): boolean {
+  const norm = (s: string) => s.replace(/[\s.…]+/g, " ").trim().toLowerCase();
+  const [t, l] = [norm(text), norm(label)];
+  // the label may be a truncated prompt: a prefix match counts only while the rest is short
+  return !t || t === l || (Math.abs(t.length - l.length) < 20 && (t.startsWith(l) || l.startsWith(t)));
 }
 
 /** What to show before a summary exists: the label, deterministic, never blank. */

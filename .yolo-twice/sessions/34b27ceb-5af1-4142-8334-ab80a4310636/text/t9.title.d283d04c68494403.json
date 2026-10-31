@@ -1,9 +1,0 @@
-{
-  "analyzer": "claude-cli:haiku",
-  "created": "2026-10-31T11:04:42.430Z",
-  "granularity": "title",
-  "hash": "d283d04c68494403",
-  "node": "t9",
-  "text": "User ran /model opus to switch the session model to Opus",
-  "version": "1"
-}

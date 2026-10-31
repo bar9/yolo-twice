@@ -120,6 +120,25 @@ describe("semantic cache", () => {
       fx.cleanup();
     }
   });
+
+  test("a node shorter than the granularity is its own text: no LLM call, nothing written", async () => {
+    const { fx, store, events } = indexed();
+    try {
+      let calls = 0;
+      const fake: Summarizer = { name: "fake", summarize: async () => (calls++, "Prompt asks to do it") };
+      const { session } = buildStructure(FIXTURE_SESSION, events);
+      const byId = new Map(events.map((e) => [e.id, e]));
+      const cache = new TextCache(store.textDir(FIXTURE_SESSION));
+      const step = findNode(session, "t1.s1")!;
+      const a = await summarizeNode({ node: step, granularity: "summary", interim: false }, byId, cache, fake);
+      expect(calls).toBe(0);
+      expect(a.analyzer).toBe("verbatim");
+      expect(a.text).not.toMatch(/^\[/); // role markers stripped
+      expect(fs.existsSync(store.textDir(FIXTURE_SESSION)) ? fs.readdirSync(store.textDir(FIXTURE_SESSION)) : []).toEqual([]);
+    } finally {
+      fx.cleanup();
+    }
+  });
 });
 
 describe("labels", () => {

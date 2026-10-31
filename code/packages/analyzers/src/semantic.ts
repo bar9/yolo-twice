@@ -4,7 +4,7 @@ import { spawn } from "node:child_process";
 import { readJson, sha256, writeJsonAtomic, type Attention, type Event, type Granularity, type StructureNode } from "@yolo-twice/core";
 import { walk } from "./structure.js";
 
-export const ANALYZER_VERSION = "1";
+export const ANALYZER_VERSION = "2";
 
 export interface SummarizeInput {
   granularity: Exclude<Granularity, "full">;
@@ -21,10 +21,18 @@ export interface Summarizer {
 }
 
 const TARGETS: Record<Exclude<Granularity, "full">, string> = {
-  title: "one line of at most 12 words, no trailing period",
+  title: "one line of at most 12 words, no trailing period, phrased like a commit subject (for example: Split project.json into per-session meta files)",
   abstract: "at most three sentences: what was done, why, and the outcome",
   summary: "one paragraph or a short bullet list of the main steps and decisions, at most 120 words",
 };
+
+/** Below this length (role markers stripped) a text is its own summary: an LLM call would only paraphrase it. */
+const VERBATIM_MAX: Record<Exclude<Granularity, "full">, number> = { title: 90, abstract: 300, summary: 800 };
+
+/** The node's text without the `[kind]` role markers of nodeFullText, on one line. */
+function plainText(full: string): string {
+  return full.replace(/^\[[^\]\n]*\] ?/gm, "").replace(/\s+/g, " ").trim();
+}
 
 /** No-LLM fallback: deterministic head/tail extraction. Always available. */
 export class StructuralSummarizer implements Summarizer {
@@ -69,6 +77,8 @@ export class ClaudeCliSummarizer implements Summarizer {
       `You condense a coding-agent transcript ${input.kind} for a developer who wants to skim it.`,
       `Write a ${input.granularity}: ${TARGETS[input.granularity]}.`,
       "Be concrete: name files, commands, errors and decisions. No preamble, no markdown headings.",
+      "State the substance directly. Never narrate the transcript: do not start with or mention 'the user', 'the prompt', 'the assistant', 'this turn', 'this step' or 'asks to'.",
+      ...(input.label ? [`The reader already sees this heading, so add what it does not say (what was done, found or decided), do not repeat it: ${JSON.stringify(input.label)}`] : []),
       "",
       "<transcript>",
       input.text,
@@ -269,6 +279,11 @@ export async function summarizeNode(
   summarizer: Summarizer,
 ): Promise<TextArtifact> {
   const full = nodeFullText(job.node, eventsById);
+  // a short node (a one-line prompt, a single tool call) is already as short as the granularity asks
+  const plain = plainText(full);
+  if (plain.length <= VERBATIM_MAX[job.granularity]) {
+    return { node: job.node.id, granularity: job.granularity, hash: "verbatim", analyzer: "verbatim", version: ANALYZER_VERSION, text: plain, created: new Date().toISOString() };
+  }
   const hash = inputHash(full, job.granularity, summarizer.name);
   const hit = cache.get(job.node.id, job.granularity, hash);
   if (hit) return hit;

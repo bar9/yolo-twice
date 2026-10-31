@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T11:10:54.458Z",
+  "granularity": "abstract",
+  "hash": "460a5f7e0fab23ed",
+  "node": "t19.s28",
+  "text": "The zombie-developer Halloween cover art became the title slide of the pitch deck, copied into the deck's assets as `cover-yolo.jpg` and set above a dark band with the title, tagline and team names so the stone \"YOLO\" letters stay visible. After a screenshot of the built deck looked right and a scan of the staged changes found no secrets or `~` paths, it was committed with the pending `.yolo-twice/` session updates and pushed to `bar9/yolo-twice`. The Pages workflow succeeded, the deck is live at https://bar9.github.io/yolo-twice/pitch/, and the other two downloaded images are unused.",
+  "version": "1"
+}

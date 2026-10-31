@@ -1,9 +1,0 @@
-{
-  "analyzer": "claude-cli:haiku",
-  "created": "2026-10-31T11:03:41.398Z",
-  "granularity": "abstract",
-  "hash": "435d5884eb6d513c",
-  "node": "t4",
-  "text": "The assistant replaced the placeholder `Copyright © 2025 <copyright holders>` in `license.txt` with `Copyright © 2026 Matthias Cullmann, Roland Brand, Jan Babin and the yolo-twice contributors`, using names from git authors, `gh api` collaborators (culmat, bar9, jan-ba) and their public GitHub profiles, since the fourth team member is not yet a collaborator and is covered by the \"contributors\" clause. The edit was made with `sed` and left uncommitted alongside the existing uncommitted `README.md` and `documentation/design.md` changes. The outcome is a corrected license header, with a note that the fourth member's name must be added once it is known.",
-  "version": "1"
-}

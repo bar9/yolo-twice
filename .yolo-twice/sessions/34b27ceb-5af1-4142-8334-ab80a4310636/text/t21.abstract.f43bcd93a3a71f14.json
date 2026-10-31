@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T12:21:34.660Z",
+  "granularity": "abstract",
+  "hash": "f43bcd93a3a71f14",
+  "node": "t21",
+  "text": "The user ran `claude plugin marketplace add ~/git/yolo-twice/` to register the local repo as a plugin marketplace, but it was already declared in user settings from earlier testing, so nothing changed. `claude plugin list` confirmed `yolo-twice@yolo-twice` v0.1.2 is enabled at user scope and reads live from `code/plugin`, so edits there reach new sessions without reinstalling. The plugin's command is `/yolo-twice:yolo-twice`.",
+  "version": "1"
+}

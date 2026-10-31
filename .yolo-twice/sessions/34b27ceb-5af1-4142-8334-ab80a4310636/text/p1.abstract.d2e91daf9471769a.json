@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T12:25:58.967Z",
+  "granularity": "abstract",
+  "hash": "d2e91daf9471769a",
+  "node": "p1",
+  "text": "Built yolo-twice, a Claude Code session viewer, as a monorepo under code/ (core ingest and redaction, analyzers, engine daemon and CLI, Claude plugin with /yolo-twice:yolo-twice, React UI with linked timeline, reader, graph and search plus follow mode, VitePress site, Slidev deck, Pages workflow), then reworked the committed .yolo-twice folder so that it has portable $PROJECT and ~ paths, no username, one writer per committed file (meta.json per session, project list and cursors in cache/), and a resume that runs claude --resume <file> --fork-session. The goal was a shareable, navigable history for a BaselHack team that does not leak usernames or cause merge conflicts; bugs found along the way were fixed (duplicate events from concurrent engines, --bare breaking the summarizer's login, a project.json merge conflict). Outcome: 50 unit tests and 30 browser checks pass, Pages is live at bar9.github.io/yolo-twice, most work is pushed (the last graph-follow commit 29d1a6c is local), and open items remain: the npm package is unpublished, Slidev needs Node 22, and Roland's sessions still contain ~ until his engine re-indexes.",
+  "version": "1"
+}

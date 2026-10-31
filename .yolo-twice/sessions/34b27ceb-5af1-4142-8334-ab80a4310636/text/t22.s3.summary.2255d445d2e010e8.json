@@ -1,0 +1,9 @@
+{
+  "analyzer": "structural",
+  "created": "2026-10-31T12:20:14.394Z",
+  "granularity": "summary",
+  "hash": "2255d445d2e010e8",
+  "node": "t22.s3",
+  "text": "[assistant.text] Open http://127.0.0.1:9656/yolo-twice/34b27c to see this session in yolo-twice.",
+  "version": "1"
+}
