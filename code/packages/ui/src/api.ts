@@ -13,6 +13,18 @@ export const ATTENTION_LABEL: Record<Attention, string> = {
 };
 
 /** Auto-commit of .yolo-twice. Lives in engine memory only: off after every engine restart. */
+/** Which network interface the engine listens on (GET/PUT /api/network). */
+export interface NetworkInfo {
+  host: string;
+  port: number;
+  exposed: boolean;
+  urls: string[];
+  /** Set at start (--host or YOLO_TWICE_HOST): shown, not changeable. */
+  lockedBy?: string;
+  /** Running in a container: reachable through the port published on the host. */
+  container?: boolean;
+}
+
 export interface AutoCommit {
   enabled: boolean;
   intervalMs: number;
@@ -89,6 +101,8 @@ export const api = {
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ project: project || undefined, enabled }),
     }),
+  network: () => json<NetworkInfo>(`/api/network`),
+  setNetwork: (host: string) => json<NetworkInfo>(`/api/network`, { method: "PUT", headers: { "content-type": "application/json" }, body: JSON.stringify({ host }) }),
   streamUrl: () => `/api/stream${qs({})}`,
 };
 

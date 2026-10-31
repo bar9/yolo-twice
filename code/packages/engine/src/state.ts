@@ -26,6 +26,8 @@ export function projectsFile(): string {
 export interface EngineState {
   pid: number;
   port: number;
+  /** The address it listens on (absent: 127.0.0.1). */
+  host?: string;
   started: string;
   version: string;
 }
@@ -58,12 +60,52 @@ export function pidAlive(pid: number): boolean {
   }
 }
 
-export async function health(port: number, timeoutMs = 800): Promise<Record<string, unknown> | undefined> {
+export async function health(port: number, timeoutMs = 800, host?: string): Promise<Record<string, unknown> | undefined> {
   try {
-    const res = await fetch(`http://127.0.0.1:${port}/health`, { signal: AbortSignal.timeout(timeoutMs) });
+    const res = await fetch(`${localUrl(port, host)}/health`, { signal: AbortSignal.timeout(timeoutMs) });
     if (!res.ok) return undefined;
     return (await res.json()) as Record<string, unknown>;
   } catch {
     return undefined;
   }
+}
+
+/* ---------- network: which interface the engine listens on ---------- */
+
+export const DEFAULT_HOST = "127.0.0.1";
+
+/** Settings chosen in the UI that outlive the engine (the network address). */
+export interface Settings {
+  host?: string;
+}
+export function settingsFile(): string {
+  return path.join(homeDir(), "settings.json");
+}
+export function readSettings(): Settings {
+  return readJson<Settings>(settingsFile()) ?? {};
+}
+export function writeSettings(s: Settings): void {
+  fs.mkdirSync(homeDir(), { recursive: true });
+  writeJsonAtomic(settingsFile(), s);
+}
+
+/** Bound to every interface (0.0.0.0, ::), or to one that is not this machine's loopback. */
+export function isExposed(host: string): boolean {
+  return !/^(127\.|::1$|localhost$)/.test(host);
+}
+
+/** How to reach an engine bound to `host` from this machine: the wildcard addresses answer on loopback. */
+export function localUrl(port: number, host: string = readEngineState()?.host ?? DEFAULT_HOST): string {
+  const h = host === "0.0.0.0" || host === "" ? "127.0.0.1" : host === "::" ? "[::1]" : host.includes(":") ? `[${host}]` : host;
+  return `http://${h}:${port}`;
+}
+
+/** The addresses other machines can use, for an engine bound to `host`. */
+export function reachableAt(port: number, host: string): string[] {
+  if (!isExposed(host)) return [];
+  if (host !== "0.0.0.0" && host !== "::") return [localUrl(port, host)];
+  const out: string[] = [];
+  for (const list of Object.values(os.networkInterfaces()))
+    for (const a of list ?? []) if (!a.internal && (a.family === "IPv4" || host === "::")) out.push(localUrl(port, a.address));
+  return out;
 }

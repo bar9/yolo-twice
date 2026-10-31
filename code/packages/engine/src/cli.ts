@@ -8,7 +8,7 @@ import { deriveProject, deriveSession } from "@yolo-twice/analyzers";
 import { ingestProject } from "@yolo-twice/core";
 import { Engine } from "./server.js";
 import { prepareResume } from "./resume.js";
-import { clearEngineState, DEFAULT_PORT, health, homeDir, logFile, pidAlive, readEngineState, VERSION, writeEngineState } from "./state.js";
+import { clearEngineState, DEFAULT_HOST, DEFAULT_PORT, health, homeDir, isExposed, localUrl, logFile, pidAlive, reachableAt, readEngineState, readSettings, VERSION, writeEngineState } from "./state.js";
 
 const args = process.argv.slice(2);
 const cmd = args[0] ?? "help";
@@ -19,26 +19,30 @@ const flag = (name: string): string | undefined => {
 const has = (name: string) => args.includes(`--${name}`);
 const cwd = path.resolve(flag("cwd") ?? process.cwd());
 const port = Number(flag("port") ?? process.env.YOLO_TWICE_PORT ?? DEFAULT_PORT);
+// the interface to listen on: given at start it wins and the UI cannot change it; otherwise the UI's choice, else this machine only
+const hostLock = flag("host") ? "--host" : process.env.YOLO_TWICE_HOST ? "YOLO_TWICE_HOST" : undefined;
+const pinnedHost = flag("host") ?? process.env.YOLO_TWICE_HOST;
 
-async function liveEngine(): Promise<{ port: number; pid: number } | undefined> {
+async function liveEngine(): Promise<{ port: number; pid: number; host: string } | undefined> {
   const st = readEngineState();
   if (!st) return undefined;
   if (!pidAlive(st.pid)) {
     clearEngineState();
     return undefined;
   }
-  const h = await health(st.port);
-  return h ? { port: st.port, pid: st.pid } : undefined;
+  const h = await health(st.port, 800, st.host);
+  return h ? { port: st.port, pid: st.pid, host: st.host ?? DEFAULT_HOST } : undefined;
 }
 
 async function ensureEngine(): Promise<number> {
   const live = await liveEngine();
+  if (live && pinnedHost && pinnedHost !== live.host) console.error(`yolo-twice: the engine already runs on ${live.host}; stop it first to listen on ${pinnedHost}`);
   if (live) return live.port;
   fs.mkdirSync(homeDir(), { recursive: true });
   const out = fs.openSync(logFile(), "a");
   const self = fileURLToPath(import.meta.url);
   const runner = self.endsWith(".ts") ? ["bun", ["run", self]] as const : [process.execPath, [self]] as const;
-  const child = spawn(runner[0], [...runner[1], "start", "--foreground", "--port", String(port), "--cwd", cwd], { detached: true, stdio: ["ignore", out, out] });
+  const child = spawn(runner[0], [...runner[1], "start", "--foreground", "--port", String(port), ...(flag("host") ? ["--host", flag("host")!] : []), "--cwd", cwd], { detached: true, stdio: ["ignore", out, out] });
   child.unref();
   for (let i = 0; i < 60; i++) {
     await new Promise((r) => setTimeout(r, 250));
@@ -48,19 +52,19 @@ async function ensureEngine(): Promise<number> {
 }
 
 async function register(p: number): Promise<{ root: string; sessions: number }> {
-  const res = await fetch(`http://127.0.0.1:${p}/api/projects`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ cwd }) });
+  const res = await fetch(`${localUrl(p)}/api/projects`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ cwd }) });
   return (await res.json()) as { root: string; sessions: number };
 }
 
 async function currentUrl(p: number, root: string): Promise<string> {
-  const res = await fetch(`http://127.0.0.1:${p}/api/sessions?project=${encodeURIComponent(root)}`);
+  const res = await fetch(`${localUrl(p)}/api/sessions?project=${encodeURIComponent(root)}`);
   const j = (await res.json()) as { current?: string; sessions?: { id: string }[] };
   // addressable, short: /<project key>/<session id prefix>
-  const projects = (await (await fetch(`http://127.0.0.1:${p}/api/projects`)).json()) as { root: string; key: string }[];
+  const projects = (await (await fetch(`${localUrl(p)}/api/projects`)).json()) as { root: string; key: string }[];
   const key = projects.find((x) => x.root === root)?.key ?? path.basename(root);
   const ids = (j.sessions ?? []).map((s) => s.id);
   const sid = j.current ? shortId(j.current, ids) : "";
-  return `http://127.0.0.1:${p}/${encodeURIComponent(key)}${sid ? `/${sid}` : ""}`;
+  return `${localUrl(p)}/${encodeURIComponent(key)}${sid ? `/${sid}` : ""}`;
 }
 
 /** Shortest prefix of `id` (at least 6 chars) that no other id shares. */
@@ -86,11 +90,30 @@ async function main(): Promise<void> {
   switch (cmd) {
     case "start": {
       if (has("foreground")) {
-        const engine = new Engine({ port, log: (m) => console.error(`${new Date().toISOString()} ${m}`) });
-        const actual = await engine.listen();
-        writeEngineState({ pid: process.pid, port: actual, started: engine.started, version: VERSION });
+        const make = (host: string) =>
+          new Engine({
+            port,
+            hostname: host,
+            hostLock,
+            log: (m) => console.error(`${new Date().toISOString()} ${m}`),
+            onListen: (h, p) => writeEngineState({ pid: process.pid, port: p, host: h, started: engine.started, version: VERSION }),
+          });
+        const wanted = pinnedHost ?? readSettings().host ?? DEFAULT_HOST;
+        let engine = make(wanted);
+        let actual: number;
+        try {
+          actual = await engine.listen();
+        } catch (e) {
+          // a remembered address that is gone (another network): fall back to this machine; a given one is an error
+          if (pinnedHost || wanted === DEFAULT_HOST) throw e;
+          console.error(`yolo-twice: cannot listen on ${wanted} (${(e as Error).message}); using ${DEFAULT_HOST}`);
+          engine = make(DEFAULT_HOST);
+          actual = await engine.listen();
+        }
         engine.register(cwd);
-        console.error(`yolo-twice engine ${VERSION} listening on http://127.0.0.1:${actual}`);
+        const net = engine.network();
+        console.error(`yolo-twice engine ${VERSION} listening on ${localUrl(actual, net.host)}`);
+        if (net.exposed) console.error(`yolo-twice: reachable from other machines${net.container ? " through the port published for this container" : net.urls.length ? ` (${net.urls.join(", ")})` : ""}, without a login: anyone who can reach this port can read your sessions`);
         const shutdown = async () => {
           await engine.close();
           const st = readEngineState();
@@ -132,10 +155,10 @@ async function main(): Promise<void> {
       const root = findProjectRoot(cwd);
       const store = new Store(root);
       const sessions = store.listSessions();
-      const status = { engine: live ? { running: true, ...live, url: `http://127.0.0.1:${live.port}/` } : { running: false }, project: root, attention: store.readConfig().attention, sessions: sessions.length, current: sessions.length ? store.readProjectIndex()?.sessions.at(-1)?.id : undefined };
+      const status = { engine: live ? { running: true, ...live, url: `${localUrl(live.port)}/` } : { running: false }, project: root, attention: store.readConfig().attention, sessions: sessions.length, current: sessions.length ? store.readProjectIndex()?.sessions.at(-1)?.id : undefined };
       if (has("json")) console.log(JSON.stringify(status, null, 2));
       else {
-        console.log(live ? `engine: running (pid ${live.pid}, http://127.0.0.1:${live.port}/)` : "engine: not running");
+        console.log(live ? `engine: running (pid ${live.pid}, ${localUrl(live.port, live.host)}/)${isExposed(live.host) ? `, listening on ${live.host}: reachable from other machines ${reachableAt(live.port, live.host).join(" ")}` : ""}` : "engine: not running");
         console.log(`project: ${root}`);
         console.log(`attention: ${status.attention}`);
         console.log(`sessions indexed: ${sessions.length}`);
@@ -159,7 +182,7 @@ async function main(): Promise<void> {
       const root = findProjectRoot(cwd);
       const live = await liveEngine();
       if (live) {
-        await fetch(`http://127.0.0.1:${live.port}/api/config`, { method: "PUT", headers: { "content-type": "application/json" }, body: JSON.stringify({ project: root, attention: parsed.data }) });
+        await fetch(`${localUrl(live.port)}/api/config`, { method: "PUT", headers: { "content-type": "application/json" }, body: JSON.stringify({ project: root, attention: parsed.data }) });
       } else {
         const store = new Store(root);
         store.ensure();
@@ -175,7 +198,7 @@ async function main(): Promise<void> {
       const p = await ensureEngine();
       await register(p);
       const init = on === undefined ? undefined : { method: "PUT", headers: { "content-type": "application/json" }, body: JSON.stringify({ project: root, enabled: on }) };
-      const res = await fetch(`http://127.0.0.1:${p}/api/autocommit${init ? "" : `?project=${encodeURIComponent(root)}`}`, init);
+      const res = await fetch(`${localUrl(p)}/api/autocommit${init ? "" : `?project=${encodeURIComponent(root)}`}`, init);
       const st = (await res.json()) as { enabled: boolean; intervalMs: number };
       console.log(`auto-commit of .yolo-twice: ${st.enabled ? `on, every ${Math.round(st.intervalMs / 60_000)} min until the engine stops` : "off"}`);
       return;
@@ -200,7 +223,7 @@ async function main(): Promise<void> {
       const chunks: Buffer[] = [];
       for await (const c of process.stdin) chunks.push(c as Buffer);
       try {
-        await fetch(`http://127.0.0.1:${port}/hook`, { method: "POST", headers: { "content-type": "application/json" }, body: Buffer.concat(chunks).toString(), signal: AbortSignal.timeout(2000) });
+        await fetch(`${localUrl(port)}/hook`, { method: "POST", headers: { "content-type": "application/json" }, body: Buffer.concat(chunks).toString(), signal: AbortSignal.timeout(2000) });
       } catch {
         /* engine down: silent */
       }
@@ -208,7 +231,13 @@ async function main(): Promise<void> {
     }
     default:
       console.log(`yolo-twice ${VERSION}
-  start [--cwd <dir>] [--port ${DEFAULT_PORT}] [--foreground]   start (or reuse) the daemon, register the project, print the UI URL
+  start [--cwd <dir>] [--port ${DEFAULT_PORT}] [--host <address>] [--foreground]
+                                                 start (or reuse) the daemon, register the project, print the UI URL
+                                                 --host: the interface to listen on (also YOLO_TWICE_HOST); default 127.0.0.1,
+                                                 this machine only. 0.0.0.0 listens on every interface, e.g. in a Docker
+                                                 container with the port published; the UI then shows it and cannot change it.
+                                                 There is no login: only expose it on a network you trust. Prefer 0.0.0.0 to a
+                                                 single interface address, which leaves out localhost and the Claude Code hooks.
   open  [--cwd <dir>]                            start if needed and open the browser
   stop                                           stop the daemon
   status [--cwd <dir>] [--json]                  engine and project state

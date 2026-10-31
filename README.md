@@ -56,6 +56,23 @@ detail, `/` searches.
 The same commands work from a terminal via the engine CLI, for example `yolo-twice status` or
 `yolo-twice index` for a one-shot index without the daemon.
 
+### On a network, or in Docker
+
+The engine listens on `127.0.0.1` by default, so only your own computer can open the UI. To reach it
+from elsewhere, for example when it runs in a Docker container, start it on every interface:
+
+```
+yolo-twice start --host 0.0.0.0          # or YOLO_TWICE_HOST=0.0.0.0
+```
+
+A ready Docker image is in `code/Dockerfile`; [documentation/network.md](documentation/network.md)
+has the tested `docker build` and `docker run` commands and why each mount is there.
+
+The settings menu shows the address and, when it was set this way, cannot change it. Without
+`--host` the same menu switches between "This computer" and "All networks" on the fly, and the
+choice is remembered. There is no login: anyone who can reach the port can read your sessions, so
+only open it on a network you trust.
+
 ## How it works
 
 ```mermaid

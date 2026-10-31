@@ -65,7 +65,7 @@ flowchart LR
 | Package | Responsibility | Owner |
 |---|---|---|
 | `packages/core` | Event schema, source adapters (claude-code now, opencode later), redaction, cursor-based incremental reader, `.yolo-twice` store | A |
-| `packages/engine` | npm package `yolo-twice`: one daemon per machine on `127.0.0.1:9656`, HTTP API, SSE stream, `/hook` endpoint, watcher fallback, analyzer queue, lifecycle in `~/.yolo-twice/`, CLI (`yolo-twice start|open|stop|status|index|mode|hook`) | A |
+| `packages/engine` | npm package `yolo-twice`: one daemon per machine on `127.0.0.1:9656` (`--host 0.0.0.0` or the settings menu open it to other machines, e.g. in Docker; given at start, the menu shows it read-only; see [network.md](network.md)), HTTP API, SSE stream, `/hook` endpoint, watcher fallback, analyzer queue, lifecycle in `~/.yolo-twice/`, CLI (`yolo-twice start|open|stop|status|index|mode|hook`) | A |
 | `packages/analyzers` | Structural tree (L0 to L4), full-text search, semantic phase summaries and cluster labels via `claude -p`, cost rollups | B |
 | `packages/ui` | Vite + React web app: zoom view (stretchtext on two axes), flow graph rendered from mermaid text with pele, timeline, search, live updates over SSE | C |
 | `plugin/` | Claude Code plugin: `plugin.json`, `commands/yolo-twice.md`, `hooks/hooks.json`, `bin/yolo-twice` | D |

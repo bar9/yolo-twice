@@ -24,6 +24,8 @@ most recently registered project is used. All JSON uses the types from `@yolo-tw
 | GET | `/api/config` | `project` | `Config` |
 | PUT | `/api/config` | `{ project, attention }` | `Config` (persisted to `.yolo-twice/config.json`, broadcast on the stream) |
 | GET | `/api/autocommit` | `project` | `{ enabled, intervalMs, lastCommit?: { ts, sha, files }, lastCheck?, next?, skipped? }` (`next`: when the next check runs, while enabled) |
+| GET | `/api/network` | | `{ host, port, exposed, urls, lockedBy?, container? }`: the interface the engine listens on; `lockedBy` (`--host` or `YOLO_TWICE_HOST`) when set at start, `container` inside Docker. See [documentation/network.md](../documentation/network.md) |
+| PUT | `/api/network` | `{ host }` | same shape. Re-binds on the same port without a restart and remembers the choice; 400 for an address that is not this machine's, 409 when locked at start |
 | PUT | `/api/autocommit` | `{ project, enabled }` | same shape. Opt-in: commits only `.yolo-twice` (`git commit --only`, staged work stays staged) right away and every 10 min when it changed; skips during merges, rebases and on a detached HEAD. Engine memory only, off after every engine restart. Broadcast as `autocommit` |
 | GET | `/api/stream` | `project` | Server-Sent Events, see below |
 | POST | `/hook` | Claude Code hook JSON (`session_id`, `transcript_path`, `cwd`, `hook_event_name`, …) | `{}` within 50 ms; ingestion is scheduled, never awaited |
@@ -43,12 +45,16 @@ most recently registered project is used. All JSON uses the types from `@yolo-tw
 | `semantic` | `{ session, node, granularity, interim }` | a text artifact was written |
 | `config` | `Config` | attention changed |
 | `autocommit` | auto-commit status (see `/api/autocommit`) | toggled, or a commit attempt finished |
+| `activity` | `{ session_id, activity: working \| waiting \| idle, ts }` | a hook changed what Claude is doing (also sent for every session on connect) |
 | `ping` | `{}` | every 25 s keep-alive |
 
 ## Engine CLI (`yolo-twice`)
 
 ```
-yolo-twice start [--cwd <dir>] [--port 9656] [--foreground]   start (or reuse) the daemon, register the project, print the UI URL
+yolo-twice start [--cwd <dir>] [--port 9656] [--host <address>] [--foreground]
+                                                               start (or reuse) the daemon, register the project, print the UI URL;
+                                                               --host (or YOLO_TWICE_HOST): the interface to listen on, default 127.0.0.1,
+                                                               0.0.0.0 for every interface (Docker); see documentation/network.md
 yolo-twice open  [--cwd <dir>]                                 start if needed and open the browser on the current session
 yolo-twice stop                                                stop the daemon
 yolo-twice status [--cwd <dir>] [--json]                       engine and project state

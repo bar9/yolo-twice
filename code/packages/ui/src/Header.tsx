@@ -1,9 +1,10 @@
-import { CircleHelp, Monitor, Moon, Sun, BookOpen, BookOpenText, ChevronRight, Columns2, GitCommitHorizontal, ListRestart, Network, Pin, PinOff, Radio, SlidersHorizontal } from "lucide-react";
+import { useEffect, useState } from "react";
+import { CircleHelp, Globe, Monitor, Moon, Sun, BookOpen, BookOpenText, ChevronRight, Columns2, GitCommitHorizontal, ListRestart, Network, Pin, PinOff, Radio, SlidersHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Slider } from "@/components/ui/slider";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { ATTENTION, ATTENTION_LABEL, fmtTime, type Attention, type AutoCommit, type Config, type StructureNode } from "./api";
+import { api, ATTENTION, ATTENTION_LABEL, fmtTime, type NetworkInfo, type Attention, type AutoCommit, type Config, type StructureNode } from "./api";
 import { KIND } from "./kinds";
 import type { Layout } from "./state";
 import { Tip } from "./Tip";
@@ -224,6 +225,7 @@ export function Header(props: {
                 </p>
               </div>
             )}
+            <NetworkSetting />
           </div>
         </PopoverContent>
       </Popover>
@@ -239,5 +241,63 @@ export function Header(props: {
         <span className="hide-narrow">Catch me up</span>
       </Button>
     </header>
+  );
+}
+
+const ALL = ["0.0.0.0", "::"];
+
+/**
+ * Where the engine can be reached: this computer only, or every network interface (a Docker
+ * container, a colleague on the LAN). Given at start with --host, it is shown and not changeable.
+ */
+function NetworkSetting() {
+  const [net, setNet] = useState<NetworkInfo | undefined>();
+  const [error, setError] = useState<string | undefined>();
+  useEffect(() => {
+    api.network().then(setNet).catch(() => undefined);
+  }, []);
+  if (!net) return null;
+  const choose = (host: string) =>
+    api
+      .setNetwork(host)
+      .then((n) => (setNet(n), setError(undefined)))
+      .catch((e) => setError(String(e)));
+  const everywhere = ALL.includes(net.host);
+  return (
+    <div className="border-t pt-3">
+      <span className="flex items-center gap-2 text-[13px] font-semibold">
+        <Globe className="size-4" aria-hidden />
+        Network
+      </span>
+      {net.lockedBy ? (
+        <p className="mt-1 text-[12.5px] leading-snug text-ink-2">
+          Listening on <code className="num">{net.host}</code>, set by <code>{net.lockedBy}</code> when the engine started, so it cannot be changed here.
+        </p>
+      ) : (
+        <div className="seg fill mt-2" role="radiogroup" aria-label="Network">
+          {[
+            { host: "127.0.0.1", label: "This computer" },
+            { host: "0.0.0.0", label: "All networks" },
+          ].map((o) => {
+            const on = o.host === "0.0.0.0" ? everywhere : net.host === o.host;
+            return (
+              <button key={o.host} className={on ? "on" : ""} role="radio" aria-checked={on} onClick={() => !on && choose(o.host)}>
+                {o.label}
+              </button>
+            );
+          })}
+        </div>
+      )}
+      {net.exposed ? (
+        <p className="net-warn mt-2">
+          {net.container ? "Running in a container: other machines open it through the port published on the host (docker run -p)" : "Other machines can open it"}
+          {!net.container && net.urls.length ? <> at {net.urls.map((u, i) => <span key={u}>{i > 0 && ", "}<code className="num">{u}</code></span>)}</> : null}. There is no login: anyone who can reach this port can read your sessions.
+        </p>
+      ) : (
+        !net.lockedBy && <p className="mt-1 text-[12.5px] leading-snug text-ink-2">Only this computer can open yolo-twice. All networks lets other machines in, e.g. when the engine runs in a Docker container.</p>
+      )}
+      {!net.lockedBy && everywhere && <p className="mt-1 text-[12px] text-ink-3">Switching back closes the pages opened from other machines.</p>}
+      {error && <p className="mt-1 text-[12px] text-destructive">{error}</p>}
+    </div>
   );
 }

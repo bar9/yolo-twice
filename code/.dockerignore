@@ -1,0 +1,8 @@
+**/node_modules
+**/dist
+**/.vite
+site
+pitch
+fixtures
+**/*.log
+**/*.tsbuildinfo

@@ -1,5 +1,6 @@
 import { parseCodes } from "@yolo-twice/analyzers";
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { Hono } from "hono";
@@ -8,7 +9,7 @@ import { serve, type ServerType } from "@hono/node-server";
 import { sha256, Attention, findProjectRoot, projectSlug } from "@yolo-twice/core";
 import { activityFrom, type Activity, type HookPayload } from "./activity.js";
 import { ProjectRuntime, type ProjectOptions } from "./project.js";
-import { readProjects, VERSION, writeProjects } from "./state.js";
+import { DEFAULT_HOST, isExposed, reachableAt, readProjects, VERSION, writeProjects, writeSettings } from "./state.js";
 
 export interface EngineOptions {
   port?: number;
@@ -16,6 +17,23 @@ export interface EngineOptions {
   log?: (msg: string) => void;
   project?: ProjectOptions; // applied to every project (tests)
   persist?: boolean; // persist registered projects to ~/.yolo-twice/projects.json
+  /** The address was given at start (--host or YOLO_TWICE_HOST): the UI shows it and cannot change it. */
+  hostLock?: string;
+  /** Called whenever the engine (re)starts listening, e.g. to record the address in engine.json. */
+  onListen?: (host: string, port: number) => void;
+}
+
+export interface NetworkInfo {
+  host: string;
+  port: number;
+  /** Other machines can reach it (any address but loopback). */
+  exposed: boolean;
+  /** The URLs to use from elsewhere. */
+  urls: string[];
+  /** Set at start by this switch; the UI is read-only then. */
+  lockedBy?: string;
+  /** Inside a container the addresses above are the container's own: reach it through the port published on the host. */
+  container?: boolean;
 }
 
 interface Client {
@@ -223,6 +241,20 @@ export class Engine {
       return c.json({ hits: rt.search.search(q, { ...filter, limit: Number(c.req.query("limit") ?? 50) }), tools: rt.search.tools() });
     });
 
+    // which interface the engine listens on; set at start (--host) it is shown, not changed
+    app.get("/api/network", (c) => c.json(this.network()));
+    app.put("/api/network", async (c) => {
+      const body = (await c.req.json().catch(() => ({}))) as { host?: string };
+      if (this.opts.hostLock) return c.json({ error: `set by ${this.opts.hostLock} at start`, ...this.network() }, 409);
+      const host = body.host?.trim();
+      if (!host || !/^[\w.:-]+$/.test(host)) return c.json({ error: "host must be an address such as 127.0.0.1 or 0.0.0.0" }, 400);
+      if (!localAddress(host)) return c.json({ error: `${host} is not an address of this machine; use 127.0.0.1, 0.0.0.0 or one of its interfaces`, ...this.network() }, 400);
+      if (host === this.host) return c.json(this.network());
+      // answer first: the change closes this very connection
+      setTimeout(() => void this.rebind(host).catch(() => undefined), 50);
+      return c.json({ ...this.network(), host, exposed: isExposed(host), urls: reachableAt(this.port, host) });
+    });
+
     app.get("/api/config", (c) => c.json(need(c.req.query("project")).config()));
     app.put("/api/config", async (c) => {
       const body = (await c.req.json().catch(() => ({}))) as { project?: string; attention?: string };
@@ -301,13 +333,48 @@ export class Engine {
 
   /* ---------- lifecycle ---------- */
 
-  async listen(): Promise<number> {
-    const port = this.opts.port ?? 9656;
-    const hostname = this.opts.hostname ?? "127.0.0.1";
-    const actual = await new Promise<number>((resolve, reject) => {
+  private host = DEFAULT_HOST;
+  private port = 0;
+  private bind(hostname: string, port: number): Promise<number> {
+    return new Promise<number>((resolve, reject) => {
       this.server = serve({ fetch: this.app.fetch, port, hostname }, (addr) => resolve(addr.port));
       this.server.on("error", reject);
     });
+  }
+
+  network(): NetworkInfo {
+    const container = fs.existsSync("/.dockerenv") || fs.existsSync("/run/.containerenv");
+    return { host: this.host, port: this.port, exposed: isExposed(this.host), urls: container ? [] : reachableAt(this.port, this.host), lockedBy: this.opts.hostLock, ...(container ? { container } : {}) };
+  }
+
+  /** Listen on another address, same port, without a restart. Open pages reconnect by themselves. */
+  async rebind(host: string): Promise<void> {
+    const old = this.server as (ServerType & { closeAllConnections?: () => void }) | undefined;
+    for (const c of this.clients) c.end();
+    old?.closeAllConnections?.();
+    await new Promise<void>((resolve) => (old ? old.close(() => resolve()) : resolve()));
+    try {
+      await this.bind(host, this.port);
+    } catch (e) {
+      // the address is not ours (a typo, an interface that went away): stay reachable where we were
+      this.log(`cannot listen on ${host}:${this.port} (${String(e)}); staying on ${this.host}`);
+      await this.bind(this.host, this.port);
+      throw e;
+    }
+    this.host = host;
+    // remembered for the next start, now that it worked
+    if (this.opts.persist !== false) writeSettings({ host });
+    this.log(`listening on ${host}:${this.port}${isExposed(host) ? " — reachable from other machines, without a login" : ""}`);
+    this.opts.onListen?.(host, this.port);
+  }
+
+  async listen(): Promise<number> {
+    const port = this.opts.port ?? 9656;
+    const hostname = this.opts.hostname ?? DEFAULT_HOST;
+    const actual = await this.bind(hostname, port);
+    this.host = hostname;
+    this.port = actual;
+    this.opts.onListen?.(hostname, actual);
     for (const root of this.opts.persist === false ? [] : readProjects()) if (fs.existsSync(root)) this.register(root);
     this.watchUi();
     return actual;
@@ -326,6 +393,12 @@ export class Engine {
 }
 
 class NotFound extends Error {}
+
+/** An address this machine can listen on: the wildcards, loopback, or one of its interfaces. */
+function localAddress(host: string): boolean {
+  if (["0.0.0.0", "::", "localhost", "::1"].includes(host) || host.startsWith("127.")) return true;
+  return Object.values(os.networkInterfaces()).some((list) => list?.some((a) => a.address === host));
+}
 
 function mime(file: string): string {
   const ext = path.extname(file);
