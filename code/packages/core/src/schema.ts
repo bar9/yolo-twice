@@ -154,6 +154,8 @@ export const SourceState = z.object({
   session: z.string(),
   origin_dir: z.string(),
   files: z.record(z.string(), FileCursor),
+  /** Normalizer version that produced events.ndjson; a different version rebuilds the session. */
+  normalizer: z.number().optional(),
 });
 export type SourceState = z.infer<typeof SourceState>;
 

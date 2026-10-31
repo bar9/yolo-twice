@@ -86,3 +86,23 @@ describe("focus graphs", () => {
     }
   });
 });
+
+describe("queued messages", () => {
+  test("a message typed mid-turn stays inside the running turn", async () => {
+    const { normalizeRecord } = await import("@yolo-twice/core");
+    const ctx = { session: "s", file: "f", line: 1, agentId: null, lastTs: "2026-10-31T08:00:00.000Z", maxTextChars: 8000 };
+    const lines = [
+      { type: "user", uuid: "u1", parentUuid: null, timestamp: "2026-10-31T08:00:00.000Z", message: { role: "user", content: "build it" } },
+      { type: "assistant", uuid: "a1", parentUuid: "u1", timestamp: "2026-10-31T08:00:05.000Z", message: { role: "assistant", content: [{ type: "text", text: "working" }] } },
+      { type: "attachment", uuid: "q1", parentUuid: "a1", timestamp: "2026-10-31T08:00:06.000Z", attachment: { type: "queued_command", prompt: "also commit" } },
+      { type: "assistant", uuid: "a2", parentUuid: "q1", timestamp: "2026-10-31T08:00:09.000Z", message: { role: "assistant", content: [{ type: "text", text: "done, committed" }] } },
+      { type: "user", uuid: "u2", parentUuid: "a2", timestamp: "2026-10-31T08:01:00.000Z", message: { role: "user", content: "thanks" } },
+    ];
+    const events = lines.flatMap((l, i) => normalizeRecord(JSON.stringify(l), { ...ctx, line: i + 1 }));
+    const { session } = buildStructure("s", events);
+    const turns = session.children.flatMap((p) => p.children);
+    expect(turns.map((t) => t.label)).toEqual(["build it", "thanks"]);
+    expect(turns[0]!.children.map((s) => s.meta?.step_kind)).toEqual(["prompt", "text", "queued", "text"]);
+    expect(filterEvents(events, { codes: ["u"] })).toEqual(["u1", "q1", "u2"]);
+  });
+});

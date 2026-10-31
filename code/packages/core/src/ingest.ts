@@ -2,7 +2,7 @@ import fs from "node:fs";
 import { claudeProjectDir } from "./paths.js";
 import { BUILTIN_RULES, compileExtraRules, redact, truncate, type RedactRule } from "./redact.js";
 import type { Event, FileCursor, SourceState } from "./schema.js";
-import { discoverSessionFiles, headHash, normalizeRecord, readNewLines, readSubagentMeta, type SessionFile } from "./sources/claude-code.js";
+import { NORMALIZER_VERSION, discoverSessionFiles, headHash, normalizeRecord, readNewLines, readSubagentMeta, type SessionFile } from "./sources/claude-code.js";
 import type { Store } from "./store.js";
 
 export interface IngestOptions {
@@ -55,9 +55,17 @@ export function ingestProject(opts: IngestOptions): IngestResult {
   const bySession = new Map<string, SessionFile[]>();
   for (const f of files) bySession.set(f.session, [...(bySession.get(f.session) ?? []), f]);
 
-  for (const [session, sessionFiles] of bySession) {
+  // one writer per session at a time: cursor read, append and cursor write happen under the lock
+  for (const [session, sessionFiles] of bySession) store.withSessionLock(session, () => {
     let state: SourceState = store.readSourceState(session) ?? { agent: "claude-code", session, origin_dir: originDir, files: {} };
     let appended = 0;
+
+    // events written by an older normalizer -> rebuild that session from scratch
+    if (Object.keys(state.files).length > 0 && state.normalizer !== NORMALIZER_VERSION) {
+      store.resetSession(session);
+      result.reset.push(session);
+      state = { agent: "claude-code", session, origin_dir: originDir, files: {} };
+    }
 
     // detect replaced or truncated source files -> rebuild that session from scratch
     const main = sessionFiles.find((f) => f.role === "main");
@@ -151,12 +159,13 @@ export function ingestProject(opts: IngestOptions): IngestResult {
       state.files[sf.rel] = cursor;
     }
 
+    state.normalizer = NORMALIZER_VERSION;
     store.writeSourceState(session, state);
     if (appended > 0) {
       result.changed.push(session);
       result.appended[session] = appended;
     }
-  }
+  });
   return result;
 }
 

@@ -20,6 +20,14 @@ export interface SubagentMeta {
   spawnDepth?: number;
 }
 
+/**
+ * Bump when normalization changes the events produced from the same input, so existing
+ * .yolo-twice indexes rebuild once instead of mixing old and new event shapes.
+ *   2: mid-turn messages (queued_command attachments) become user prompts;
+ *      background task notifications become system events instead of user prompts
+ */
+export const NORMALIZER_VERSION = 2;
+
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /** Find main session files and their subagent transcripts in a Claude Code project folder. */
@@ -173,6 +181,15 @@ export function normalizeRecord(rawLine: string, ctx: NormalizeContext): Event[]
     return [];
   }
   const type = String(rec.type ?? "");
+  // a message the user typed while the agent was working is stored as a queued_command attachment
+  if (type === "attachment" && rec.attachment?.type === "queued_command") {
+    const text = blockText(rec.attachment.prompt).trim();
+    if (!text) return [];
+    const ts0: string = typeof rec.timestamp === "string" ? rec.timestamp : ctx.lastTs;
+    const ev = base(ctx, rec, typeof rec.uuid === "string" ? rec.uuid : `h:${sha256(rawLine).slice(0, 16)}`, typeof rec.parentUuid === "string" ? rec.parentUuid : null, "user.prompt", text, ts0);
+    ev.data = { queued: true };
+    return [ev];
+  }
   if (SKIP_TYPES.has(type)) return [];
   const ts: string = typeof rec.timestamp === "string" ? rec.timestamp : ctx.lastTs;
   const id: string = typeof rec.uuid === "string" ? rec.uuid : `h:${sha256(rawLine).slice(0, 16)}`;
@@ -191,6 +208,7 @@ export function normalizeRecord(rawLine: string, ctx: NormalizeContext): Event[]
           const args = /<command-args>([^<]*)<\/command-args>/.exec(t)?.[1]?.trim() ?? "";
           return [base(ctx, rec, id, parent, "user.command", `${name} ${args}`.trim(), ts)];
         }
+        if (isTaskNotification(t)) return [taskNotification(ctx, rec, id, parent, t, ts)];
         return [base(ctx, rec, id, parent, "user.prompt", content, ts)];
       }
       if (!Array.isArray(content)) return [];
@@ -202,7 +220,8 @@ export function normalizeRecord(rawLine: string, ctx: NormalizeContext): Event[]
         ? []
         : content.filter((b: Raw) => b?.type === "text" && !String(b.text ?? "").trim().startsWith("<system-reminder>"));
       if (textBlocks.length > 0) {
-        const ev = base(ctx, rec, id, prev, "user.prompt", textBlocks.map((b: Raw) => String(b.text ?? "")).join("\n\n"), ts);
+        const merged = textBlocks.map((b: Raw) => String(b.text ?? "")).join("\n\n");
+        const ev = isTaskNotification(merged.trim()) ? taskNotification(ctx, rec, id, prev, merged.trim(), ts) : base(ctx, rec, id, prev, "user.prompt", merged, ts);
         events.push(ev);
         prev = id;
       }
@@ -298,4 +317,17 @@ export function normalizeRecord(rawLine: string, ctx: NormalizeContext): Event[]
       return [ev];
     }
   }
+}
+
+/** Background task completions arrive in the user role but were not written by the human. */
+function isTaskNotification(t: string): boolean {
+  return t.startsWith("<task-notification>");
+}
+
+function taskNotification(ctx: NormalizeContext, rec: Raw, id: string, parent: string | null, text: string, ts: string): Event {
+  const ev = base(ctx, rec, id, parent, "system", text, ts);
+  const status = /<status>([^<]*)<\/status>/.exec(text)?.[1];
+  const summary = /<summary>([^<]*)<\/summary>/.exec(text)?.[1];
+  ev.data = { subtype: "task-notification", ...(status ? { status } : {}), ...(summary ? { summary } : {}) };
+  return ev;
 }

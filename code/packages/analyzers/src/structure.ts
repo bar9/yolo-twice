@@ -139,7 +139,7 @@ function buildSteps(events: Event[], prefix: string, subagents: Map<string, Even
       case "user.command":
         step = node(id, 3, "step", promptLabel(ev.text), ev, ev);
         step.event_ids = [ev.id];
-        step.meta = { step_kind: ev.kind === "user.command" ? "command" : "prompt" };
+        step.meta = { step_kind: ev.kind === "user.command" ? "command" : ev.data?.queued ? "queued" : "prompt" };
         addStats(step.stats, ev);
         break;
       case "tool.result":
@@ -195,7 +195,8 @@ export function buildStructure(sessionId: string, events: Event[], options: Stru
   // turns: a turn starts at each user prompt or command
   const turnEvents: Event[][] = [];
   let current: Event[] = [];
-  const isPrompt = (e: Event) => e.kind === "user.prompt" || e.kind === "user.command";
+  // a message typed while the agent was busy (queued) belongs to the running turn, it does not start one
+  const isPrompt = (e: Event) => (e.kind === "user.prompt" || e.kind === "user.command") && !e.data?.queued;
   for (const e of main) {
     if (e.kind === "title" || e.kind === "cost" || e.kind === "meta") continue;
     // a turn starts at a prompt; preamble events without a prompt (resume summaries) join the first turn
@@ -210,7 +211,7 @@ export function buildStructure(sessionId: string, events: Event[], options: Stru
   const turns: StructureNode[] = turnEvents.map((evs, i) => {
     const first = evs[0]!;
     const last = evs[evs.length - 1]!;
-    const prompt = evs.find((e) => e.kind === "user.prompt" || e.kind === "user.command");
+    const prompt = evs.find(isPrompt) ?? evs.find((e) => e.kind === "user.prompt" || e.kind === "user.command");
     const label = prompt ? promptLabel(prompt.text) : "Session start";
     const t = node(`t${i + 1}`, 2, "turn", label, first, last);
     t.children = buildSteps(evs, t.id, subagents, subagentTypes);

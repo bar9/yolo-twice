@@ -113,7 +113,7 @@ function stepShape(step: StructureNode, max = 40): { shape: string; cls: string 
   const label = esc(step.label, max);
   if (kind === "tool" || kind === "tool-error") return { shape: `[/"${label}"/]`, cls: kind === "tool-error" ? "error" : "tool" };
   if (kind === "subagent") return { shape: `[["${label}"]]`, cls: "subagent" };
-  if (kind === "prompt" || kind === "command") return { shape: `>"${label}"]`, cls: "prompt" };
+  if (kind === "prompt" || kind === "command" || kind === "queued") return { shape: `>"${label}"]`, cls: "prompt" };
   return { shape: `("${label}")`, cls: kind === "thinking" ? "thinking" : "text" };
 }
 

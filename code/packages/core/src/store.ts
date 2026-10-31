@@ -9,7 +9,8 @@ const GITIGNORE = "# runtime state, never commit\ncache/\nengine.json\n";
 /** The project-local .yolo-twice folder. All writes are atomic and deterministic. */
 export class Store {
   readonly dir: string;
-  private idCache = new Map<string, Set<string>>();
+  /** Known event ids per session, with the file size they were read at (another writer changes it). */
+  private idCache = new Map<string, { ids: Set<string>; size: number }>();
 
   constructor(readonly projectRoot: string) {
     this.dir = yoloDir(projectRoot);
@@ -65,14 +66,19 @@ export class Store {
     return path.join(this.sessionDir(session), "events.ndjson");
   }
 
+  /** Events in append order. A repeated id keeps its first occurrence, so a damaged file reads clean. */
   readEvents(session: string): Event[] {
     const file = this.eventsFile(session);
     if (!fs.existsSync(file)) return [];
     const out: Event[] = [];
+    const seen = new Set<string>();
     for (const line of fs.readFileSync(file, "utf8").split("\n")) {
       if (!line) continue;
       try {
-        out.push(JSON.parse(line) as Event);
+        const e = JSON.parse(line) as Event;
+        if (seen.has(e.id)) continue;
+        seen.add(e.id);
+        out.push(e);
       } catch {
         /* skip corrupt line */
       }
@@ -80,25 +86,72 @@ export class Store {
     return out;
   }
 
-  private knownIds(session: string): Set<string> {
-    let set = this.idCache.get(session);
-    if (!set) {
-      set = new Set(this.readEvents(session).map((e) => e.id));
-      this.idCache.set(session, set);
+  private fileSize(file: string): number {
+    try {
+      return fs.statSync(file).size;
+    } catch {
+      return 0;
     }
-    return set;
   }
 
-  /** Append events whose id is not yet present. Returns the number written. */
+  private knownIds(session: string): Set<string> {
+    const size = this.fileSize(this.eventsFile(session));
+    let cached = this.idCache.get(session);
+    if (!cached || cached.size !== size) {
+      // first use, or someone else appended: reload from disk
+      cached = { ids: new Set(this.readEvents(session).map((e) => e.id)), size };
+      this.idCache.set(session, cached);
+    }
+    return cached.ids;
+  }
+
+  /** Append events whose id is not yet present (on disk or earlier in the batch). Returns the number written. */
   appendEvents(session: string, events: Event[]): number {
     const known = this.knownIds(session);
-    const fresh = events.filter((e) => !known.has(e.id));
+    const fresh: Event[] = [];
+    for (const e of events) {
+      if (known.has(e.id)) continue;
+      known.add(e.id);
+      fresh.push(e);
+    }
     if (fresh.length === 0) return 0;
     fs.mkdirSync(this.sessionDir(session), { recursive: true });
     const payload = fresh.map((e) => stableStringify(e, false)).join("\n") + "\n";
     fs.appendFileSync(this.eventsFile(session), payload);
-    for (const e of fresh) known.add(e.id);
+    this.idCache.get(session)!.size = this.fileSize(this.eventsFile(session));
     return fresh.length;
+  }
+
+  /**
+   * Run `fn` holding an exclusive per-session lock, so two engines (or an engine and `yolo-twice index`)
+   * never interleave cursor reads and appends. The lock lives in the gitignored cache and a lock older
+   * than `staleMs` is taken over (its holder crashed).
+   */
+  withSessionLock<T>(session: string, fn: () => T, staleMs = 30_000, waitMs = 5_000): T {
+    const dir = this.cacheDir();
+    fs.mkdirSync(dir, { recursive: true });
+    const lock = path.join(dir, `${session}.lock`);
+    const deadline = Date.now() + waitMs;
+    for (;;) {
+      try {
+        fs.closeSync(fs.openSync(lock, "wx"));
+        break;
+      } catch (e) {
+        if ((e as NodeJS.ErrnoException).code !== "EEXIST") throw e;
+        const age = Date.now() - (fs.statSync(lock, { throwIfNoEntry: false })?.mtimeMs ?? 0);
+        if (age > staleMs) {
+          fs.rmSync(lock, { force: true });
+          continue;
+        }
+        if (Date.now() > deadline) throw new Error(`session ${session} is locked by another writer (${lock})`);
+        Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 25); // sync sleep
+      }
+    }
+    try {
+      return fn();
+    } finally {
+      fs.rmSync(lock, { force: true });
+    }
   }
 
   /** Drop a session's derived and event files (used when the source file was replaced). */

@@ -112,8 +112,12 @@ export class SearchIndex {
   private toolByCall = new Map<string, string>();
 
   add(events: Event[]): number {
-    const fresh = events.filter((e) => !this.seen.has(e.id));
-    for (const e of fresh) this.seen.add(e.id);
+    const fresh: Event[] = [];
+    for (const e of events) {
+      if (this.seen.has(e.id)) continue; // also drops repeats inside one batch
+      this.seen.add(e.id);
+      fresh.push(e);
+    }
     const docs = toDocs(fresh, this.toolByCall, this.docs.length);
     this.docs.push(...docs);
     this.ms.addAll(docs.filter((d) => d.text));
