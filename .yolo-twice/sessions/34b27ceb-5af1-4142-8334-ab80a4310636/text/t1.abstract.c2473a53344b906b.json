@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T12:47:03.991Z",
+  "granularity": "abstract",
+  "hash": "c2473a53344b906b",
+  "node": "t1",
+  "text": "Drafted the yolo-twice design in documentation/design.md: a Node/TypeScript monorepo where Claude Code hooks trigger an engine that incrementally reads the session JSONL and writes redacted events and derived data to a project-local .yolo-twice folder. Surveyed Claudescope, claude-code-history-viewer and cc_transcript_viewer, none of which offer semantic zoom, a conversation flow graph or committable project state, so those three become the demo focus, with headless claude -p summaries cached by input hash and a Markdown pitch deck on GitHub Pages. Outcome: the design is a draft with no code scaffolded yet, pending the GitHub org name for the install line and a decision on whether to scaffold the whole monorepo or only the contracts and fixtures.",
+  "version": "2"
+}

@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T12:51:00.420Z",
+  "granularity": "abstract",
+  "hash": "ee5c4e1566becfe5",
+  "node": "t23",
+  "text": "Short nodes now keep their own text (up to 90 characters for titles, 300 for abstracts, 800 for summaries) instead of an LLM call, and the summarizer in analyzers/src/semantic.ts is told to avoid narration and to add to the heading rather than repeat it (ANALYZER_VERSION 2). Zoom.tsx hides a body that only repeats its heading, and 9 cached \"Prompt…\", \"User…\" and \"The assistant…\" summaries were deleted for regeneration. Tests pass (51), the typecheck is clean, and a Haiku check turned t18's \"Prompt asks to implement the project.json split\" into \"Project index and cursors leave the repo; per-session meta.json replaces it\"; committed as b9ae2e0, not pushed.",
+  "version": "2"
+}

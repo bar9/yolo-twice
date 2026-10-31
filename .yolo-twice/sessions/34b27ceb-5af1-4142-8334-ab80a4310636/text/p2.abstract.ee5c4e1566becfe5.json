@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T12:38:43.878Z",
+  "granularity": "abstract",
+  "hash": "ee5c4e1566becfe5",
+  "node": "p2",
+  "text": "Titles and summaries that opened with \"Prompt asks to…\" or \"The assistant…\" narrated the transcript instead of stating the outcome, so semantic.ts now returns a node's own text verbatim, without a model call, when it already fits the granularity length (90 / 300 / 800 characters). The summarizer instruction now bans narration and receives the reader's heading so the text adds to it, ANALYZER_VERSION is bumped to 2, Zoom.tsx hides a body that only repeats its heading, and nine cached meta-phrased summaries were deleted for regeneration. Haiku now titles the project.json turn \"Project index and cursors leave the repo; per-session meta.json replaces it\", and 51 tests pass, including a new short-node test (commit b9ae2e0, not pushed).",
+  "version": "2"
+}
