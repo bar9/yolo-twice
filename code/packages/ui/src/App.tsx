@@ -1,4 +1,4 @@
-import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
+import { lazy, Suspense, useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { focusFlow, projectFlow, type FlowGraph } from "@yolo-twice/analyzers/graph";
 import { SearchIndex, type FilterCode } from "@yolo-twice/analyzers/search";
 import { useDefaultLayout } from "react-resizable-panels";
@@ -12,13 +12,17 @@ import { Timeline, type Bar, type Tick } from "./Timeline";
 import { Graph, type HoverInfo } from "./Graph";
 import { Results, Zoom, type ZoomApi } from "./Zoom";
 import { CHIPS } from "./FilterBar";
-import { Shortcuts } from "./Shortcuts";
+import { Help, type HelpTab } from "./Help";
+import { TourInvite } from "./TourInvite";
 import { useKeyboard } from "./useKeyboard";
 import { matchOrder, stepIn } from "./nav";
 import { useStream } from "./useStream";
 import { resolveId, shortId, useViewState, type Layout, type SetView, type ViewState } from "./state";
 import { computeScope, foldTree, followTarget, indexTree, walk } from "./scope";
 import { DETAIL, DETAIL_ORDER, KIND, KindIcon, kindStyle, nodeKind, richText, type Kind } from "./kinds";
+
+// the tour pulls in react-joyride; it is only fetched when a tour starts
+const Tour = lazy(() => import("./Tour"));
 
 type Index = ProjectIndex & { current?: string };
 const sessionNode = (id: string) => `s:${id}`;
@@ -464,7 +468,8 @@ export function App() {
     up();
   }, [scope, up]);
   const zoomApi = useRef<ZoomApi>(null);
-  const [shortcutsOpen, setShortcutsOpen] = useState(false);
+  const [help, setHelp] = useState<{ open: boolean; tab: HelpTab }>({ open: false, tab: "guide" });
+  const [touring, setTouring] = useState(false);
   const LAYOUTS: Layout[] = ["read", "split", "map"];
   useKeyboard({
     move: (dir) => {
@@ -498,7 +503,7 @@ export function App() {
     toggleFollow: () => setView((s) => ({ follow: !s.follow }), { push: false }),
     togglePin: () => sessionId && setView({ pinned: !view.pinned }),
     catchMeUp: () => void catchMeUp(),
-    shortcuts: () => setShortcutsOpen(true),
+    shortcuts: () => setHelp({ open: true, tab: "keys" }),
   });
   const path = scope ? scope.path.slice(1).map((n) => ({ id: n.id, label: n.label })) : [];
   const timelineWindow = scope ? scope.window : projectWindow;
@@ -510,7 +515,7 @@ export function App() {
   /* ---------- render ---------- */
 
   const readerPane = (
-    <section className="pane left">
+    <section className="pane left" data-tour="reader">
       <div className="pane-head">
         <div className="seg" role="tablist" aria-label="Reader">
           <button className={reader === "outline" ? "on" : ""} onClick={() => setReader("outline")} role="tab" aria-selected={reader === "outline"}>
@@ -562,8 +567,8 @@ export function App() {
     </>
   );
   const graphPane = (
-    <section className="pane right">
-      <Graph flow={flow} selected={sel} follow={view.follow} hover={hover} dim={dim} hits={hits} onFocus={graphFocus}onHover={hoverAt} onUserMove={onGraphMove} head={graphHead} />
+    <section className="pane right" data-tour="map">
+      <Graph flow={flow} selected={sel} follow={view.follow} hover={hover} dim={dim} hits={hits} onFocus={graphFocus} onHover={hoverAt} onUserMove={onGraphMove} head={graphHead} />
     </section>
   );
 
@@ -590,7 +595,7 @@ export function App() {
         autoCommit={autoCommit}
         onAutoCommit={toggleAutoCommit}
         onCatchMeUp={catchMeUp}
-        onShortcuts={() => setShortcutsOpen(true)}
+        onHelp={() => setHelp({ open: true, tab: "guide" })}
       />
       {error && (
         <div className="banner error" role="alert">
@@ -640,7 +645,13 @@ export function App() {
           </button>
         )}
       </div>
-      <Shortcuts open={shortcutsOpen} onOpenChange={setShortcutsOpen} />
+      <Help open={help.open} tab={help.tab} onTab={(tab) => setHelp({ open: true, tab })} onOpenChange={(open) => setHelp((h) => ({ ...h, open }))} onTour={() => (setHelp((h) => ({ ...h, open: false })), setTouring(true))} />
+      {touring && (
+        <Suspense>
+          <Tour run onEnd={() => setTouring(false)} />
+        </Suspense>
+      )}
+      {!touring && <TourInvite onStart={() => setTouring(true)} />}
       {card && <HoverCard info={card} tree={tree} sessions={sessions} hits={hits} />}
       <Sheet open={digest !== undefined} onOpenChange={(o) => !o && setDigest(undefined)}>
         <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
@@ -676,7 +687,7 @@ function LengthSwitch({ value, overrides, onChange }: { value: Granularity; over
   const parts = new Map<Granularity, number>();
   for (const g of Object.values(overrides)) parts.set(g, (parts.get(g) ?? 0) + 1);
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-2" data-tour="detail">
       <span className="text-[13px] text-ink-2 hide-narrow">Detail</span>
       <div className="seg" role="radiogroup" aria-label="Detail">
         {DETAIL.map((l) => (

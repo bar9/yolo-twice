@@ -62,7 +62,7 @@ export function FilterBar(props: {
   const ToolIcon = KIND.tool.icon;
 
   return (
-    <div className="filterbar">
+    <div className="filterbar" data-tour="filters">
       <div className="search">
         <Search size={15} aria-hidden />
         <input

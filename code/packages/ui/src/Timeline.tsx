@@ -101,7 +101,7 @@ export const Timeline = memo(function Timeline(props: {
   const wx = (s: number) => x(props.start + s * 1000);
 
   return (
-    <div className="timeline">
+    <div className="timeline" data-tour="timeline">
       <svg
         ref={svg}
         viewBox={`0 0 ${W} ${H}`}

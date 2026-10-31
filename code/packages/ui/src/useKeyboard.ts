@@ -5,7 +5,7 @@ import { bindingFor, keyName, type KeyActions } from "./keys";
 function busy(e: KeyboardEvent, name: string): boolean {
   const t = e.target as HTMLElement | null;
   if (t && (/^(input|textarea|select)$/i.test(t.tagName) || t.isContentEditable)) return true;
-  if (document.querySelector("[role=dialog], [role=menu], [role=listbox]")) return true;
+  if (document.querySelector("[role=dialog], [role=alertdialog], [role=menu], [role=listbox]")) return true;
   if ((name === "Enter" || name === "Space") && t?.closest("button, a, [role=button], [role=radio], [role=tab]")) return true;
   return false;
 }

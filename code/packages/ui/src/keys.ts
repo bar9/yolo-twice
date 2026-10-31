@@ -75,7 +75,7 @@ export const BINDINGS: Binding[] = [
   { id: "follow", group: "Views and live", keys: ["f"], show: ["f"], label: "Follow the newest events on or off", run: (a) => a.toggleFollow() },
   { id: "pin", group: "Views and live", keys: ["p"], show: ["p"], label: "Pin or unpin the session", run: (a) => a.togglePin() },
   { id: "catch", group: "Views and live", keys: ["c"], show: ["c"], label: "Catch me up", run: (a) => a.catchMeUp() },
-  { id: "help", group: "Views and live", keys: ["?"], show: ["?"], label: "Keyboard shortcuts", run: (a) => a.shortcuts() },
+  { id: "help", group: "Views and live", keys: ["?"], show: ["?"], label: "Help: keyboard shortcuts, guide and about", run: (a) => a.shortcuts() },
 ];
 
 export const GROUPS: KeyGroup[] = ["Navigate", "Search and filter", "Detail", "Views and live"];
