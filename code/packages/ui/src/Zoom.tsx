@@ -12,6 +12,8 @@ export function Zoom(props: {
   root: StructureNode;
   granularity: Granularity;
   events?: Map<string, Event>;
+  /** Follow mode: the selected (newest) node is expanded too, not only its ancestors. */
+  follow?: boolean;
   selected?: string;
   hover?: string;
   dim: Set<string>;
@@ -46,10 +48,12 @@ export function Zoom(props: {
   useEffect(() => {
     if (!props.selected) return;
     const path = ancestors(props.root, props.selected);
+    if (props.follow) path.push(props.selected);
     if (path.length) setOpen((o) => ({ ...o, ...Object.fromEntries(path.map((id) => [id, true])) }));
-    const t = setTimeout(() => document.getElementById(`node-${props.selected}`)?.scrollIntoView({ block: "center", behavior: "smooth" }), 50);
+    // following: keep the tail at the bottom of the pane, like tail -f; otherwise center the selection
+    const t = setTimeout(() => document.getElementById(`node-${props.selected}`)?.scrollIntoView({ block: props.follow ? "end" : "center", behavior: props.follow ? "auto" : "smooth" }), 50);
     return () => clearTimeout(t);
-  }, [props.selected, props.root]);
+  }, [props.selected, props.root, props.follow]);
 
   const render = (node: StructureNode, depth: number, prevBoundary?: string) => {
     const isOpen = open[node.id] ?? depth < 1;

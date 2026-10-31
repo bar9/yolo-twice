@@ -3,14 +3,14 @@ import { ingestProject, Store } from "@yolo-twice/core";
 import { buildStructure } from "@yolo-twice/analyzers/structure";
 import { SearchIndex } from "@yolo-twice/analyzers/search";
 import { EMPTY, isNavigation, parseUrl, resolveId, shortId, toUrl, type ViewState } from "../src/state";
-import { computeScope, snapWindow } from "../src/scope";
+import { computeScope, followTarget, latestLeaf, snapWindow } from "../src/scope";
 import { FIXTURE_CWD, FIXTURE_SESSION, tempFixture } from "../../../fixtures/helper";
 
 describe("URL state", () => {
   test("round trips every field and omits defaults", () => {
-    const s: ViewState = { project: "yolo-twice", session: "34b27c", pinned: true, focus: "t1.s5", window: [120, 480], sel: "t2.s3", q: "salt & pepper", k: ["u", "t:Bash", "e"], z: "summary" };
+    const s: ViewState = { project: "yolo-twice", session: "34b27c", pinned: true, focus: "t1.s5", window: [120, 480], sel: "t2.s3", q: "salt & pepper", k: ["u", "t:Bash", "e"], z: "summary", follow: true };
     const url = toUrl(s);
-    expect(url).toBe("/yolo-twice/34b27c/t1.s5?t=120-480&x=t2.s3&q=salt%20%26%20pepper&k=u,t:Bash,e&z=s");
+    expect(url).toBe("/yolo-twice/34b27c/t1.s5?t=120-480&x=t2.s3&q=salt%20%26%20pepper&k=u,t:Bash,e&z=s&f");
     const [path, search] = url.split("?");
     expect(parseUrl(path!, `?${search}`)).toEqual(s);
     expect(toUrl(EMPTY)).toBe("/");
@@ -102,6 +102,24 @@ describe("scope", () => {
       expect(all.matches.size).toBe(3);
       // a window covering everything is no window
       expect(snapWindow(all.units, all.focusStart, [0, 99999]).window).toBeUndefined();
+    } finally {
+      fx.cleanup();
+    }
+  });
+});
+
+describe("follow", () => {
+  test("targets the newest leaf and keeps the focus level", () => {
+    const { fx, root } = fixture();
+    try {
+      expect(latestLeaf(root).id).toBe("t4.s3");
+      expect(followTarget(root, undefined)).toEqual({ sel: "t4.s3" });
+      expect(followTarget(root, root)).toEqual({ sel: "t4.s3" });
+      const t1 = root.children[0]!.children[0]!;
+      expect(followTarget(root, t1)).toEqual({ sel: "t4.s3", focus: "t4" });
+      expect(followTarget(root, root.children[0]!)).toEqual({ sel: "t4.s3", focus: "p2" });
+      expect(parseUrl("/p/s", "?f").follow).toBe(true);
+      expect(parseUrl("/p/s", "").follow).toBe(false);
     } finally {
       fx.cleanup();
     }

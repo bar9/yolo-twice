@@ -8,8 +8,8 @@ import { Timeline, type Bar, type Tick } from "./Timeline";
 import { Graph } from "./Graph";
 import { Results, Zoom } from "./Zoom";
 import { useStream } from "./useStream";
-import { resolveId, shortId, useViewState } from "./state";
-import { computeScope, indexTree, walk } from "./scope";
+import { resolveId, shortId, useViewState, type SetView, type ViewState } from "./state";
+import { computeScope, followTarget, indexTree, walk } from "./scope";
 
 type Index = ProjectIndex & { current?: string };
 const GRANS: Granularity[] = ["title", "abstract", "summary", "full"];
@@ -126,6 +126,38 @@ export function App() {
 
   // the URL keeps the raw brush; the snap to whole units is recomputed from it, so it is deterministic
 
+  /* ---------- follow (tail -f) ---------- */
+
+  // anything the user does to move the view takes it off the tail, like scrolling up in a CI log
+  const act: SetView = useCallback(
+    (patch, opts) => setView((s) => ({ ...(typeof patch === "function" ? patch(s) : patch), follow: false }), opts),
+    [setView],
+  );
+
+  useEffect(() => {
+    if (!view.follow) return;
+    if (sessionId && structure && tree) {
+      const t = followTarget(structure, view.focus ? tree.byId.get(view.focus) : undefined);
+      const patch: Partial<ViewState> = {};
+      if (t.sel !== view.sel) patch.sel = t.sel;
+      if (t.focus !== view.focus) patch.focus = t.focus;
+      if (view.window) patch.window = undefined;
+      if (Object.keys(patch).length) setView(patch, { push: false });
+    } else if (!sessionId && index?.current) {
+      // at the project root, follow means: open the session that is active right now
+      setView({ session: shortId(index.current, ids), pinned: false, focus: undefined, window: undefined }, { push: false });
+    }
+  }, [view.follow, view.focus, view.sel, view.window, sessionId, structure, tree, index, ids, setView]);
+
+  // events that arrived while not following: shown as "N new", a click jumps to the tail
+  const [seen, setSeen] = useState(0);
+  const total = events?.size ?? 0;
+  useEffect(() => {
+    if (view.follow) setSeen(total);
+  }, [view.follow, total]);
+  useEffect(() => setSeen(0), [sessionId]);
+  const unseen = !view.follow && seen > 0 ? Math.max(0, total - seen) : 0;
+
   /* ---------- project scope (no session in focus) ---------- */
 
   useEffect(() => {
@@ -151,8 +183,8 @@ export function App() {
   const rootId = structure ? structure.id : undefined;
   // session nodes are written to the URL with the short id, like the path
   const select = useCallback(
-    (id: string | undefined) => setView({ sel: id?.startsWith("s:") ? `s:${shortId(id.slice(2), ids)}` : id }, { push: false }),
-    [setView, ids],
+    (id: string | undefined) => act({ sel: id?.startsWith("s:") ? `s:${shortId(id.slice(2), ids)}` : id }, { push: false }),
+    [act, ids],
   );
   const sel = view.sel?.startsWith("s:") ? sessionNode(resolveId(view.sel.slice(2), ids) ?? view.sel.slice(2)) : view.sel;
 
@@ -160,31 +192,31 @@ export function App() {
     (id: string) => {
       if (id.startsWith("s:")) {
         const sid = id.slice(2);
-        if (sid === sessionId) return setView({ focus: undefined, window: undefined });
-        return setView({ session: shortId(sid, ids), pinned: false, focus: undefined, window: undefined, sel: undefined });
+        if (sid === sessionId) return act({ focus: undefined, window: undefined });
+        return act({ session: shortId(sid, ids), pinned: false, focus: undefined, window: undefined, sel: undefined });
       }
-      setView({ focus: id === rootId ? undefined : id, window: undefined, sel: undefined });
+      act({ focus: id === rootId ? undefined : id, window: undefined, sel: undefined });
     },
-    [setView, sessionId, ids, rootId],
+    [act, sessionId, ids, rootId],
   );
 
   const leaveSession = useCallback(() => {
-    setView({ session: undefined, pinned: true, focus: undefined, window: undefined, sel: sessionId ? `s:${shortId(sessionId, ids)}` : undefined });
-  }, [setView, sessionId, ids]);
+    act({ session: undefined, pinned: true, focus: undefined, window: undefined, sel: sessionId ? `s:${shortId(sessionId, ids)}` : undefined });
+  }, [act, sessionId, ids]);
 
   const up = useCallback(() => {
-    if (view.window) return setView({ window: undefined });
+    if (view.window) return act({ window: undefined });
     if (scope && view.focus) {
       const parent = scope.parent.get(scope.focus.id);
-      return setView({ focus: !parent || parent === rootId ? undefined : parent, sel: scope.focus.id });
+      return act({ focus: !parent || parent === rootId ? undefined : parent, sel: scope.focus.id });
     }
     if (sessionId && !view.pinned) leaveSession();
-  }, [view.window, view.focus, view.pinned, scope, rootId, sessionId, setView, leaveSession]);
+  }, [view.window, view.focus, view.pinned, scope, rootId, sessionId, act, leaveSession]);
 
   const reset = useCallback(() => {
     if (sessionId && !view.pinned && !view.focus && !view.window) return leaveSession();
-    setView({ focus: undefined, window: undefined });
-  }, [sessionId, view.pinned, view.focus, view.window, setView, leaveSession]);
+    act({ focus: undefined, window: undefined });
+  }, [sessionId, view.pinned, view.focus, view.window, act, leaveSession]);
 
   // keyboard: Esc goes up one level, Enter focuses the selection
   useEffect(() => {
@@ -192,10 +224,12 @@ export function App() {
       if (/input|textarea|select/i.test((e.target as HTMLElement).tagName)) return;
       if (e.key === "Escape") up();
       if (e.key === "Enter" && sel) focusOn(sel);
+      if (e.key === "f" && !e.ctrlKey && !e.metaKey && !e.altKey) setView((s) => ({ follow: !s.follow }), { push: false });
+      if (e.key === "End") setView({ follow: true }, { push: false });
     };
     addEventListener("keydown", onKey);
     return () => removeEventListener("keydown", onKey);
-  }, [up, focusOn, sel]);
+  }, [up, focusOn, sel, setView]);
 
   const setAttention = async (a: Attention) => {
     setConfig((c) => (c ? { ...c, attention: a } : c));
@@ -286,8 +320,11 @@ export function App() {
         path={path}
         canReset={Boolean(view.focus || view.window || (sessionId && !view.pinned))}
         onProject={leaveSession}
-        onSessionRoot={() => setView({ focus: undefined, window: undefined })}
-        onCrumb={(id) => setView({ focus: id, window: undefined })}
+        onSessionRoot={() => act({ focus: undefined, window: undefined })}
+        onCrumb={(id) => act({ focus: id, window: undefined })}
+        follow={view.follow}
+        unseen={unseen}
+        onFollow={(follow) => setView({ follow }, { push: false })}
         onPin={(pinned) => setView({ pinned })}
         onReset={reset}
         live={live}
@@ -320,12 +357,12 @@ export function App() {
           hits={hits}
           onSelect={select}
           onFocus={focusOn}
-          onWindow={(w) => setView({ window: w })}
+          onWindow={(w) => act({ window: w })}
           onHover={setHover}
         />
       )}
       <div className="panes">
-        <section className="pane left">
+        <section className="pane left" onWheel={(e) => e.deltaY < 0 && view.follow && setView({ follow: false }, { push: false })}>
           <div className="pane-head">
             <div className="seg">
               <button className={reader === "outline" ? "on" : ""} onClick={() => setReader("outline")}>
@@ -349,7 +386,7 @@ export function App() {
             !scope ? (
               <p className="muted pad">Loading structure…</p>
             ) : reader === "outline" ? (
-              <Zoom session={sessionId} root={scope.focus} granularity={view.z} events={events} selected={sel} hover={hover} dim={dim} hits={hits} onSelect={select} onFocus={focusOn} onHover={setHover} />
+              <Zoom session={sessionId} root={scope.focus} granularity={view.z} events={events} follow={view.follow} selected={sel} hover={hover} dim={dim} hits={hits} onSelect={select} onFocus={focusOn} onHover={setHover} />
             ) : (
               <Results ids={resultIds} events={events} owner={scope.owner} selected={sel} query={view.q} onSelect={select} />
             )

@@ -131,7 +131,9 @@ export function Timeline(props: {
         {props.bars.map((b) => {
           const bx = x(b.start);
           const bw = Math.max(x(b.end) - bx, 2);
-          const cls = ["tl-bar", b.id === props.selected ? "selected" : "", b.id === props.hover ? "hover" : "", props.dim.has(b.id) ? "dim" : "", props.hits.has(b.id) ? "hit" : ""].join(" ");
+          // a bar is selected when the selection is the bar or lies inside it (ids nest: t5 > t5.s2)
+          const isSel = !!props.selected && (b.id === props.selected || props.selected.startsWith(`${b.id}.`));
+          const cls = ["tl-bar", isSel ? "selected" : "", b.id === props.hover ? "hover" : "", props.dim.has(b.id) ? "dim" : "", props.hits.has(b.id) ? "hit" : ""].join(" ");
           return (
             <rect
               key={b.id}

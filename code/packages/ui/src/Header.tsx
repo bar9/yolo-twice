@@ -27,6 +27,9 @@ export function Header(props: {
   onCrumb: (id: string) => void;
   onPin: (pinned: boolean) => void;
   onReset: () => void;
+  follow: boolean;
+  unseen: number;
+  onFollow: (follow: boolean) => void;
   live: "connecting" | "live" | "offline";
   config?: Config;
   structure?: StructureNode;
@@ -82,6 +85,19 @@ export function Header(props: {
       <span className={`live ${props.live}`} title={`stream: ${props.live}`}>
         ● {props.live}
       </span>
+      <button
+        className={`follow ${props.follow ? "on" : ""}`}
+        onClick={() => props.onFollow(!props.follow)}
+        aria-pressed={props.follow}
+        title={props.follow ? "following the newest events (f). Scroll up or click anything to stop" : "follow the newest events as they arrive, like tail -f (f or End)"}
+      >
+        {props.follow ? "⏵ following" : "follow"}
+      </button>
+      {!props.follow && props.unseen > 0 && (
+        <button className="unseen" onClick={() => props.onFollow(true)} title="jump to the newest events and keep following">
+          {props.unseen} new ↓
+        </button>
+      )}
       <span className="spacer" />
       <label className="slider">
         <span className="slider-label">micro management</span>

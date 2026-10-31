@@ -11,6 +11,7 @@
  * - q        text query
  * - k        filter codes, comma separated (see analyzers/search.ts)
  * - z        default text granularity: t(itle) a(bstract, default) s(ummary) f(ull)
+ * - f        follow: keep the view on the newest events as they arrive (like `tail -f`)
  *
  * Defaults are omitted. Pure functions here; the React hook lives at the bottom.
  */
@@ -28,9 +29,10 @@ export interface ViewState {
   q: string;
   k: FilterCode[];
   z: Granularity;
+  follow: boolean;
 }
 
-export const EMPTY: ViewState = { project: "", pinned: true, q: "", k: [], z: "abstract" };
+export const EMPTY: ViewState = { project: "", pinned: true, q: "", k: [], z: "abstract", follow: false };
 
 const Z_CODE: Record<Granularity, string> = { title: "t", abstract: "a", summary: "s", full: "f" };
 const Z_FROM: Record<string, Granularity> = { t: "title", a: "abstract", s: "summary", f: "full" };
@@ -69,6 +71,7 @@ export function parseUrl(pathname: string, search: string): ViewState {
     .map((s) => s.trim())
     .filter((s): s is FilterCode => VALID_CODE.test(s));
   state.z = Z_FROM[p.get("z") ?? ""] ?? "abstract";
+  state.follow = p.has("f");
   return state;
 }
 
@@ -86,6 +89,7 @@ export function toUrl(s: ViewState): string {
   if (s.q) q.push(`q=${enc(s.q)}`);
   if (s.k.length) q.push(`k=${s.k.map(enc).join(",")}`);
   if (s.z !== "abstract") q.push(`z=${Z_CODE[s.z]}`);
+  if (s.follow) q.push("f");
   return path + (q.length ? `?${q.join("&")}` : "");
 }
 

@@ -291,6 +291,12 @@ zoom tree) and the graph. They are projections of one state, and that state is t
   combine with AND; filter codes combine with OR.
 - **Selection and hover link.** Click selects a node in every view; hover highlights it in
   every view.
+- **Follow.** Like `tail -f` or a CI log: the selection stays on the newest step, a focused
+  turn moves to the newest turn, and the reader keeps the tail in view. Any navigation
+  (click, brush, Esc, scrolling up) stops following; new events are then counted in a
+  "N new" button that jumps back to the tail. Filters keep following, like `tail -f | grep`.
+  At the project root, follow opens the session that is active right now. Keys: `f` toggles,
+  `End` follows.
 - **Pinning.** The project is the root. Going into a session pins it, so reset and Esc stay in
   that session; unpinning returns to the project.
 
@@ -310,6 +316,7 @@ URL form:
 | `q` | text query | none |
 | `k` | filters: `u` your prompts, `a` assistant text, `h` thinking, `t` tool calls, `t:Name` one tool, `e` tool errors, `s` subagents, `c` compactions and commands, `r` rewound turns | none |
 | `z` | default text length: `t` title, `a` abstract, `s` summary, `f` full | `a` |
+| `f` | follow: the view stays on the newest events as they arrive, like `tail -f` | off |
 
 Example: `http://127.0.0.1:9656/yolo-twice/34b27c/t2?k=t,e&x=t2.s4`
 

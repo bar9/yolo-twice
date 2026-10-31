@@ -141,3 +141,33 @@ export function computeScope(root: StructureNode, index: SearchIndex | undefined
 export function nodeForEvent(scope: Scope, eventId: string): string | undefined {
   return scope.owner.get(eventId);
 }
+
+/** The newest node: descend into the last child until a leaf (inside a running subagent, too). */
+export function latestLeaf(root: StructureNode): StructureNode {
+  let n = root;
+  while (n.children.length) n = n.children[n.children.length - 1]!;
+  return n;
+}
+
+/** Path from the root to the newest leaf, inclusive. */
+export function latestPath(root: StructureNode): StructureNode[] {
+  const path = [root];
+  let n = root;
+  while (n.children.length) {
+    n = n.children[n.children.length - 1]!;
+    path.push(n);
+  }
+  return path;
+}
+
+/**
+ * Where follow mode moves the view: selection on the newest leaf, and the focus on the newest
+ * node of the same kind as the current focus (a focused turn becomes the newest turn).
+ */
+export function followTarget(root: StructureNode, focus: StructureNode | undefined): { sel: string; focus?: string } {
+  const path = latestPath(root);
+  const leaf = path[path.length - 1]!;
+  if (!focus || focus.id === root.id) return { sel: leaf.id };
+  const same = [...path].reverse().find((n) => n.kind === focus.kind && n.level === focus.level) ?? path.find((n) => n.level === focus.level);
+  return { sel: leaf.id, focus: same && same.id !== root.id ? same.id : undefined };
+}

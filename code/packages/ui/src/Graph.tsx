@@ -53,7 +53,8 @@ export function Graph(props: {
     if (!el) return;
     for (const g of el.querySelectorAll<SVGGElement>(".pele-node, .pele-cluster")) {
       const id = idMap.get(g.dataset.id ?? "");
-      g.classList.toggle("is-selected", id !== undefined && id === props.selected);
+      // the node holding the selection is marked too when the selection itself is not drawn (ids nest: t5 > t5.s2)
+      g.classList.toggle("is-selected", id !== undefined && !!props.selected && (id === props.selected || props.selected.startsWith(`${id}.`)));
       g.classList.toggle("is-hover", id !== undefined && id === props.hover);
       g.classList.toggle("is-dim", id !== undefined && props.dim.has(id));
       const n = id ? props.hits.get(id) : undefined;
