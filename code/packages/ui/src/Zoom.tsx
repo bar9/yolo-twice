@@ -11,6 +11,8 @@ const ORDER = DETAIL_ORDER;
 export interface ZoomApi {
   toggle(id: string): void;
   detail(id: string, dir: 1 | -1): void;
+  /** Show one matching event: open its part (at Raw, if the match is not on screen yet) and scroll the passage to the middle. */
+  reveal(part: string, event: string): void;
 }
 /** How many matching steps a search opens at Raw; more would bury the page. */
 const AUTO_MAX = 30;
@@ -47,6 +49,8 @@ export const Zoom = memo(function Zoom(props: {
   onOverrides: (o: Record<string, Granularity>) => void;
   /** For the keyboard: open or close a part, step its own detail. */
   api?: React.Ref<ZoomApi>;
+  /** The match being stepped to (an event id): marked in the text. */
+  current?: string;
   /** Following a session Claude's hooks say is active: working (dots animate) or waiting for you; with the time of its last event. */
   working?: { state: "working" | "waiting"; lastEvent: string };
 }) {
@@ -162,6 +166,15 @@ export const Zoom = memo(function Zoom(props: {
           return next === props.granularity ? rest : { ...rest, [id]: next };
         });
         setOpen((o) => ({ ...o, [id]: true }));
+      },
+      reveal(part: string, event: string) {
+        const path = [...ancestors(props.root, part), part];
+        setOpen((o) => ({ ...o, ...Object.fromEntries(path.map((id) => [id, true])) }));
+        const find = () => document.querySelector<HTMLElement>(`.zoom [data-ev="${CSS.escape(event)}"]`);
+        // the passage is drawn at Raw; a part shown at a lower detail switches to Raw for this part only
+        if (!find()) setOverride((o) => (part === props.root.id ? o : { ...o, [part]: "full" }));
+        // after the selection's own scroll (50 ms), so the passage, not the part's title, ends up in the middle
+        setTimeout(() => find()?.scrollIntoView({ block: "center", behavior: "smooth" }), 140);
       },
     }),
     [props.root.id, props.granularity, props.onGranularity],
@@ -389,9 +402,9 @@ export const Zoom = memo(function Zoom(props: {
             {(g === "full" || showText || ownImages(node, props.events).length > 0 || isRoot) && (
             <div className="text-block">
               {asCall && g !== "full" ? (
-                <Events node={node} events={props.events} calls={calls} query={props.query} matches={props.matches} only={g === "abstract" ? "calls" : "bare"} />
+                <Events node={node} events={props.events} calls={calls} query={props.query} matches={props.matches} current={props.current} only={g === "abstract" ? "calls" : "bare"} />
               ) : g === "full" ? (
-                node.level >= 3 ? <Events node={node} events={props.events} calls={calls} query={props.query} matches={props.matches} /> : <p className="prose muted">The full text is in the steps below.</p>
+                node.level >= 3 ? <Events node={node} events={props.events} calls={calls} query={props.query} matches={props.matches} current={props.current} /> : <p className="prose muted">The full text is in the steps below.</p>
               ) : showText ? (
                 <p className={`prose ${text === undefined ? "muted" : ""}`}>{richText(text ?? structuralFallback(node, g), props.query)}</p>
               ) : null}
@@ -561,6 +574,7 @@ function Events({
   query,
   matches,
   only,
+  current,
 }: {
   node: StructureNode;
   events?: Map<string, Event>;
@@ -569,6 +583,7 @@ function Events({
   matches?: Set<string>;
   /** "calls": only the tool calls, without headers; "bare": calls and results without headers. */
   only?: "calls" | "bare";
+  current?: string;
 }) {
   if (!events) return <p className="prose muted">Loading events…</p>;
   const ids = node.event_ids ?? [];
@@ -582,7 +597,7 @@ function Events({
         const k = eventKind(e);
         const text = e.text || (e.data?.hidden ? "Hidden by Claude Code" : "");
         return (
-          <div key={id} className={`event ${e.kind.replace(".", "-")} ${matches?.has(id) ? "match" : ""}`} style={kindStyle(k)}>
+          <div key={id} data-ev={id} className={`event ${e.kind.replace(".", "-")} ${matches?.has(id) ? "match" : ""} ${current === id ? "current" : ""}`} style={kindStyle(k)}>
             {!only && <div className="event-head">
               <span className="kind">
                 <KindIcon kind={k} size={13} />

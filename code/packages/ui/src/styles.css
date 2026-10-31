@@ -719,3 +719,11 @@ a.link:hover { text-decoration-color: currentColor; }
 .tl-legend { display: inline-flex; align-items: center; gap: 5px; margin-left: 12px; color: var(--ink-3); cursor: help; }
 .tl-legend i { display: inline-block; width: 4px; height: 9px; border-radius: 1px; background: var(--ink-3); opacity: .6; }
 .tl-wave-slot:hover .tl-wave { opacity: .9; }
+
+/* stepping through matches: ↑ ↓ next to the count, and the current match marked in the text */
+.match-step { display: inline-flex; gap: 2px; }
+.match-step button { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 6px; border: 1px solid var(--rule); color: var(--ink-2); background: var(--sheet); }
+.match-step button:hover { color: var(--ink); border-color: var(--rule-strong); }
+.match-step svg { width: 15px; height: 15px; }
+.event.match.current { box-shadow: 0 0 0 2px var(--mark), 0 4px 14px rgb(16 20 30 / .12); }
+.match-nav { display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; }

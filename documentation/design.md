@@ -403,7 +403,7 @@ page zoom (Ctrl + plus and minus on the keyboard stay with the browser).
 | ↑ ↓, k j | previous / next visible part (reader order, graph order in Map, result order on Results) |
 | → or Enter, ← or Esc | zoom into the selected part, widen one level (a time window is cleared first) |
 | ⇧ ←, Space, Home, End | widen to the top, open or close the part, first part, newest part and follow |
-| / then Enter, n, ⇧ N | search and jump to the first match, next and previous match |
+| / then Enter, n, ⇧ N | search and jump to the first match, next and previous match (each match is scrolled into view, its part opened at Raw if needed; wraps around) |
 | 1 to 8, h, x | kind filters in chip order, hide or show filtered, clear search, filters and window |
 | − +, `,` `.` | detail of the whole page, detail of the selected part only |
 | v, f, p, c, ? | cycle Read, Split, Map; follow; pin; catch me up; Help on its Keyboard tab |

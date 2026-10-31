@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { ArrowLeft, ChevronDown, FoldVertical, Search, UnfoldVertical, X } from "lucide-react";
+import { ArrowLeft, ChevronDown, ChevronUp, FoldVertical, Search, UnfoldVertical, X } from "lucide-react";
 import type { FilterCode } from "@yolo-twice/analyzers/search";
 import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Kbd } from "@/components/ui/kbd";
@@ -38,6 +38,9 @@ export function FilterBar(props: {
   onSubmit: () => void;
   /** When nothing matches: search one level wider, e.g. "Search the phase". */
   widen?: { label: string; run: () => void };
+  /** Stepping through the matches: which one is shown (1-based), and the step. */
+  position?: number;
+  onStep?: (dir: 1 | -1) => void;
 }) {
   const input = useRef<HTMLInputElement>(null);
   const [draft, setDraft] = useState(props.q);
@@ -126,8 +129,24 @@ export function FilterBar(props: {
           </DropdownMenu>
         )}
       </div>
+      <span className="match-nav">
       <span className={`match-count ${active && props.matches === 0 ? "none" : ""}`} aria-live="polite">
-        {!active ? "" : props.matches === 0 ? `Nothing matches in ${props.scopeLabel}` : `${props.matches} match${props.matches === 1 ? "" : "es"} in ${props.scopeLabel}`}
+        {!active ? "" : props.matches === 0 ? `Nothing matches in ${props.scopeLabel}` : props.position ? `${props.position} of ${props.matches} in ${props.scopeLabel}` : `${props.matches} match${props.matches === 1 ? "" : "es"} in ${props.scopeLabel}`}
+      </span>
+      {active && props.matches > 0 && props.onStep && (
+        <span className="match-step" role="group" aria-label="Step through the matches">
+          <Tip label={`Previous match${hint("prev-match")}`}>
+            <button onClick={() => props.onStep!(-1)} aria-label="Previous match">
+              <ChevronUp aria-hidden />
+            </button>
+          </Tip>
+          <Tip label={`Next match${hint("next-match")}`}>
+            <button onClick={() => props.onStep!(1)} aria-label="Next match">
+              <ChevronDown aria-hidden />
+            </button>
+          </Tip>
+        </span>
+      )}
       </span>
       {active && props.matches === 0 && props.widen && (
         <button className="chip widen" onClick={props.widen.run} title="Widen the scope one level (←)">

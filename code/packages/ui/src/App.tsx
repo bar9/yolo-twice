@@ -496,6 +496,22 @@ export function App() {
   const playhead = view.follow ? tlEnd : selectedNode ? Date.parse(selectedNode.span.ts_first) : sel?.startsWith("s:") ? Date.parse(sessions.find((s) => sessionNode(s.id) === sel)?.ts_first ?? "") : undefined;
 
   const resultIds = useMemo(() => (scope && events ? [...events.keys()].filter((id) => scope.matches.has(id)) : []), [scope, events]);
+  // stepping through the matches one by one, like a browser's find bar; a new search starts over
+  const [matchAt, setMatchAt] = useState<number | undefined>();
+  useEffect(() => setMatchAt(undefined), [dq, dk, view.focus, view.window]);
+  const stepMatch = (dir: 1 | -1) => {
+    const n = resultIds.length;
+    if (!n || !scope) return;
+    goToMatch(matchAt === undefined || matchAt >= n ? (dir > 0 ? 0 : n - 1) : (matchAt + dir + n) % n);
+  };
+  const goToMatch = (i: number) => {
+    const ev = resultIds[i];
+    const part = ev && scope?.owner.get(ev);
+    if (!part) return;
+    setMatchAt(i);
+    select(part);
+    zoomApi.current?.reveal(part, ev);
+  };
 
   /* ---------- keyboard (the keymap lives in keys.ts) ---------- */
 
@@ -514,9 +530,8 @@ export function App() {
     // wait until the views have caught up with the query, or a stale match would be picked
     if (!pendingFirst.current || dq !== view.q || !scope?.active || scope.matches.size === 0) return;
     pendingFirst.current = false;
-    const first = matchOrder(resultIds, scope.owner)[0];
-    if (first) select(first);
-  }, [scope, resultIds, select, submitted, dq, view.q]);
+    goToMatch(0);
+  }, [scope, resultIds, select, submitted, dq, view.q]); // eslint-disable-line react-hooks/exhaustive-deps
   const widenLabel = !scope
     ? undefined
     : view.window
@@ -554,6 +569,7 @@ export function App() {
     newest: () => setView({ follow: true }, { push: false }),
     search: () => document.querySelector<HTMLInputElement>(".filterbar .query")?.focus(),
     nextMatch: (dir) => {
+      if (sessionId && scope) return stepMatch(dir);
       const o = sessionId && scope ? matchOrder(resultIds, scope.owner) : projectHits.map((h) => sessionNode(h.session)).filter((id, i, a) => a.indexOf(id) === i);
       const next = stepIn(o, sel && o.includes(sel) ? sel : undefined, dir);
       if (next) select(next);
@@ -618,7 +634,7 @@ export function App() {
           !scope ? (
             <p className="empty">Loading the session…</p>
           ) : reader === "outline" ? (
-            <Zoom session={sessionId} root={scope.focus} granularity={view.z} events={events} follow={view.follow} selected={sel} hover={hover} dim={dim} hits={hits} query={dq} active={scope.active} matches={scope.matches} collapseDim={foldRest && scope.active && scope.matches.size > 0} onSelect={select} onFocus={focusOn} onHover={setHover} onGranularity={setDetail} onOverrides={setOverrides} api={zoomApi} working={working} />
+            <Zoom session={sessionId} root={scope.focus} granularity={view.z} events={events} follow={view.follow} selected={sel} hover={hover} dim={dim} hits={hits} query={dq} active={scope.active} matches={scope.matches} collapseDim={foldRest && scope.active && scope.matches.size > 0} onSelect={select} onFocus={focusOn} onHover={setHover} onGranularity={setDetail} onOverrides={setOverrides} api={zoomApi} working={working} current={matchAt !== undefined ? resultIds[matchAt] : undefined} />
           ) : (
             <Results ids={resultIds} events={events} owner={scope.owner} selected={sel} query={view.q} onSelect={select} />
           )
@@ -682,7 +698,7 @@ export function App() {
           Lost contact with the engine: {error}. Run /yolo-twice:yolo-twice to start it again.
         </div>
       )}
-      <FilterBar q={view.q} k={view.k} tools={tools} matches={matchCount} scopeLabel={scopeLabel} onQuery={(q) => setView({ q })} onCodes={(k: FilterCode[]) => setView({ k })} folded={foldRest} onFolded={setFoldRest} onSubmit={() => ((pendingFirst.current = true), setSubmitted((n) => n + 1))} widen={widenLabel ? { label: widenLabel, run: widen } : undefined} />
+      <FilterBar q={view.q} k={view.k} tools={tools} matches={matchCount} scopeLabel={scopeLabel} onQuery={(q) => setView({ q })} onCodes={(k: FilterCode[]) => setView({ k })} folded={foldRest} onFolded={setFoldRest} position={sessionId && matchAt !== undefined ? matchAt + 1 : undefined} onStep={sessionId && resultIds.length ? stepMatch : undefined} onSubmit={() => ((pendingFirst.current = true), setSubmitted((n) => n + 1))} widen={widenLabel ? { label: widenLabel, run: widen } : undefined} />
       {bars.length > 0 && (
         <Timeline
           bars={bars}
