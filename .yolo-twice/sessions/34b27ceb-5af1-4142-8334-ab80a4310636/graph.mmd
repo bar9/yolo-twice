@@ -1,0 +1,39 @@
+flowchart TD
+  s_34b27ceb_5af1_4142_8334_ab80a4310636(["Yolo-twice insights tool for Claude Code"])
+  subgraph p1 ["we are creating #quot;yolo-twice#quot; a tool to help indiv…"]
+    direction TD
+    t1["we are creating #quot;yolo-twice#quot; a tool to help individuals and…"]
+    t2["consider tradeof near realtime updates   costly in CPU and …"]
+    t3["- zoom levels: highest level should allow zooming out or su…"]
+    t4["fix the license"]
+    t5["scaffold now"]
+    t5_s51[["Agent: Build engine daemon and plugin"]]
+    t5_s52[["Agent: Build the web UI package"]]
+    t5_s53[["Agent: Build site, pitch deck and CI"]]
+  end
+  s_34b27ceb_5af1_4142_8334_ab80a4310636 --> t1
+  t1 --> t2
+  t2 --> t3
+  t3 --> t4
+  t4 --> t5
+  t5 -.-> t5_s51
+  t5 -.-> t5_s52
+  t5 -.-> t5_s53
+  classDef session fill:#1f2937,color:#fff,stroke:#111;
+  classDef phase fill:#e5e7eb,stroke:#9ca3af;
+  classDef turn fill:#dbeafe,stroke:#60a5fa;
+  classDef branch fill:#fde68a,stroke:#d97706;
+  classDef subagent fill:#ede9fe,stroke:#8b5cf6;
+  classDef tool fill:#dcfce7,stroke:#22c55e;
+  classDef error fill:#fee2e2,stroke:#ef4444;
+  classDef text fill:#f3f4f6,stroke:#9ca3af;
+  classDef thinking fill:#f3f4f6,stroke:#d1d5db,stroke-dasharray: 3 3;
+  class s_34b27ceb_5af1_4142_8334_ab80a4310636 session;
+  class t1 turn;
+  class t2 turn;
+  class t3 turn;
+  class t4 turn;
+  class t5 turn;
+  class t5_s51 subagent;
+  class t5_s52 subagent;
+  class t5_s53 subagent;

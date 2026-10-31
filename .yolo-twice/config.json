@@ -1,0 +1,15 @@
+{
+  "analyzers": {
+    "model": "haiku",
+    "semantic": true
+  },
+  "attention": "balanced",
+  "redaction": {
+    "extra_rules": [],
+    "max_text_chars": 8000
+  },
+  "sources": [
+    "claude-code"
+  ],
+  "version": 1
+}
