@@ -69,7 +69,7 @@ claude plugin install yolo-twice@yolo-twice
 ```
 
 Inside Claude Code the command is `/yolo-twice:yolo-twice`, with `stop`, `status`,
-`mode <detent>` and `resume [id]`. The plugin's launcher finds the engine in your checkout,
+`mode <micro|attentive|balanced|yolo>` and `resume [id]`. The plugin's launcher finds the engine in your checkout,
 so it runs your local code. It prefers `code/packages/engine/dist/cli.js` when present, so
 run `bun run build` after changing engine code, or delete `dist/` to fall back to running
 the TypeScript source with bun.

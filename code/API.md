@@ -59,7 +59,7 @@ yolo-twice open  [--cwd <dir>]                                 start if needed a
 yolo-twice stop                                                stop the daemon
 yolo-twice status [--cwd <dir>] [--json]                       engine and project state
 yolo-twice index [--cwd <dir>]                                 one-shot ingest + derive, no daemon
-yolo-twice mode <micro|attentive|balanced|yolo> [--cwd <dir>]  set the attention detent
+yolo-twice mode <micro|attentive|balanced|yolo> [--cwd <dir>]  set the attention mode
 yolo-twice autocommit [on|off] [--cwd <dir>]     commit only .yolo-twice every 10 min, until the engine stops
 yolo-twice resume [session] [--cwd <dir>] [--print]  rebuild a committed session from .yolo-twice into .yolo-twice/cache/resume/<id>.jsonl, with $PROJECT and ~ expanded to this machine's paths, and run `claude --resume <that file> --fork-session` (a new session id, so the committed session never gets a second writer)
 yolo-twice hook                                                read a Claude Code hook JSON from stdin and forward it (used by the plugin)

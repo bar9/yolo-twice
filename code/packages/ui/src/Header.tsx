@@ -17,7 +17,7 @@ const THEMES: { c: ThemeChoice; label: string; Icon: typeof Sun }[] = [
   { c: "dark", label: "Dark", Icon: Moon },
 ];
 
-/** Rough cost per detent (summarization calls per turn) and what the detent does, in words. */
+/** Rough cost per mode (summarization calls per turn) and what the mode does, in words. */
 const COST: Record<Attention, { callsPerTurn: number; what: string }> = {
   micro: { callsPerTurn: 3, what: "Summarizes as the session runs, every turn and phase within seconds." },
   attentive: { callsPerTurn: 1, what: "Summarizes each turn when it ends." },

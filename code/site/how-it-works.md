@@ -6,17 +6,17 @@ Written for developers who want to know what runs where. The authoritative desig
 ## Architecture
 
 ```mermaid
-flowchart LR
-  CC[Claude Code session] -- "hooks (command hook, POSTs to the engine)" --> ENG
+flowchart TB
+  CC[Claude Code session] -- "hooks POST to the engine" --> ENG
   CC -- writes --> JSONL[(~/.claude/projects/&lt;slug&gt;/*.jsonl<br/>+ subagents/*.jsonl)]
-  JSONL -- "incremental read from cursor" --> ENG[Engine daemon]
+  JSONL -- "read from cursor" --> ENG[Engine daemon]
   WATCH[File watcher fallback] --> ENG
-  ENG --> NORM[Normalize + redact]
-  NORM --> STORE[(.yolo-twice/<br/>events.ndjson, structure.json, graph.mmd, text/)]
-  STORE --> AN[Analyzers<br/>structural, search, semantic via claude -p]
-  AN --> STORE
-  ENG -- "HTTP + SSE" --> UI[Web UI<br/>zoom, flow graph, timeline, search]
   PLUGIN[Claude plugin<br/>/yolo-twice:yolo-twice] --> ENG
+  ENG --> NORM[Normalize + redact]
+  NORM --> STORE[(.yolo-twice/<br/>events.ndjson, structure.json,<br/>graph.mmd, text/)]
+  STORE --> AN[Analyzers<br/>structural, search,<br/>semantic via claude -p]
+  AN --> STORE
+  ENG -- "HTTP + SSE" --> UI[Web UI<br/>zoom, flow graph,<br/>timeline, search]
 ```
 
 ## Live pipeline
@@ -28,14 +28,14 @@ sequenceDiagram
   participant E as Engine
   participant S as .yolo-twice
   participant UI as Web UI
-  CC->>H: UserPromptSubmit / PostToolUse / SubagentStop / PostCompact / Stop
-  H->>E: POST /hook {session_id, transcript_path, agent_id, hook_event_name}
-  E->>E: debounce 300 ms per transcript
-  E->>S: read new lines from cursor, normalize, redact, append events.ndjson
-  E->>S: update structure.json (structural levels, no LLM)
+  CC->>H: prompt, tool use, subagent, compact, stop
+  H->>E: POST /hook (session, transcript)
+  E->>E: debounce 300 ms
+  E->>S: read from cursor, redact, append events
+  E->>S: update structure.json (no LLM)
   E-->>UI: SSE: events, structure
-  E->>E: enqueue semantic jobs for changed phases (hash-keyed)
-  E->>S: write text artifacts when claude -p returns
+  E->>E: queue semantic jobs (hash-keyed)
+  E->>S: write summaries from claude -p
   E-->>UI: SSE: semantic
 ```
 

@@ -24,7 +24,7 @@ Demo on 1 Nov is a vertical slice; the architecture is designed for the full vis
 | `.yolo-twice` content | Redacted raw events plus derived data, so it is safe to commit |
 | LLM analysis | Headless `claude -p` through the user's subscription, hash-cached, never blocking the UI |
 | Pitch | Markdown deck on GitHub Pages, reusing the site's mermaid diagrams |
-| Update cadence | Attention slider with four detents (micro, attentive, balanced, yolo); ingestion always live, semantic work and UI attention follow the slider |
+| Update cadence | Attention slider with four modes (micro, attentive, balanced, yolo); ingestion always live, semantic work and UI attention follow the slider |
 
 ### Design principles
 
@@ -269,13 +269,13 @@ every interim result is a cache miss by design.
 
 The slider therefore decides only which summaries the engine writes ahead of time. It never
 affects ingestion and never limits what can be read: whatever the slider skips is written on
-demand when the reader opens that node. Four detents, not a continuous value, so each mode is
+demand when the reader opens that node. Four fixed modes, not a continuous value, so each one is
 testable. The policy is one function, `planJobs` in `code/packages/analyzers/src/semantic.ts`.
 
 A node is *closed* once newer work follows it or the session has been idle for 30 minutes
 (`OPEN_IDLE_MS`); the newest turn and phase are *open* while the session runs.
 
-| Detent | Written ahead of time | Lag | Cost estimate shown |
+| Mode | Written ahead of time | Lag | Cost estimate shown |
 |---|---|---|---|
 | Micro management | title and abstract of every turn and phase and of the session, open ones included (as interim) | seconds | ≈ 3 calls per turn |
 | Attentive | title of every closed turn; title and abstract of every closed phase | about one turn | ≈ 1 call per turn |
@@ -283,14 +283,14 @@ A node is *closed* once newer work follows it or the session has been idle for 3
 | Yolo | nothing | on demand | 0 |
 
 Phases are split structurally (compaction, long idle gap, topic-changing prompt), so "a phase
-closes" needs no model. The detent does not change the reader's default zoom or any other UI
+closes" needs no model. The mode does not change the reader's default zoom or any other UI
 behaviour; the reader always starts at the abstract.
 
 Design rules:
 
 - The reader is the demand signal. Opening a node without a summary calls
   `POST /api/sessions/<id>/text`, which computes it with the same code path as the eager jobs.
-  The detent only decides how much is ready before anyone looks.
+  The mode only decides how much is ready before anyone looks.
 - Short text is never summarized: a node whose plain text already fits the granularity is shown
   verbatim (`analyzer: "verbatim"`), without a model call.
 - Idempotency survives the slider. Every artifact is keyed by the hash of its input text,
@@ -306,8 +306,8 @@ Design rules:
 - "Catch me up" summarizes the events after a last-seen cursor. The cursor is stored per
   session in the browser (`localStorage`, `yt.seen.<session>`) and moves whenever the reader
   shows the session, so the digest covers what this browser has not shown yet.
-- `claude -p` jobs run one at a time from a single queue. All detents use the model in
-  `analyzers.model` (default haiku). There is no token budget: the detent is the cost control.
+- `claude -p` jobs run one at a time from a single queue. All modes use the model in
+  `analyzers.model` (default haiku). There is no token budget: the mode is the cost control.
 - The call is `claude -p --settings '{"disableAllHooks":true}' --no-session-persistence
   --tools "" --max-turns 1 --output-format json --json-schema … --model <model>`. Disabling
   hooks keeps our own hooks from recursing while keeping the user's login (`--bare` would skip

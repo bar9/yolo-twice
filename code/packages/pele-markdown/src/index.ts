@@ -10,7 +10,10 @@ function escapeHtml(s: string): string {
 export function renderMermaid(text: string): string {
   try {
     const { svg } = render(text);
-    return `<div class="pele">${svg}</div>`;
+    // Pass the natural width on, so CSS can keep wide diagrams readable (scroll instead of shrink).
+    const width = /^<svg[^>]*\swidth="([\d.]+)"/.exec(svg)?.[1];
+    const style = width ? ` style="--pele-w:${width}px"` : "";
+    return `<div class="pele"${style}>${svg}</div>`;
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     return `<pre class="pele-error">mermaid render error: ${escapeHtml(msg)}\n\n${escapeHtml(text)}</pre>`;

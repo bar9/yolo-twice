@@ -242,7 +242,7 @@ async function main(): Promise<void> {
   stop                                           stop the daemon
   status [--cwd <dir>] [--json]                  engine and project state
   index [--cwd <dir>]                            one-shot ingest + derive, no daemon
-  mode <micro|attentive|balanced|yolo>           set the attention detent
+  mode <micro|attentive|balanced|yolo>           set the attention mode
   autocommit [on|off] [--cwd <dir>]             commit only .yolo-twice every 10 min (this engine run only)
   resume [session] [--cwd <dir>] [--print]       rebuild a session from .yolo-twice and continue it as a fork (claude --resume <file> --fork-session)
   hook                                           forward a Claude Code hook JSON from stdin`);
