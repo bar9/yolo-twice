@@ -13,7 +13,12 @@ export function Zoom(props: {
   granularity: Granularity;
   events?: Map<string, Event>;
   selected?: string;
+  hover?: string;
+  dim: Set<string>;
+  hits: Map<string, number>;
   onSelect: (id: string) => void;
+  onFocus: (id: string) => void;
+  onHover: (id: string | undefined) => void;
 }) {
   // expansion state keyed by node id survives structure refetches
   const [open, setOpen] = useState<Record<string, boolean>>({ [props.root.id]: true });
@@ -55,17 +60,26 @@ export function Zoom(props: {
     if (isOpen && g !== "full" && text === undefined && !pending[key]) void request(node, g);
     const zoomOut = () => setOverride((o) => ({ ...o, [node.id]: ORDER[Math.max(0, gi - 1)]! }));
     const zoomIn = () => setOverride((o) => ({ ...o, [node.id]: ORDER[Math.min(ORDER.length - 1, gi + 1)]! }));
-    const cls = ["node", `level-${node.level}`, node.kind, props.selected === node.id ? "selected" : ""].join(" ");
+    const cls = ["node", `level-${node.level}`, node.kind, props.selected === node.id ? "selected" : "", props.hover === node.id ? "hover" : "", props.dim.has(node.id) ? "dim" : ""].join(" ");
+    const hitCount = props.hits.get(node.id);
 
     return (
       <div key={node.id} id={`node-${node.id}`} className={cls} style={{ marginLeft: depth ? 14 : 0 }}>
         {node.meta?.boundary && node.meta.boundary !== prevBoundary && <div className="boundary">— {node.meta.boundary} —</div>}
-        <div className="row" onClick={() => (props.onSelect(node.id), toggle(node.id))}>
+        <div
+          className="row"
+          onClick={() => (props.onSelect(node.id), toggle(node.id))}
+          onDoubleClick={(e) => (e.stopPropagation(), props.onFocus(node.id))}
+          onMouseEnter={() => props.onHover(node.id)}
+          onMouseLeave={() => props.onHover(undefined)}
+          title="click selects and expands · double click focuses"
+        >
           <span className="caret">{node.children.length || node.event_ids?.length ? (isOpen ? "▾" : "▸") : "·"}</span>
           <span className="label">{node.label}</span>
           {node.meta?.branch && <span className="badge branch" title={`rewind from ${node.meta.branch_from}`}>rewind</span>}
           {node.meta?.step_kind === "subagent" && <span className="badge agent">{node.meta.agent_type ?? "agent"}</span>}
           {node.meta?.step_kind === "tool-error" && <span className="badge error">error</span>}
+          {hitCount ? <span className="badge hit">{hitCount}</span> : null}
           <span className="stats">
             {node.stats.events}ev · {node.stats.tool_calls}🔧 · {fmtTokens(node.stats.input_tokens + node.stats.output_tokens)}tok
             {node.stats.cost_usd !== undefined && ` · $${node.stats.cost_usd.toFixed(2)}`}
@@ -125,5 +139,38 @@ function Events({ node, events }: { node: StructureNode; events?: Map<string, Ev
         );
       })}
     </div>
+  );
+}
+
+/** Matches as a flat list in event order; clicking one selects its step everywhere. */
+export function Results(props: {
+  ids: string[];
+  events?: Map<string, Event>;
+  owner: Map<string, string>;
+  selected?: string;
+  query: string;
+  onSelect: (nodeId: string) => void;
+}) {
+  if (!props.events) return <p className="muted">Loading events…</p>;
+  if (props.ids.length === 0) return <p className="muted pad">No matches in this focus.</p>;
+  const term = props.query.trim().split(/\s+/)[0]?.toLowerCase() ?? "";
+  return (
+    <ul className="results">
+      {props.ids.map((id) => {
+        const e = props.events!.get(id);
+        if (!e) return null;
+        const node = props.owner.get(id);
+        const at = term ? e.text.toLowerCase().indexOf(term) : -1;
+        const from = Math.max(0, at - 50);
+        const text = e.text.slice(from, from + 180).replace(/\s+/g, " ");
+        return (
+          <li key={id} className={node && node === props.selected ? "selected" : ""} onClick={() => node && props.onSelect(node)}>
+            <span className="kind">{e.kind}</span> {e.tool?.name && <span className="tool">{e.tool.name}</span>} {e.agent_id && <span className="badge agent">subagent</span>}
+            <span className="time">{fmtTime(e.ts)}</span>
+            <div className="snippet">{from > 0 ? "…" : ""}{text}</div>
+          </li>
+        );
+      })}
+    </ul>
   );
 }

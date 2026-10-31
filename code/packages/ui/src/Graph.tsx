@@ -3,19 +3,35 @@ import { mount, register } from "pele/core";
 import flowchart from "pele/diagrams/flowchart";
 
 register(flowchart); // only the flowchart renderer: keeps the bundle small
-import { walk, type StructureNode } from "./api";
+
+const safe = (id: string) => id.replace(/[^A-Za-z0-9_]/g, "_");
 
 /**
- * Renders the engine's mermaid text with pele. The emitter sanitizes structure ids
- * (`t1.s4` -> `t1_s4`); pele keeps them as `data-id` on each node group, so we map back.
+ * Renders mermaid text with pele and links it to the shared scope. The emitter sanitizes structure
+ * ids (`t1.s4` -> `t1_s4`); pele keeps them as `data-id` on each node and cluster, so we map back.
+ * Click selects, double click focuses (semantic zoom: the graph is redrawn for that node).
  */
-export function Graph(props: { mermaid: string; root?: StructureNode; selected?: string; onSelect: (id: string) => void }) {
+export function Graph(props: {
+  mermaid: string;
+  /** Every structure id that may appear in the graph. */
+  ids: string[];
+  selected?: string;
+  hover?: string;
+  dim: Set<string>;
+  hits: Map<string, number>;
+  onSelect: (id: string) => void;
+  onFocus: (id: string) => void;
+  onHover: (id: string | undefined) => void;
+}) {
   const host = useRef<HTMLDivElement>(null);
   const idMap = useMemo(() => {
     const m = new Map<string, string>();
-    if (props.root) for (const n of walk(props.root)) m.set(n.id.replace(/[^A-Za-z0-9_]/g, "_"), n.id);
+    for (const id of props.ids) {
+      m.set(safe(id), id);
+      m.set(`${safe(id)}_box`, id); // subagent clusters
+    }
     return m;
-  }, [props.root]);
+  }, [props.ids]);
 
   useEffect(() => {
     const el = host.current;
@@ -31,26 +47,48 @@ export function Graph(props: { mermaid: string; root?: StructureNode; selected?:
     }
   }, [props.mermaid]);
 
-  // highlight the selected node
+  // project the scope onto the rendered SVG
   useEffect(() => {
     const el = host.current;
     if (!el) return;
     for (const g of el.querySelectorAll<SVGGElement>(".pele-node, .pele-cluster")) {
       const id = idMap.get(g.dataset.id ?? "");
       g.classList.toggle("is-selected", id !== undefined && id === props.selected);
+      g.classList.toggle("is-hover", id !== undefined && id === props.hover);
+      g.classList.toggle("is-dim", id !== undefined && props.dim.has(id));
+      const n = id ? props.hits.get(id) : undefined;
+      g.classList.toggle("has-hit", Boolean(n));
       g.style.cursor = id ? "pointer" : "";
+      let title = g.querySelector(":scope > title");
+      if (n) {
+        if (!title) {
+          title = document.createElementNS("http://www.w3.org/2000/svg", "title");
+          g.prepend(title);
+        }
+        title.textContent = `${n} match${n === 1 ? "" : "es"}`;
+      } else title?.remove();
     }
-  }, [props.selected, idMap, props.mermaid]);
+  }, [props.selected, props.hover, props.dim, props.hits, idMap, props.mermaid]);
 
-  const onClick = (e: React.MouseEvent) => {
+  const idAt = (e: React.MouseEvent) => {
     const g = (e.target as Element).closest<SVGGElement>(".pele-node, .pele-cluster");
-    if (!g) return;
-    const id = idMap.get(g.dataset.id ?? "");
-    if (id) return props.onSelect(id);
-    // fallback: match the label text against structure labels
-    const label = g.querySelector(".pele-label, .pele-cluster-label")?.textContent?.trim();
-    if (label && props.root) for (const n of walk(props.root)) if (n.label.startsWith(label.replace(/…$/, ""))) return props.onSelect(n.id);
+    return g ? idMap.get(g.dataset.id ?? "") : undefined;
   };
 
-  return <div className="graph pele" ref={host} onClick={onClick} />;
+  return (
+    <div
+      className="graph pele"
+      ref={host}
+      onClick={(e) => {
+        const id = idAt(e);
+        if (id) props.onSelect(id);
+      }}
+      onDoubleClick={(e) => {
+        const id = idAt(e);
+        if (id) props.onFocus(id);
+      }}
+      onMouseOver={(e) => props.onHover(idAt(e))}
+      onMouseLeave={() => props.onHover(undefined)}
+    />
+  );
 }

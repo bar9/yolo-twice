@@ -24,7 +24,7 @@ const broadcast = (type: string, data: unknown) => listeners.forEach((l) => l(ty
 setInterval(() => broadcast("structure", { session: FIXTURE_SESSION }), 10_000);
 
 Bun.serve({
-  port: 9656,
+  port: Number(process.env.MOCK_PORT ?? 9656),
   hostname: "127.0.0.1",
   async fetch(req) {
     const url = new URL(req.url);
@@ -32,7 +32,7 @@ Bun.serve({
     const m = /^\/api\/sessions\/([^/]+)(?:\/(\w+))?$/.exec(p);
 
     if (p === "/health") return json({ ok: true, version: "mock", pid: process.pid, started: new Date().toISOString(), projects: [fx.projectRoot] });
-    if (p === "/api/projects") return json([{ root: fx.projectRoot, slug: "-tmp-yolo-demo", name: "yolo-demo", sessions: 1 }]);
+    if (p === "/api/projects") return json([{ root: fx.projectRoot, key: "yolo-demo", slug: "-tmp-yolo-demo", name: "yolo-demo", sessions: 1 }]);
     if (p === "/api/sessions") return json({ ...store.readProjectIndex(), current: FIXTURE_SESSION });
     if (p === "/api/config" && req.method === "GET") return json(store.readConfig());
     if (p === "/api/config" && req.method === "PUT") {

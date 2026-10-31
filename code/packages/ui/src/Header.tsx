@@ -1,4 +1,4 @@
-import { ATTENTION, ATTENTION_LABEL, fmtDuration, type Attention, type Config, type ProjectIndex, type StructureNode } from "./api";
+import { ATTENTION, ATTENTION_LABEL, fmtDuration, type Attention, type Config, type StructureNode } from "./api";
 
 /** Rough cost table per detent: summarization calls per turn, and how far the view lags the session. */
 const COST: Record<Attention, { callsPerTurn: number; lag: string }> = {
@@ -8,11 +8,25 @@ const COST: Record<Attention, { callsPerTurn: number; lag: string }> = {
   yolo: { callsPerTurn: 0, lag: "on demand" },
 };
 
+export interface Crumb {
+  id: string;
+  label: string;
+}
+
+/**
+ * Brand, breadcrumb (project ▸ session ▸ focus path), session pin, reset, live state,
+ * attention slider and "catch me up". The breadcrumb mirrors the URL path.
+ */
 export function Header(props: {
   project: string;
-  sessions: ProjectIndex["sessions"];
-  session?: string;
-  onSession: (id: string) => void;
+  session?: { id: string; label: string; pinned: boolean };
+  path: Crumb[]; // focus path inside the session, excluding the session itself
+  canReset: boolean;
+  onProject: () => void;
+  onSessionRoot: () => void;
+  onCrumb: (id: string) => void;
+  onPin: (pinned: boolean) => void;
+  onReset: () => void;
   live: "connecting" | "live" | "offline";
   config?: Config;
   structure?: StructureNode;
@@ -25,23 +39,46 @@ export function Header(props: {
   const durationMs = props.structure ? Date.parse(props.structure.span.ts_last) - Date.parse(props.structure.span.ts_first) : 0;
   const hours = Math.max(durationMs / 3_600_000, 1 / 60);
   const callsPerHour = Math.round((turns * COST[attention].callsPerTurn) / hours);
+  const pinned = props.session?.pinned;
 
   return (
     <header className="header">
-      <a className="brand" href={location.pathname}>
-        yolo-twice
-      </a>
-      <span className="project" title={props.project}>
-        {props.project.split("/").filter(Boolean).pop() ?? props.project}
-      </span>
-      <select value={props.session ?? ""} onChange={(e) => props.onSession(e.target.value)} className="session-pick">
-        <option value="">— all sessions —</option>
-        {[...props.sessions].reverse().map((s) => (
-          <option key={s.id} value={s.id}>
-            {s.label || s.id}
-          </option>
+      <span className="brand">yolo-twice</span>
+      <nav className="crumbs" aria-label="focus">
+        {pinned ? (
+          <span className="crumb muted" title="the session is pinned; unpin to browse the project">
+            {props.project}
+          </span>
+        ) : (
+          <button className="crumb" onClick={props.onProject} title="project: all sessions">
+            {props.project || "project"}
+          </button>
+        )}
+        {props.session && (
+          <>
+            <span className="sep">▸</span>
+            <button className="crumb" onClick={props.onSessionRoot} title={props.session.id}>
+              {props.session.label}
+            </button>
+            <button className={`pin ${pinned ? "on" : ""}`} onClick={() => props.onPin(!pinned)} title={pinned ? "pinned: Esc and reset stay inside this session. Click to unpin" : "go into this session: pin it as the root"} aria-pressed={pinned}>
+              {pinned ? "📌" : "go into"}
+            </button>
+          </>
+        )}
+        {props.path.map((c) => (
+          <span key={c.id} className="crumb-wrap">
+            <span className="sep">▸</span>
+            <button className="crumb" onClick={() => props.onCrumb(c.id)} title={c.label}>
+              {c.label.length > 28 ? c.label.slice(0, 27) + "…" : c.label}
+            </button>
+          </span>
         ))}
-      </select>
+        {props.canReset && (
+          <button className="reset" onClick={props.onReset} title="reset focus and window to the root (Esc goes up one level)">
+            ⤒ reset
+          </button>
+        )}
+      </nav>
       <span className={`live ${props.live}`} title={`stream: ${props.live}`}>
         ● {props.live}
       </span>

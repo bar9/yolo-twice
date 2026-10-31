@@ -12,8 +12,11 @@ export const ATTENTION_LABEL: Record<Attention, string> = {
   yolo: "yolo",
 };
 
-/** Project root passed on every call; empty means "engine default". */
-export const project = new URLSearchParams(location.search).get("project") ?? "";
+/** Project key (or root) passed on every call; empty means "engine default". Set from the URL by App. */
+export let project = "";
+export function setProject(key: string): void {
+  project = key;
+}
 
 function qs(params: Record<string, string | number | undefined>): string {
   const p = new URLSearchParams();
@@ -56,7 +59,10 @@ export const api = {
       body: JSON.stringify({ project: project || undefined, node, granularity }),
     }),
   digest: (id: string, since: string | undefined) => json<{ since?: string; until: string; events: number; text: string }>(`/api/sessions/${id}/digest${qs({ since })}`),
-  search: (q: string, session?: string) => json<{ hits: SearchHit[] }>(`/api/search${qs({ q, session, limit: 50 })}`),
+  projects: () => json<{ root: string; key: string; name: string; sessions: number }[]>(`/api/projects`),
+  /** Filtered search; without `session` the whole project. `k` is the comma list of filter codes. */
+  search: (q: string, opts: { session?: string; k?: string; limit?: number } = {}) =>
+    json<{ hits: SearchHit[]; tools?: string[] }>(`/api/search${qs({ q, session: opts.session, k: opts.k, limit: opts.limit ?? 200 })}`),
   config: () => json<Config>(`/api/config${qs({})}`),
   setAttention: (attention: Attention) =>
     json<Config>(`/api/config`, {
