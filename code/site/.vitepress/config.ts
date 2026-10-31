@@ -3,9 +3,10 @@ import { peleMarkdown } from "@yolo-twice/pele-markdown";
 
 export default defineConfig({
   title: "yolo-twice",
-  description: "Transparent agentic development superpowers: zoomable, live insight into long Claude Code sessions.",
+  description: "What did the AI do, and why? yolo-twice keeps AI coding sessions with the code, readable at any level of detail.",
   base: "/yolo-twice/",
   cleanUrls: true,
+  appearance: "dark",
   markdown: {
     config(md) {
       md.use(peleMarkdown);
@@ -17,7 +18,7 @@ export default defineConfig({
       { text: "Attention slider", link: "/attention" },
       { text: "Install", link: "/install" },
       { text: "Credits", link: "/credits" },
-      { text: "Pitch", link: "/yolo-twice/pitch/", target: "_blank" },
+      { text: "Pitch", link: "https://bar9.github.io/yolo-twice/pitch/", target: "_blank" },
     ],
     sidebar: [
       { text: "Overview", link: "/" },

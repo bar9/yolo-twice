@@ -2,29 +2,52 @@
 
 Not every layer costs the same. Ingestion, redaction, the structural tree and the search index
 are cheap and incremental, so they always run near realtime and the data is always complete.
-Semantic analysis through `claude -p` is the expensive layer: seconds to minutes per call,
-thousands of tokens, and it competes with your own session for the same subscription rate
-limit. Re-summarizing an open phase after every turn is quadratic in tokens.
+Semantic analysis through `claude -p` is the expensive layer: seconds per call, thousands of
+tokens, and it competes with your own session for the same subscription rate limit.
+Re-summarizing a part of the session that is still growing, after every turn, costs tokens
+again and again.
 
-The slider therefore controls semantic triggers and UI attention, never ingestion. Four
-detents, not a continuous value:
+The slider therefore decides only **which summaries the engine writes ahead of time**. It
+never affects ingestion, and it never limits what you can read: any summary the slider skips
+is written when you open that node in the reader.
 
-| Detent | Semantic trigger | Default zoom | UI behaviour |
+## The four detents
+
+A part of the session is *closed* once newer work follows it, or once the session has been
+idle for 30 minutes. The newest turn and the newest phase are *open* while the session runs.
+
+| Detent | Written ahead of time | Lag of the summaries | Rough cost |
 |---|---|---|---|
-| Micro management | every turn: incremental fold summary of the open phase, small model | L3 steps | live ticker, graph re-layout batched to 1 s |
-| Attentive | turn label on each Stop hook, phase summary when the phase closes | L2 turns | live, no interim phase summaries |
-| Balanced (default) | phase close only: compaction, idle gap, topic change | L1 phases | updates on phase boundaries |
-| Yolo | nothing automatic; summaries computed lazily for nodes the UI shows, or on SessionEnd | L0 digest | "catch me up": digest of everything since you last looked |
+| Micro management | Title and abstract of every turn and every phase, and of the session, including the open ones, refreshed as they grow | seconds | ≈ 3 calls per turn |
+| Attentive | A title for every closed turn; title and abstract for every closed phase | about one turn | ≈ 1 call per turn |
+| Balanced (default) | Title and abstract for every closed phase | about one phase | ≈ 1 call per 4 turns |
+| Yolo | Nothing | on demand | only what you open |
 
-Design rules:
+Phases are split structurally, without a model: at compactions, after long idle gaps, and at
+prompts that change the topic.
 
-- The UI viewport is the demand signal. The UI requests summaries for visible nodes; the
-  slider only sets how far ahead the engine prefetches.
-- Idempotency survives the slider. A closed phase has the same input hash in every mode, so
-  its artifact is identical whether computed eagerly or lazily. Interim summaries of open
-  phases live in the gitignored cache, never in the committed `sessions/` folder.
-- The cost is shown next to the slider: estimated tokens per hour and update lag.
-- The setting is `attention` in `.yolo-twice/config.json`, changeable live from the UI or
-  with `/yolo-twice mode <micro|attentive|balanced|yolo>`.
-- "Catch me up" uses a last-viewed cursor per session, so the digest covers exactly what you
-  have not seen.
+## Design rules
+
+- **The reader is the demand signal.** Whatever the detent, opening a node that has no summary
+  yet asks the engine for one. The slider only decides how much is ready before you look.
+- **Short text is never summarized.** A one-line prompt or a single tool call is already as
+  short as a title, so it is shown as it is, without a model call.
+- **Same input, same summary.** Every summary is keyed by the hash of its input text, the
+  granularity and the analyzer. A closed phase has the same input in every mode, so its summary
+  is identical whether it was written eagerly or on demand, and it is only written once.
+- **Open parts stay local.** Summaries of turns and phases that are still growing go to the
+  gitignored `.yolo-twice/cache/`, never into the committed `sessions/` folder.
+- **The cost is shown next to the slider**, as an estimate of summarization calls per hour for
+  the current session, together with the expected lag.
+- **The setting is personal.** The team default is `attention` in `.yolo-twice/config.json`
+  (balanced). Your own choice lives in the gitignored `.yolo-twice/local.json` and can be
+  changed live from the UI or with `/yolo-twice:yolo-twice mode <micro|attentive|balanced|yolo>`.
+- **The model is configurable.** All summaries use the model set in `analyzers.model` in
+  `config.json` (default: haiku), whatever the detent.
+
+## Catch me up
+
+The "Catch me up" button summarizes everything that happened in the session since this
+browser last showed it. It is most useful in yolo mode: let the agent work, come back, and
+read one paragraph instead of the whole transcript. The position is remembered per session in
+the browser, so each viewer gets their own "since you last looked".
