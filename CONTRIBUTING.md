@@ -150,6 +150,24 @@ YOLO_TWICE_HOME=/tmp/yt-home YOLO_TWICE_PORT=9661 YOLO_TWICE_NO_LLM=1 bun run en
 
 Engine tests start the server in-process on a random port: `bun test packages/engine`.
 
+### Engine and UI together, with auto reload
+
+```sh
+bun run dev
+```
+
+This stops any running engine, then runs two watchers side by side: the engine from source
+under `bun --watch` (restarts on every saved engine, core or analyzers file) and
+`vite build --watch` (rewrites `packages/ui/dist` on every saved UI file). Open the URL
+the engine prints. The page reloads by itself after either one: on connect the stream's
+`hello` carries a build id of the engine run and the UI bundle, and the engine sends a
+`build` event when `dist` changes. Your place in the session survives the reload because it
+lives in the URL. Combine with `YOLO_TWICE_PORT` and `YOLO_TWICE_HOME` to keep it away from an
+installed engine.
+
+The same check runs in the installed engine, so after `bun run build` and
+`bun run cli stop` / `open`, open tabs pick up the new version without a manual reload.
+
 ### UI
 
 The UI talks only to the API in `code/API.md`, so it can be developed without the engine.
@@ -203,7 +221,8 @@ the client. Every push to `main` deploys both to https://bar9.github.io/yolo-twi
 |---|---|
 | `Vite requires Node.js version 20.19+` | a warning on older Node 20; the build still succeeds. Upgrade to Node 22 to silence it |
 | Slidev fails under Node with a `styleText` error | Slidev 53 needs Node 22; the deck scripts already run it through bun |
-| `/yolo-twice:yolo-twice` runs old engine code | the launcher prefers `dist/`; run `bun run build` |
+| `/yolo-twice:yolo-twice` runs old engine code | the launcher prefers `dist/`; run `bun run build`, then restart the engine (`bun run cli stop`) |
+| A new UI feature is missing although the UI was rebuilt | the engine still runs the old API; restart it, or use `bun run dev` |
 | Port 9656 in use | another engine is running: `bun run cli status`, `bun run cli stop`, or use `YOLO_TWICE_PORT` |
 | UI shows "not built" | run `bun run build`, the engine serves `packages/ui/dist` |
 | Summaries look like truncated text | the structural fallback answered: `claude` is not on `PATH`, `YOLO_TWICE_NO_LLM` is set, or the CLI failed (see `~/.yolo-twice/engine.log`) |

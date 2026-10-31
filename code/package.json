@@ -15,6 +15,9 @@
     "typecheck": "tsc -b packages/core packages/analyzers packages/engine packages/pele-markdown && bun run --filter @yolo-twice/ui typecheck",
     "cli": "bun run packages/engine/src/cli.ts",
     "engine": "bun run packages/engine/src/cli.ts start --foreground",
+    "dev": "bun run --parallel dev:engine dev:ui-build",
+    "dev:engine": "bun packages/engine/src/cli.ts stop && bun --watch --no-clear-screen packages/engine/src/cli.ts start --foreground --cwd ..",
+    "dev:ui-build": "bun run --filter @yolo-twice/ui build:watch",
     "dev:ui": "bun run --filter @yolo-twice/ui dev",
     "mock": "bun run --filter @yolo-twice/ui mock"
   },

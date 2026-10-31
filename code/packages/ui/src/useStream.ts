@@ -20,15 +20,28 @@ export function useStream(onEvent: (e: StreamEvent) => void): "connecting" | "li
     let timer: ReturnType<typeof setTimeout> | undefined;
     let delay = 1000;
     let closed = false;
+    let build: string | undefined;
 
     const connect = () => {
       if (closed) return;
       setState("connecting");
       es = new EventSource(api.streamUrl());
-      es.addEventListener("hello", () => {
+      // a changed build id means the engine restarted or the UI was rebuilt: reload to pick up both
+      const checkBuild = (ev: Event) => {
+        try {
+          const b = (JSON.parse((ev as MessageEvent).data) as { build?: string }).build;
+          if (b && build && b !== build) location.reload();
+          build ??= b;
+        } catch {
+          /* ignore malformed frame */
+        }
+      };
+      es.addEventListener("hello", (ev) => {
         delay = 1000;
         setState("live");
+        checkBuild(ev);
       });
+      es.addEventListener("build", checkBuild);
       for (const type of ["hook", "ingest", "structure", "semantic", "config", "autocommit"] as const) {
         es.addEventListener(type, (ev) => {
           try {

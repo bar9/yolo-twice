@@ -35,7 +35,8 @@ most recently registered project is used. All JSON uses the types from `@yolo-tw
 
 | event | data | when |
 |---|---|---|
-| `hello` | `{ project, version }` | on connect |
+| `hello` | `{ project, version, build }` | on connect. `build` identifies the engine run and the UI bundle; a client that sees a different `build` than on its first connect reloads |
+| `build` | `{ build }` | the served UI bundle was rebuilt (sent to every client); clients reload |
 | `hook` | `{ hook_event_name, session_id }` | every hook received for this project |
 | `ingest` | `{ session, appended }` | new events were appended |
 | `structure` | `{ session }` | structure.json and graph.mmd were rewritten; clients refetch |

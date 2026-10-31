@@ -30,10 +30,18 @@ export class Engine {
   private clients = new Set<Client>();
   private server: ServerType | undefined;
   private lastRegistered: string | undefined;
+  private uiWatcher: fs.FSWatcher | undefined;
+  private uiTimer: NodeJS.Timeout | undefined;
+  /** Published package ships the UI at <pkg>/ui; the monorepo has it at packages/ui/dist. */
+  readonly uiDir: string;
   readonly log: (msg: string) => void;
 
   constructor(private readonly opts: EngineOptions = {}) {
     this.log = opts.log ?? ((m) => console.error(`[yolo-twice] ${m}`));
+    const here = path.dirname(fileURLToPath(import.meta.url));
+    this.uiDir = [path.resolve(here, "..", "ui"), path.resolve(here, "..", "..", "ui", "dist")].find((d) =>
+      fs.existsSync(path.join(d, "index.html")),
+    ) ?? path.resolve(here, "..", "..", "ui", "dist");
     this.routes();
   }
 
@@ -73,6 +81,39 @@ export class Engine {
 
   private broadcast(project: string, event: string, data: unknown): void {
     for (const c of this.clients) if (c.project === project) c.send(event, data);
+  }
+
+  /**
+   * Identifies the running engine plus the UI bundle it serves. Clients reload when it changes:
+   * after an engine restart (sent with `hello`) or a UI rebuild (sent as `build`).
+   */
+  build(): string {
+    let ui = "none";
+    try {
+      ui = sha256(fs.readFileSync(path.join(this.uiDir, "index.html"), "utf8")).slice(0, 12);
+    } catch {
+      /* not built (yet) */
+    }
+    return `${this.started}/${ui}`;
+  }
+
+  /** Tell every client about a rebuilt UI. vite empties and rewrites dist, so wait until it settles. */
+  private watchUi(): void {
+    if (!fs.existsSync(this.uiDir)) return;
+    let last = this.build();
+    try {
+      this.uiWatcher = fs.watch(this.uiDir, () => {
+        clearTimeout(this.uiTimer);
+        this.uiTimer = setTimeout(() => {
+          const now = this.build();
+          if (now === last || now.endsWith("/none")) return;
+          last = now;
+          for (const c of this.clients) c.send("build", { build: now });
+        }, 500);
+      });
+    } catch {
+      /* no fs.watch support: clients still reload after an engine restart */
+    }
   }
 
   /* ---------- routes ---------- */
@@ -207,7 +248,7 @@ export class Engine {
           end: () => done(),
         };
         this.clients.add(client);
-        client.send("hello", { project: rt.root, version: VERSION });
+        client.send("hello", { project: rt.root, version: VERSION, build: this.build() });
         const ping = setInterval(() => client.send("ping", {}), 25_000);
         stream.onAbort(() => done());
         await finished;
@@ -228,11 +269,7 @@ export class Engine {
     });
 
     // UI
-    // Published package ships the UI at <pkg>/ui; the monorepo has it at packages/ui/dist.
-    const here = path.dirname(fileURLToPath(import.meta.url));
-    const uiDir = [path.resolve(here, "..", "ui"), path.resolve(here, "..", "..", "ui", "dist")].find((d) =>
-      fs.existsSync(path.join(d, "index.html")),
-    ) ?? path.resolve(here, "..", "..", "ui", "dist");
+    const uiDir = this.uiDir;
     const index = path.join(uiDir, "index.html");
     app.get("/*", (c) => {
       const p = c.req.path === "/" ? "/index.html" : c.req.path;
@@ -259,10 +296,13 @@ export class Engine {
       this.server.on("error", reject);
     });
     for (const root of this.opts.persist === false ? [] : readProjects()) if (fs.existsSync(root)) this.register(root);
+    this.watchUi();
     return actual;
   }
 
   async close(): Promise<void> {
+    clearTimeout(this.uiTimer);
+    this.uiWatcher?.close();
     for (const rt of this.projects.values()) await rt.stop();
     for (const c of this.clients) c.end();
     this.clients.clear();
