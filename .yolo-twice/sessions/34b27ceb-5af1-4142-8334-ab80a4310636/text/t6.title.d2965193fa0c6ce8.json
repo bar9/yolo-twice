@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T11:04:04.340Z",
+  "granularity": "title",
+  "hash": "d2965193fa0c6ce8",
+  "node": "t6",
+  "text": "Committed WIP tracks, then four feature commits; engine and UI verified live",
+  "version": "1"
+}

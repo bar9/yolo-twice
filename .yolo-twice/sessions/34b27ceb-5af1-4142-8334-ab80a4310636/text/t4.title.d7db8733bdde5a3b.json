@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T11:03:35.470Z",
+  "granularity": "title",
+  "hash": "d7db8733bdde5a3b",
+  "node": "t4",
+  "text": "Replace license.txt copyright placeholder with 2026 and collaborator names",
+  "version": "1"
+}

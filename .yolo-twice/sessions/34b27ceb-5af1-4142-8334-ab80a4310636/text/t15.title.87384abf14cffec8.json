@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T11:05:55.964Z",
+  "granularity": "title",
+  "hash": "87384abf14cffec8",
+  "node": "t15",
+  "text": "Plan portable path anonymization in .yolo-twice; resume uses --fork-session",
+  "version": "1"
+}

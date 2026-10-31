@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T11:06:09.050Z",
+  "granularity": "title",
+  "hash": "f15c8176d4561a8d",
+  "node": "t16",
+  "text": "User interrupted the request; assistant replied with no response requested",
+  "version": "1"
+}

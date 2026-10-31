@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T11:04:18.499Z",
+  "granularity": "title",
+  "hash": "5354a3a1f14f0f2f",
+  "node": "t7",
+  "text": "Add resume command rebuilding committed events.ndjson into ~/.claude for claude --resume",
+  "version": "1"
+}

@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T11:04:47.823Z",
+  "granularity": "abstract",
+  "hash": "b3bcc1c623608cf1",
+  "node": "t9",
+  "text": "The user ran `/model opus` to switch the session's model, and the transcript records no other actions, files, or commands. No reason for the switch is given. The outcome is only that the session is now set to Opus, with no results or errors recorded.",
+  "version": "1"
+}

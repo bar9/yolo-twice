@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T11:04:30.200Z",
+  "granularity": "title",
+  "hash": "247067b2733ed394",
+  "node": "t8",
+  "text": "Add CONTRIBUTING.md, fix root build to include engine, drop tsc race",
+  "version": "1"
+}

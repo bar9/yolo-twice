@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T11:06:13.064Z",
+  "granularity": "abstract",
+  "hash": "9e402fffeb896496",
+  "node": "t16",
+  "text": "The user submitted a prompt and interrupted it before the agent began work, and the assistant replied \"No response requested.\" No files were read or changed, no commands were run, and no decisions were made. The transcript contains no task, error, or result to report.",
+  "version": "1"
+}

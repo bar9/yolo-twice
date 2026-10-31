@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T11:08:21.063Z",
+  "granularity": "abstract",
+  "hash": "93370d54a7099d7c",
+  "node": "t12",
+  "text": "The user asked to commit the whole .yolo-twice folder, so the assistant checked tracked, on-disk and ignored files and found all of them already tracked, with five modified since the last commit because a running engine (cli.ts start on port 9656) keeps updating the index. It committed them as a8871de \"Refresh .yolo-twice index\" and left the tree clean without pushing. The commit succeeded, and the assistant warned that the folder will keep changing until that engine is stopped with `bun run cli stop`.",
+  "version": "1"
+}

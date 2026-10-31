@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T11:05:44.354Z",
+  "granularity": "title",
+  "hash": "9eb06cdd9578ba15",
+  "node": "t14",
+  "text": "Add follow (tail -f) mode to UI; analyse project.json merge conflict and split proposal",
+  "version": "1"
+}

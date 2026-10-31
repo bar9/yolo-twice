@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T11:08:02.116Z",
+  "granularity": "abstract",
+  "hash": "d199aa1168c0d275",
+  "node": "t7",
+  "text": "Added a `resume [session]` command to the engine CLI (`code/packages/engine/src/resume.ts`, wired into `src/cli.ts`, the plugin wrapper and `API.md`) that rebuilds a Claude Code transcript from the committed `.yolo-twice` `events.ndjson` into `~/.claude/projects/<slug>/` so a teammate can `claude --resume <id>` a session that never ran on their machine. Round-trip tests in `test/resume.test.ts` pass (22 total, typecheck and plugin validation green), and the README and `documentation/design.md` were updated; commits `6e49ba3` and `2cf1a5d` are in. The GitHub Pages deploy had failed with a 404 \"Ensure GitHub Pages has been enabled\" because Pages was not yet enabled, so the workflow was re-run and both the site and `/pitch/` now return 200.",
+  "version": "1"
+}
