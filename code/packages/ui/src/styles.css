@@ -435,10 +435,17 @@ button.crumb:hover { background: var(--sheet-2); color: var(--ink); }
 .graph .is-selected > :is(rect, polygon, path) { stroke: var(--ink) !important; stroke-width: 3 !important; }
 .graph .is-selected.pele-node > :is(rect, polygon, path) { filter: drop-shadow(0 4px 10px rgb(16 20 30 / .18)); }
 
-.graph-tools { position: absolute; right: 14px; bottom: 14px; z-index: 5; display: flex; flex-direction: column; gap: 2px; padding: 3px; border-radius: 10px; background: var(--sheet); box-shadow: 0 0 0 1px var(--rule), 0 6px 20px -10px rgb(16 20 30 / .3); }
-.graph-tools button { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 7px; color: var(--ink-2); }
+.graph-head { background: var(--paper); }
+.graph-where { display: flex; align-items: center; gap: 10px; min-width: 0; font-size: 13px; color: var(--ink-2); }
+.graph-up { display: inline-flex; align-items: center; gap: 5px; min-width: 0; max-width: 300px; height: 28px; padding: 0 9px; border-radius: 7px; color: var(--ink); border: 1px solid var(--rule); background: var(--sheet); }
+.graph-up span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.graph-up:hover { border-color: var(--rule-strong); }
+.graph-what { white-space: nowrap; font-variant-numeric: tabular-nums; }
+.graph-tools { display: flex; align-items: center; gap: 1px; flex: none; }
+.graph-tools button { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 7px; color: var(--ink-2); }
 .graph-tools button:hover { background: var(--sheet-2); color: var(--ink); }
-.graph-tools .zoom-level { font-size: 11px; text-align: center; color: var(--ink-3); padding: 2px 0; font-variant-numeric: tabular-nums; }
+.graph-tools .zoom-level { min-width: 42px; text-align: center; font-size: 12px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.graph-tools .tools-sep { width: 1px; height: 16px; margin: 0 4px; background: var(--rule); }
 .legend { display: flex; gap: 2px; min-width: 0; flex: 0 1 auto; overflow: hidden; font-size: 12px; color: var(--ink-2); }
 .legend button { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; flex: none; height: 24px; padding: 0 7px; border-radius: 999px; color: var(--ink-2); border: 1px solid transparent; }
 .legend button:hover { color: var(--ink); background: var(--sheet-2); }

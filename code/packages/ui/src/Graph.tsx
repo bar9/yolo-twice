@@ -1,8 +1,6 @@
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { mount, register } from "pele/core";
 import flowchart from "pele/diagrams/flowchart";
-import type { FilterCode } from "@yolo-twice/analyzers/search";
-import { KIND, kindStyle, type Kind } from "./kinds";
 import { Maximize, Minus, Plus, Type } from "lucide-react";
 
 register(flowchart); // only the flowchart renderer: keeps the bundle small
@@ -21,30 +19,6 @@ const MAX = 2.5;
 /** Text stays readable on first sight: fit the width, but never shrink below this or blow up past 1:1. */
 const READABLE = 0.72;
 const PAD = 28;
-
-/** The filter each legend kind stands for (the same codes as the filter chips). */
-const KIND_CODE: Partial<Record<Kind, FilterCode>> = { you: "u", text: "a", think: "h", tool: "t", error: "e", agent: "s", compaction: "c", command: "c", rewind: "r" };
-
-/** Which kinds the graph shows, with their icon and colour; a click shows only that kind, like its chip. */
-export function Legend({ kinds, active, onToggle }: { kinds: Kind[]; active: FilterCode[]; onToggle: (code: FilterCode) => void }) {
-  if (!kinds.length) return null;
-  return (
-    <div className="legend" role="group" aria-label="Legend and filter">
-      {kinds.map((k) => {
-        const Icon = KIND[k].icon;
-        const code = KIND_CODE[k];
-        if (!code) return null;
-        const on = active.includes(code);
-        return (
-          <button key={k} style={kindStyle(k)} className={on ? "on" : ""} aria-pressed={on} onClick={() => onToggle(code)} title={on ? `Showing ${KIND[k].label.toLowerCase()}: click to clear` : `Highlight only ${KIND[k].label.toLowerCase()}`}>
-            <Icon aria-hidden />
-            {KIND[k].label}
-          </button>
-        );
-      })}
-    </div>
-  );
-}
 
 export interface HoverInfo {
   id: string;
@@ -71,6 +45,8 @@ export const Graph = memo(function Graph(props: {
   onHover: (h: HoverInfo | undefined) => void;
   /** The user moved the view: further down (towards the newest) or up, and whether the bottom is now in view. */
   onUserMove?: (down: boolean, atTail: boolean) => void;
+  /** Left side of the graph's bar: where you are and what the boxes are. */
+  head?: React.ReactNode;
 }) {
   const host = useRef<HTMLDivElement>(null);
   const view = useRef({ scale: 1, x: PAD, y: PAD, w: 0, h: 0 });
@@ -252,6 +228,28 @@ export const Graph = memo(function Graph(props: {
   };
 
   return (
+    <>
+    <div className="pane-head graph-head">
+      <div className="graph-where">{props.head}</div>
+      <div className="graph-tools" role="toolbar" aria-label="Graph zoom">
+        <button onClick={() => zoomAt(0.8, undefined, undefined, true)} title="Zoom out (−)" aria-label="Zoom out">
+          <Minus size={15} />
+        </button>
+        <span className="zoom-level" aria-live="polite">
+          {Math.round(zoom * 100)}%
+        </span>
+        <button onClick={() => zoomAt(1.25, undefined, undefined, true)} title="Zoom in (+)" aria-label="Zoom in">
+          <Plus size={15} />
+        </button>
+        <span className="tools-sep" />
+        <button onClick={home} title="Readable size, from the top (0)" aria-label="Readable size">
+          <Type size={15} />
+        </button>
+        <button onClick={fitAll} title="Show the whole graph" aria-label="Show the whole graph">
+          <Maximize size={15} />
+        </button>
+      </div>
+    </div>
     <div className="graph-wrap">
       <div
         className="graph pele"
@@ -334,23 +332,7 @@ export const Graph = memo(function Graph(props: {
           }
         }}
       />
-      <div className="graph-tools" role="toolbar" aria-label="Graph zoom">
-        <button onClick={() => zoomAt(1.25, undefined, undefined, true)} title="Zoom in (+)" aria-label="Zoom in">
-          <Plus size={16} />
-        </button>
-        <div className="zoom-level" aria-live="polite">
-          {Math.round(zoom * 100)}%
-        </div>
-        <button onClick={() => zoomAt(0.8, undefined, undefined, true)} title="Zoom out (−)" aria-label="Zoom out">
-          <Minus size={16} />
-        </button>
-        <button onClick={home} title="Readable size, from the top (0)" aria-label="Readable size">
-          <Type size={16} />
-        </button>
-        <button onClick={fitAll} title="Show the whole graph" aria-label="Show the whole graph">
-          <Maximize size={16} />
-        </button>
-      </div>
     </div>
+    </>
   );
 });

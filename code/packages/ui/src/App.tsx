@@ -2,14 +2,14 @@ import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } f
 import { focusMermaid, projectToMermaid } from "@yolo-twice/analyzers/graph";
 import { SearchIndex, type FilterCode } from "@yolo-twice/analyzers/search";
 import { useDefaultLayout } from "react-resizable-panels";
-import { ArrowDown, BookOpenText, Clock, Coins, ListTree, Network, TriangleAlert, Wrench } from "lucide-react";
+import { ArrowDown, ArrowUp, BookOpenText, Clock, Coins, ListTree, TriangleAlert, Wrench } from "lucide-react";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { api, fmtDuration, fmtTime, fmtTokens, setProject, storage, store, type Attention, type AutoCommit, type Config, type Event, type Granularity, type ProjectIndex, type SearchHit, type StructureNode } from "./api";
 import { Header } from "./Header";
 import { FilterBar } from "./FilterBar";
 import { Timeline, type Bar, type Tick } from "./Timeline";
-import { Graph, Legend, type HoverInfo } from "./Graph";
+import { Graph, type HoverInfo } from "./Graph";
 import { Results, Zoom } from "./Zoom";
 import { useStream } from "./useStream";
 import { resolveId, shortId, useViewState, type Layout, type SetView, type ViewState } from "./state";
@@ -18,7 +18,6 @@ import { DETAIL, KIND, KindIcon, kindStyle, nodeKind, richText, type Kind } from
 
 type Index = ProjectIndex & { current?: string };
 const sessionNode = (id: string) => `s:${id}`;
-const LEGEND_ORDER: Kind[] = ["you", "command", "text", "think", "tool", "error", "agent", "rewind", "compaction"];
 const WAVE_BUCKETS = 160;
 
 /** Per-viewer pane sizes; storage can be unavailable (private mode, previews), then sizes just reset. */
@@ -360,7 +359,6 @@ export function App() {
     let tools: string[] = projectTools;
     let scopeLabel = "the project";
     let projectWindow: [number, number] | undefined;
-    let legend: Kind[] = [];
 
     if (scope && events) {
       tlStart = Date.parse(scope.focus.span.ts_first);
@@ -379,8 +377,6 @@ export function App() {
       });
       mermaid = focusMermaid(scope.graphRoot);
       graphIds = [...walk(scope.graphRoot)].map((n) => n.id);
-      const present = new Set(graphIds.map((id) => tree?.byId.get(id)).filter(Boolean).map((n) => nodeKind(n!)));
-      legend = LEGEND_ORDER.filter((k) => present.has(k));
       dim = scope.dim;
       hits = scope.hits;
       matchCount = scope.matches.size;
@@ -402,9 +398,9 @@ export function App() {
       graphIds = bars.map((b) => b.id);
       matchCount = visibleHits.length;
     }
-    return { bars, ticks, tlStart, tlEnd, mermaid, graphIds, dim, hits, matchCount, tools, scopeLabel, projectWindow, legend };
+    return { bars, ticks, tlStart, tlEnd, mermaid, graphIds, dim, hits, matchCount, tools, scopeLabel, projectWindow };
   }, [scope, events, tree, searchIndex, sessionId, sessions, projectHits, projectTools, view.window, dq, dk]);
-  const { bars, ticks, tlStart, tlEnd, mermaid, graphIds, dim, hits, matchCount, tools, scopeLabel, projectWindow, legend } = vm;
+  const { bars, ticks, tlStart, tlEnd, mermaid, graphIds, dim, hits, matchCount, tools, scopeLabel, projectWindow } = vm;
 
   // how busy the agent was across the tape: events per time bucket
   const wave = useMemo(() => {
@@ -473,17 +469,23 @@ export function App() {
     </section>
   );
 
-  const graphTitle = scope ? (scope.graphRoot.kind === "session" ? "The session" : scope.graphRoot.label) : "All sessions";
+  // the graph's bar: a way up, and what the boxes are (the filter chips already serve as the legend)
+  const upTarget = scope && view.focus ? scope.parent.get(scope.focus.id) : undefined;
+  const upLabel = upTarget ? (upTarget === rootId ? sessionMeta?.label || "the session" : tree?.byId.get(upTarget)?.label) : sessionId && !view.pinned ? view.project : undefined;
+  const graphHead = (
+    <>
+      {upLabel && (
+        <button className="graph-up" onClick={up} title="Zoom out one level (Esc)">
+          <ArrowUp size={14} aria-hidden />
+          <span>{upLabel}</span>
+        </button>
+      )}
+      <span className="graph-what">{graphContents(scope?.graphRoot, sessions.length)}</span>
+    </>
+  );
   const graphPane = (
     <section className="pane right">
-      <div className="pane-head">
-        <span className="pane-title">
-          <Network size={15} aria-hidden />
-          <span>{graphTitle}</span>
-        </span>
-        <Legend kinds={legend} active={view.k} onToggle={(c) => setView({ k: view.k.includes(c) ? view.k.filter((x) => x !== c) : [...view.k, c] })} />
-      </div>
-      <Graph mermaid={mermaid} ids={graphIds} selected={sel} follow={view.follow} hover={hover} dim={dim} hits={hits} onFocus={focusOn} onHover={hoverAt} onUserMove={onGraphMove} />
+      <Graph mermaid={mermaid} ids={graphIds} selected={sel} follow={view.follow} hover={hover} dim={dim} hits={hits} onFocus={focusOn} onHover={hoverAt} onUserMove={onGraphMove} head={graphHead} />
     </section>
   );
 
@@ -574,6 +576,19 @@ export function App() {
       </Sheet>
     </div>
   );
+}
+
+/** What the boxes of the graph are, in words: "23 turns in 3 phases", "42 steps". */
+function graphContents(root: StructureNode | undefined, sessions: number): string {
+  const n = (k: number, one: string, many = `${one}s`) => `${k} ${k === 1 ? one : many}`;
+  if (!root) return n(sessions, "session");
+  if (root.kind === "session") {
+    const turns = root.children.reduce((t, p) => t + p.children.length, 0);
+    return `${n(turns, "turn")} in ${n(root.children.length, "phase")}`;
+  }
+  if (root.kind === "phase") return n(root.children.length, "turn");
+  const agents = root.children.filter((c) => c.meta?.step_kind === "subagent").length;
+  return n(root.children.length, "step") + (agents ? `, ${n(agents, "subagent")}` : "");
 }
 
 /** Detail for every open part. A part can differ with its own −/+; choosing here resets those. */
