@@ -87,15 +87,18 @@ flowchart TB
 
 ```
 .yolo-twice/
-  config.json                  attention level, redaction rules, enabled analyzers
-  project.json                 session list and project digest
+  config.json                  team settings: redaction rules, analyzers, default attention
   sessions/<id>/
+    meta.json                  label, time span, size and cost of the session
     events.ndjson              redacted, normalized events
     structure.json             the zoom tree
     graph.mmd                  the flow graph as mermaid
-    text/                      titles, abstracts and summaries per node
-  cache/, engine.json          gitignored
+    text/                      titles, abstracts and summaries of finished parts
+  cache/, local.json           gitignored: project list, cursors, live summaries, your slider
 ```
+
+Every committed file belongs to exactly one session, so teammates indexing in parallel never
+produce merge conflicts in this folder.
 
 Raw transcripts stay in `~/.claude`. Only redacted events and derived data are written here.
 Paths are written portably: the project root as `$PROJECT`, your home folder as `~`, your

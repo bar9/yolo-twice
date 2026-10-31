@@ -191,21 +191,35 @@ GitHub as-is. If interactivity outgrows SVG, `@xyflow/react` is the fallback.
 
 ## 5. `.yolo-twice` layout and idempotency
 
+Rule: **one writer per committed file**. Everything committed belongs to exactly one session,
+or is a team setting. Anything that combines sessions, any machine state and any personal
+preference is gitignored and rebuilt locally. Two people indexing at the same time therefore
+never touch the same committed file, so `.yolo-twice/` never produces merge conflicts.
+
 ```
 .yolo-twice/
-  config.json                    # schema version, attention, redaction rules, enabled analyzers
-  cache/                         # interim summaries, temp (gitignored)
-  sessions/<session-id>/
-    source.json                  # origin path, agent, cursor {bytes, lines, size, mtime, head hash}
+  config.json                    # team settings: redaction rules, analyzers, default attention   (committed)
+  local.json                     # personal overrides, e.g. the attention slider                   (gitignored)
+  sessions/<session-id>/                                                                            (committed)
+    meta.json                    # label, time span, event count, cost: what the project list needs
     events.ndjson                # redacted normalized events, append-only in arrival order
     structure.json               # L0 to L3 tree with available granularities per node
-    graph.mmd                    # flow graph as mermaid text, rendered with pele everywhere
-    text/<node>.<gran>.<hash>.json   # title / abstract / summary per node, keyed by input hash + analyzer version
-    semantic/<input-hash>.json   # phase labels and cluster results
-  project.json                   # L-1: session list and project digest
-  annotations/                   # user notes, later
-  .gitignore                     # cache/
+    graph.mmd, graph.L1.mmd      # flow graph as mermaid text, rendered with pele everywhere
+    text/<node>.<gran>.<hash>.json   # summaries of finished nodes, keyed by input hash + analyzer version
+  cache/                                                                                            (gitignored)
+    project.json                 # L-1 project list, rebuilt from every meta.json
+    sources/<session-id>.json    # ingestion cursor: origin path, byte offset, head hash, normalizer version
+    text/<session-id>/           # summaries of nodes still at the live tail; they change every turn
+    resume/<session-id>.jsonl    # transcripts rebuilt for `yolo-twice resume`
+    <session-id>.lock            # per-session ingestion lock
+  .gitignore                     # cache/, engine.json, local.json
 ```
+
+A node is at the live tail while it ends at the session's newest event and the session was
+active in the last 30 minutes. Once it is finished, its summary is computed again from the
+final input and lands in `text/`. A fresh clone has no cache: the project list is built from
+the `meta.json` files and ingestion cursors start empty, which only means a re-read that
+dedupes by event id. Folders in the first layout migrate automatically on the next start.
 
 Engine runtime state (`engine.json` with pid and port, `projects.json`, `engine.log`) lives in
 `~/.yolo-twice/`, never in the repo.
@@ -266,8 +280,8 @@ Design rules:
   phases carry `interim: true` and live in `cache/`, never in the committed `sessions/`.
 - Show the cost. Next to the slider the UI displays estimated tokens per hour and update lag
   for the current setting.
-- The setting is `attention` in `.yolo-twice/config.json`, overridable per user in
-  `~/.config/yolo-twice/config.json`, changeable live from the UI header or
+- The team default is `attention` in `.yolo-twice/config.json`; each person's choice goes to the
+  gitignored `.yolo-twice/local.json`, changeable live from the UI header or
   `/yolo-twice mode <micro|attentive|balanced|yolo>`. The engine reloads it without restart.
 - "Catch me up" uses a last-viewed cursor per session stored in the per-user config, so the
   digest covers exactly what the user has not seen.
