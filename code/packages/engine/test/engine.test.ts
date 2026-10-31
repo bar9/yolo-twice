@@ -112,4 +112,22 @@ describe("engine", () => {
     const ev = (await (await fetch(`${base}/api/sessions/${FIXTURE_SESSION}/events?${q}&after=u13&limit=100`)).json()) as { events: { id: string }[] };
     expect(ev.events.some((e) => e.id === "u99")).toBe(true);
   });
+  test("a rebuilt session gets a fresh search index (same ids, new content)", async () => {
+    const q = `project=${encodeURIComponent(project)}`;
+    const file = mainFile(fx.originDir);
+    // rewrite the first prompt: the head hash changes, so the session is rebuilt from scratch
+    const text = fs.readFileSync(file, "utf8").replace("Add a /login endpoint to the API", "Add a /signup endpoint to the API");
+    fs.writeFileSync(file, text);
+    await fetch(`${base}/hook`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ session_id: FIXTURE_SESSION, cwd: project, hook_event_name: "Stop" }) });
+    const deadline = Date.now() + 3000;
+    let hits: { id: string }[] = [];
+    while (Date.now() < deadline) {
+      hits = ((await (await fetch(`${base}/api/search?${q}&q=signup&k=u`)).json()) as { hits: { id: string }[] }).hits;
+      if (hits.length) break;
+      await new Promise((r) => setTimeout(r, 100));
+    }
+    expect(hits.map((h) => h.id)).toEqual(["u1"]);
+    const old = ((await (await fetch(`${base}/api/search?${q}&q=login&k=u`)).json()) as { hits: { id: string }[] }).hits;
+    expect(old.map((h) => h.id)).not.toContain("u1");
+  });
 });

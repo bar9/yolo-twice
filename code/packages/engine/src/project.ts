@@ -37,7 +37,7 @@ export class ProjectRuntime {
   readonly store: Store;
   readonly originDir: string;
   readonly name: string;
-  readonly search = new SearchIndex();
+  search = new SearchIndex();
   private timer: NodeJS.Timeout | undefined;
   private watcher: FSWatcher | undefined;
   private queue: SemanticJob[] = [];
@@ -108,6 +108,12 @@ export class ProjectRuntime {
   ingest(session?: string): string[] {
     const res = ingestProject({ cwd: this.root, store: this.store, originDir: this.originDir, session });
     const changed = [...new Set([...res.changed, ...res.reset])];
+    if (res.reset.length) {
+      // a rebuilt session reuses its event ids with new content: the search index must start over
+      this.search = new SearchIndex();
+      this.indexedCount.clear();
+      for (const id of this.store.listSessions()) if (!changed.includes(id)) this.indexSession(id);
+    }
     for (const id of changed) {
       this.broadcast("ingest", { session: id, appended: res.appended[id] ?? 0 });
       this.lastActivity.set(id, new Date().toISOString());
