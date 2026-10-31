@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T16:58:05.939Z",
+  "granularity": "abstract",
+  "hash": "7b8dcdfb0b58f811",
+  "node": "p1",
+  "text": "Replaced the mermaid/pele graph with a React Flow map built from shadcn-style node blocks (dagre layout, phase and subagent frames, minimap) and added a JsonView so raw JSON tool results render as a foldable document with a source toggle. Added `focusFlow`/`projectFlow` in `analyzers/src/graph.ts`, dropped `pele` from the UI, and fixed Map opening top-left by waiting for React Flow's `onInit` before setting the view (`Graph.tsx`). Typecheck, 63 tests and the build passed, and the work is pushed as `ui/react-flow-graph` (commits 016abc2, 8d1a1d5); the bundle now exceeds Vite's 500 kB warning.",
+  "version": "2"
+}

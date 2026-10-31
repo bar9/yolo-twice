@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T15:24:56.780Z",
+  "granularity": "abstract",
+  "hash": "9cf9d072fa0d47a1",
+  "node": "t28.s18",
+  "text": "All six deferred shared-browser MCP tools (browser_navigate, browser_take_screenshot, browser_resize, browser_click, browser_evaluate, browser_snapshot) were resolved from a pool of 63 deferred tools, so they can be called directly. No browser action was taken yet; this step only loaded the tool schemas, presumably so the browser could be driven next.",
+  "version": "2"
+}

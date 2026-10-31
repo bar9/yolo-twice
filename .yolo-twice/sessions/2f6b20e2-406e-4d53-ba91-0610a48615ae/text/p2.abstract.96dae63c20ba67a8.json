@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-10-31T19:53:09.695Z",
+  "granularity": "abstract",
+  "hash": "96dae63c20ba67a8",
+  "node": "p2",
+  "text": "Reworked the Slidev pitch deck in code/pitch into a plainer, picture-first talk: an IncomingCall Teams-style popover on slide 01 plays a gitignored public/ringtone.mp3 (copied from assets/teams.mp3) and hangs up to the next slide, and the order became scene, transcript, live demo, benefits, values, outlook, with backup slides after Thank you. The demo story moved from a login API to a running-club newsletter sign-up, with slides 01 and 02 and DEMO.md (setup plus five prompts) rewritten to match. Everything is uncommitted; the ringing-after-navigation bug is fixed and checked in headless Chromium, but slide 02's extra right-column transcript lines were overwritten repeatedly by an external save of slides.md and are still missing, and ui/react-flow-graph is behind main, where its React Flow work was already merged in f4df284.",
+  "version": "2"
+}

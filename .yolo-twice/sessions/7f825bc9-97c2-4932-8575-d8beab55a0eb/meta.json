@@ -1,0 +1,9 @@
+{
+  "agent": "claude-code",
+  "cost_usd": 12.322641500000007,
+  "events": 565,
+  "id": "7f825bc9-97c2-4932-8575-d8beab55a0eb",
+  "label": "Dogfooding status",
+  "ts_first": "2026-10-31T10:13:53.548Z",
+  "ts_last": "2026-10-31T15:13:42.701Z"
+}
