@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { memo, useRef, useState } from "react";
 import { X } from "lucide-react";
 import { fmtDuration, fmtTime, walk, type StructureNode } from "./api";
 import { KIND, nodeKind } from "./kinds";
@@ -38,7 +38,7 @@ function barLook(b: Bar): { fill: string; edge?: string } {
  * the playhead (the selection, or the live tail while following). Drag to set a time window, which
  * snaps to whole blocks; click a block to zoom into it; click empty space to clear the window.
  */
-export function Timeline(props: {
+export const Timeline = memo(function Timeline(props: {
   bars: Bar[];
   ticks: Tick[];
   /** Event counts in equal time buckets across the span. */
@@ -181,4 +181,4 @@ export function Timeline(props: {
       </div>
     </div>
   );
-}
+});

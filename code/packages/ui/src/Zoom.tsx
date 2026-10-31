@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { memo, useEffect, useState } from "react";
 import { Bot, ChevronRight, Coins, Focus, Image, Minus, Plus, RotateCcw, Search, TriangleAlert, Undo2, Wrench } from "lucide-react";
 import { ancestors, api, fmtDuration, fmtTime, fmtTokens, walk, type Event, type Granularity, type ImageRef, type StructureNode } from "./api";
 import { DETAIL_LABEL, DETAIL_ORDER, eventKind, KIND, KindIcon, kindStyle, nodeKind, richText } from "./kinds";
@@ -10,7 +10,7 @@ const ORDER = DETAIL_ORDER;
  * current length (or its own override) and its children, which hang off a thread from its icon.
  * Missing summaries are requested lazily.
  */
-export function Zoom(props: {
+export const Zoom = memo(function Zoom(props: {
   session: string;
   root: StructureNode;
   granularity: Granularity;
@@ -209,7 +209,7 @@ export function Zoom(props: {
   };
 
   return <div className="zoom">{render(props.root, 0)}</div>;
-}
+});
 
 /** Turns and phases say the time of day; steps say how far into their turn they happened. */
 function when(node: StructureNode, parent: StructureNode | undefined, isRoot: boolean): string {

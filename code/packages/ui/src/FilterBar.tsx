@@ -33,11 +33,17 @@ export function FilterBar(props: {
 }) {
   const input = useRef<HTMLInputElement>(null);
   const [draft, setDraft] = useState(props.q);
-  useEffect(() => setDraft(props.q), [props.q]);
+  // what this box last wrote to the URL: only a different value (back button, a link) may replace
+  // the text, otherwise a late echo of what you typed would swallow the keys typed since
+  const sent = useRef(props.q);
+  useEffect(() => {
+    if (props.q !== sent.current) setDraft((sent.current = props.q));
+  }, [props.q]);
+  const send = (q: string) => props.onQuery((sent.current = q));
   // typing is debounced into the URL so history is not spammed and the views stay calm
   useEffect(() => {
-    if (draft === props.q) return;
-    const t = setTimeout(() => props.onQuery(draft), 150);
+    if (draft === sent.current) return;
+    const t = setTimeout(() => send(draft), 200);
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [draft]);
@@ -122,7 +128,7 @@ export function FilterBar(props: {
         {!active ? "" : props.matches === 0 ? `Nothing matches in ${props.scopeLabel}` : `${props.matches} match${props.matches === 1 ? "" : "es"} in ${props.scopeLabel}`}
       </span>
       {active && (
-        <button className="chip" onClick={() => (setDraft(""), props.onQuery(""), props.onCodes([]))}>
+        <button className="chip" onClick={() => (setDraft(""), send(""), props.onCodes([]))}>
           <X aria-hidden />
           Clear
         </button>

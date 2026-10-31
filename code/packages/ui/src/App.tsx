@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useDeferredValue, useEffect, useMemo, useState } from "react";
 import { focusMermaid, projectToMermaid } from "@yolo-twice/analyzers/graph";
 import { SearchIndex, type FilterCode } from "@yolo-twice/analyzers/search";
 import { useDefaultLayout } from "react-resizable-panels";
@@ -164,9 +164,12 @@ export function App() {
     return idx;
   }, [events]);
   const tree = useMemo(() => (structure ? indexTree(structure) : undefined), [structure]);
+  // typing stays responsive: search, dimming and the views catch up at low priority, interruptibly
+  const dq = useDeferredValue(view.q);
+  const dk = useDeferredValue(view.k);
   const scope = useMemo(
-    () => (structure && tree ? computeScope(structure, searchIndex, { focus: view.focus, window: view.window, q: view.q, k: view.k }, tree) : undefined),
-    [structure, tree, searchIndex, view.focus, view.window, view.q, view.k],
+    () => (structure && tree ? computeScope(structure, searchIndex, { focus: view.focus, window: view.window, q: dq, k: dk }, tree) : undefined),
+    [structure, tree, searchIndex, view.focus, view.window, dq, dk],
   );
 
   // the URL keeps the raw brush; the snap to whole units is recomputed from it, so it is deterministic
@@ -308,61 +311,66 @@ export function App() {
 
   /* ---------- per-mode view models ---------- */
 
-  const sessions = index?.sessions ?? [];
-  let bars: Bar[] = [];
-  let ticks: Tick[] = [];
-  let tlStart = 0;
-  let tlEnd = 0;
-  let mermaid = "";
-  let graphIds: string[] = [];
-  let dim = new Set<string>();
-  let hits = new Map<string, number>();
-  let matchCount = 0;
-  let tools: string[] = projectTools;
-  let scopeLabel = "the project";
-  let projectWindow: [number, number] | undefined;
-  let legend: Kind[] = [];
+  const sessions = useMemo(() => index?.sessions ?? [], [index]);
+  // derived once per change of its inputs, so the memoized views below get the same props back
+  const vm = useMemo(() => {
+    let bars: Bar[] = [];
+    let ticks: Tick[] = [];
+    let tlStart = 0;
+    let tlEnd = 0;
+    let mermaid = "";
+    let graphIds: string[] = [];
+    let dim = new Set<string>();
+    let hits = new Map<string, number>();
+    let matchCount = 0;
+    let tools: string[] = projectTools;
+    let scopeLabel = "the project";
+    let projectWindow: [number, number] | undefined;
+    let legend: Kind[] = [];
 
-  if (scope && events) {
-    tlStart = Date.parse(scope.focus.span.ts_first);
-    tlEnd = Math.max(Date.parse(scope.focus.span.ts_last), tlStart + 1000);
-    // steps are near-instant records; a step's bar runs until the next step starts (time spent on it).
-    // turns keep their own span so the user's idle time between turns stays visible as a gap
-    const steps = scope.focus.level >= 2;
-    bars = scope.units.map((u, i) => {
-      const next = scope.units[i + 1];
-      const end = steps ? Math.max(u.end, next ? next.start : Math.max(u.end, tlEnd)) : u.end;
-      return { id: u.node.id, label: u.node.label, start: u.start, end, node: u.node, group: scope.parent.get(u.node.id) };
-    });
-    ticks = [...scope.matches].flatMap((id) => {
-      const e = events.get(id);
-      return e ? [{ id, ts: Date.parse(e.ts), kind: e.kind }] : [];
-    });
-    mermaid = focusMermaid(scope.graphRoot);
-    graphIds = [...walk(scope.graphRoot)].map((n) => n.id);
-    const present = new Set(graphIds.map((id) => tree?.byId.get(id)).filter(Boolean).map((n) => nodeKind(n!)));
-    legend = LEGEND_ORDER.filter((k) => present.has(k));
-    dim = scope.dim;
-    hits = scope.hits;
-    matchCount = scope.matches.size;
-    tools = searchIndex?.tools() ?? [];
-    scopeLabel = scope.focus.kind === "session" ? "this session" : `this ${scope.focus.kind}`;
-  } else if (!sessionId && sessions.length) {
-    const ordered = [...sessions].sort((a, b) => a.ts_first.localeCompare(b.ts_first));
-    tlStart = Date.parse(ordered[0]!.ts_first);
-    tlEnd = Math.max(...ordered.map((s) => Date.parse(s.ts_last)), tlStart + 1000);
-    bars = ordered.map((s) => ({ id: sessionNode(s.id), label: s.label || s.id, start: Date.parse(s.ts_first), end: Date.parse(s.ts_last) }));
-    projectWindow = view.window;
-    const inWindow = (t: number) => !projectWindow || (t >= tlStart + projectWindow[0] * 1000 && t <= tlStart + projectWindow[1] * 1000);
-    const visibleHits = projectHits.filter((h) => inWindow(Date.parse(h.ts)));
-    ticks = visibleHits.map((h) => ({ id: h.id, ts: Date.parse(h.ts), kind: h.kind }));
-    for (const h of visibleHits) hits.set(sessionNode(h.session), (hits.get(sessionNode(h.session)) ?? 0) + 1);
-    const active = Boolean(view.q.trim()) || view.k.length > 0;
-    for (const b of bars) if ((active && visibleHits.length > 0 && !hits.has(b.id)) || (projectWindow && (b.end < tlStart + projectWindow[0] * 1000 || b.start > tlStart + projectWindow[1] * 1000))) dim.add(b.id);
-    mermaid = projectToMermaid(ordered.map((s) => ({ id: s.id, label: s.label })));
-    graphIds = bars.map((b) => b.id);
-    matchCount = visibleHits.length;
-  }
+    if (scope && events) {
+      tlStart = Date.parse(scope.focus.span.ts_first);
+      tlEnd = Math.max(Date.parse(scope.focus.span.ts_last), tlStart + 1000);
+      // steps are near-instant records; a step's bar runs until the next step starts (time spent on it).
+      // turns keep their own span so the user's idle time between turns stays visible as a gap
+      const steps = scope.focus.level >= 2;
+      bars = scope.units.map((u, i) => {
+        const next = scope.units[i + 1];
+        const end = steps ? Math.max(u.end, next ? next.start : Math.max(u.end, tlEnd)) : u.end;
+        return { id: u.node.id, label: u.node.label, start: u.start, end, node: u.node, group: scope.parent.get(u.node.id) };
+      });
+      ticks = [...scope.matches].flatMap((id) => {
+        const e = events.get(id);
+        return e ? [{ id, ts: Date.parse(e.ts), kind: e.kind }] : [];
+      });
+      mermaid = focusMermaid(scope.graphRoot);
+      graphIds = [...walk(scope.graphRoot)].map((n) => n.id);
+      const present = new Set(graphIds.map((id) => tree?.byId.get(id)).filter(Boolean).map((n) => nodeKind(n!)));
+      legend = LEGEND_ORDER.filter((k) => present.has(k));
+      dim = scope.dim;
+      hits = scope.hits;
+      matchCount = scope.matches.size;
+      tools = searchIndex?.tools() ?? [];
+      scopeLabel = scope.focus.kind === "session" ? "this session" : `this ${scope.focus.kind}`;
+    } else if (!sessionId && sessions.length) {
+      const ordered = [...sessions].sort((a, b) => a.ts_first.localeCompare(b.ts_first));
+      tlStart = Date.parse(ordered[0]!.ts_first);
+      tlEnd = Math.max(...ordered.map((s) => Date.parse(s.ts_last)), tlStart + 1000);
+      bars = ordered.map((s) => ({ id: sessionNode(s.id), label: s.label || s.id, start: Date.parse(s.ts_first), end: Date.parse(s.ts_last) }));
+      projectWindow = view.window;
+      const inWindow = (t: number) => !projectWindow || (t >= tlStart + projectWindow[0] * 1000 && t <= tlStart + projectWindow[1] * 1000);
+      const visibleHits = projectHits.filter((h) => inWindow(Date.parse(h.ts)));
+      ticks = visibleHits.map((h) => ({ id: h.id, ts: Date.parse(h.ts), kind: h.kind }));
+      for (const h of visibleHits) hits.set(sessionNode(h.session), (hits.get(sessionNode(h.session)) ?? 0) + 1);
+      const active = Boolean(dq.trim()) || dk.length > 0;
+      for (const b of bars) if ((active && visibleHits.length > 0 && !hits.has(b.id)) || (projectWindow && (b.end < tlStart + projectWindow[0] * 1000 || b.start > tlStart + projectWindow[1] * 1000))) dim.add(b.id);
+      mermaid = projectToMermaid(ordered.map((s) => ({ id: s.id, label: s.label })));
+      graphIds = bars.map((b) => b.id);
+      matchCount = visibleHits.length;
+    }
+    return { bars, ticks, tlStart, tlEnd, mermaid, graphIds, dim, hits, matchCount, tools, scopeLabel, projectWindow, legend };
+  }, [scope, events, tree, searchIndex, sessionId, sessions, projectHits, projectTools, view.window, dq, dk]);
+  const { bars, ticks, tlStart, tlEnd, mermaid, graphIds, dim, hits, matchCount, tools, scopeLabel, projectWindow, legend } = vm;
 
   // how busy the agent was across the tape: events per time bucket
   const wave = useMemo(() => {
@@ -387,7 +395,9 @@ export function App() {
   const path = scope ? scope.path.slice(1).map((n) => ({ id: n.id, label: n.label })) : [];
   const timelineWindow = scope ? scope.window : projectWindow;
   const layout: Layout = narrow && view.layout === "split" ? "read" : view.layout;
-  const hoverAt = (h: HoverInfo | undefined) => (setHover(h?.id), setCard(h));
+  const hoverAt = useCallback((h: HoverInfo | undefined) => (setHover(h?.id), setCard(h)), []);
+  const setDetail = useCallback((z: Granularity) => setView({ z }), [setView]);
+  const setWindow = useCallback((w: [number, number] | undefined) => act({ window: w }), [act]);
 
   /* ---------- render ---------- */
 
@@ -409,7 +419,7 @@ export function App() {
           !scope ? (
             <p className="empty">Loading the session…</p>
           ) : reader === "outline" ? (
-            <Zoom session={sessionId} root={scope.focus} granularity={view.z} events={events} follow={view.follow} selected={sel} hover={hover} dim={dim} hits={hits} query={view.q} onSelect={select} onFocus={focusOn} onHover={setHover} onGranularity={(z) => setView({ z })} onOverrides={setOverrides} />
+            <Zoom session={sessionId} root={scope.focus} granularity={view.z} events={events} follow={view.follow} selected={sel} hover={hover} dim={dim} hits={hits} query={dq} onSelect={select} onFocus={focusOn} onHover={setHover} onGranularity={setDetail} onOverrides={setOverrides} />
           ) : (
             <Results ids={resultIds} events={events} owner={scope.owner} selected={sel} query={view.q} onSelect={select} />
           )
@@ -482,7 +492,7 @@ export function App() {
           dim={dim}
           hits={hits}
           onFocus={focusOn}
-          onWindow={(w) => act({ window: w })}
+          onWindow={setWindow}
           onHover={hoverAt}
         />
       )}

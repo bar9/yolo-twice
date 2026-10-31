@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { mount, register } from "pele/core";
 import flowchart from "pele/diagrams/flowchart";
 import { KIND, kindStyle, type Kind } from "./kinds";
@@ -50,7 +50,7 @@ export interface HoverInfo {
  * ctrl/⌘ + scroll or pinch to zoom, a click zooms into a node (semantic zoom: the graph is redrawn
  * for it). Text is never scaled above 1:1, so a small graph does not shout and a large one stays legible.
  */
-export function Graph(props: {
+export const Graph = memo(function Graph(props: {
   mermaid: string;
   /** Every structure id that may appear in the graph. */
   ids: string[];
@@ -330,4 +330,4 @@ export function Graph(props: {
       </div>
     </div>
   );
-}
+});
