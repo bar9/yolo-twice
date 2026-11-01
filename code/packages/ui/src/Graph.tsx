@@ -19,6 +19,8 @@ import { graphlib, layout } from "@dagrejs/dagre";
 import { Coins, Ellipsis, Maximize, Minus, Plus, Timer, Type, Wrench } from "lucide-react";
 import type { FlowClass, FlowGraph, FlowNode } from "@yolo-twice/analyzers/graph";
 import { fmtDuration, fmtTokens } from "./api";
+import type { Handover } from "./authors";
+import { Avatars, Takeover } from "./Avatar";
 import { KIND, KindIcon, kindStyle, nodeKind, type Kind } from "./kinds";
 import { BaseHandle, BaseNode, BaseNodeContent, BaseNodeFooter, BaseNodeHeader, BaseNodeHeaderTitle, LabeledGroupNode } from "./components/flow/base-node";
 import { cn } from "./lib/utils";
@@ -117,6 +119,8 @@ interface BoxData extends Record<string, unknown> {
   flow: FlowNode;
   kind: Kind;
   state: string;
+  /** Another author takes over here, or partway through. */
+  who?: Handover;
 }
 
 function kindOf(n: FlowNode): Kind {
@@ -195,7 +199,9 @@ const StepNode = memo(function StepNode(props: NodeProps<Node<BoxData>>) {
         </span>
         <BaseNodeHeaderTitle className="flow-title">{title}</BaseNodeHeaderTitle>
         {badge && <span className="flow-badge">{badge}</span>}
+        {data.who && !data.who.here && <Avatars authors={data.who.authors} size={14} />}
       </BaseNodeHeader>
+      {data.who?.here && <Takeover authors={data.who.authors} size={12} />}
       <BaseNodeContent>
         <p className="line-clamp-2 break-words" title={n.label}>
           {n.label}
@@ -215,6 +221,12 @@ const SessionNode = memo(function SessionNode({ data }: NodeProps<Node<BoxData>>
       <BaseNodeHeader>
         <KindIcon kind="session" size={12} />
         <BaseNodeHeaderTitle>Session</BaseNodeHeaderTitle>
+        {data.who && (
+          <span className="ml-auto inline-flex items-center gap-1 truncate text-[11px] opacity-80">
+            <Avatars authors={data.who.authors} size={14} />
+            {data.who.authors.map((a) => a.name).join(", ")}
+          </span>
+        )}
       </BaseNodeHeader>
       <BaseNodeContent>
         <p className="truncate font-semibold" title={n.label}>
@@ -227,7 +239,7 @@ const SessionNode = memo(function SessionNode({ data }: NodeProps<Node<BoxData>>
 });
 
 const GroupNode = memo(function GroupNode({ data }: NodeProps<Node<BoxData>>) {
-  return <LabeledGroupNode className={cn("flow-group", `cls-${data.flow.cls}`, isFold(data.flow) && "is-fold", data.state)} style={isFold(data.flow) ? undefined : kindStyle(data.kind)} label={data.flow.label} icon={<KindIcon kind={data.kind} size={12} />} />;
+  return <LabeledGroupNode className={cn("flow-group", `cls-${data.flow.cls}`, isFold(data.flow) && "is-fold", data.state)} style={isFold(data.flow) ? undefined : kindStyle(data.kind)} label={data.flow.label} icon={<KindIcon kind={data.kind} size={12} />} after={data.who && (data.who.here ? <Takeover authors={data.who.authors} size={12} /> : <Avatars authors={data.who.authors} size={14} />)} />;
 });
 
 const nodeTypes = { step: StepNode, session: SessionNode, group: GroupNode };
@@ -236,6 +248,8 @@ const nodeTypes = { step: StepNode, session: SessionNode, group: GroupNode };
 
 interface Props {
   flow: FlowGraph;
+  /** Parts where another author takes over (git blame), by structure id. */
+  handover?: Map<string, Handover>;
   selected?: string;
   /** Follow mode: keep the selected (newest) node centred. */
   follow?: boolean;
@@ -318,7 +332,8 @@ function FlowMap(props: Props) {
           type: n.group ? "group" : n.cls === "session" ? "session" : "step",
           position: { x: r.x - (p?.x ?? 0), y: r.y - (p?.y ?? 0) },
           parentId: n.parent,
-          data: { flow: n, kind: kindOf(n), state },
+          // a subagent's frame and its first box share a ref: the frame carries the mark
+          data: { flow: n, kind: kindOf(n), state, who: n.parent && flowById.get(n.parent)?.ref === n.ref ? undefined : props.handover?.get(n.ref) },
           width: r.w,
           height: r.h,
           style: { width: r.w, height: r.h },
@@ -329,7 +344,7 @@ function FlowMap(props: Props) {
         },
       ];
     });
-  }, [props.flow, laid, flowById, selBox, hoverBox, props.dim, props.hits, props.follow, props.working]);
+  }, [props.flow, laid, flowById, selBox, hoverBox, props.dim, props.hits, props.follow, props.working, props.handover]);
 
   const edges = useMemo(
     (): Edge[] =>

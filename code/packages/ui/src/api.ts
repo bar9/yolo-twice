@@ -34,6 +34,22 @@ export interface AutoCommit {
   skipped?: string;
 }
 
+/** A person, from git (GET /api/sessions/:id/authors). */
+export interface Author {
+  name: string;
+  email_sha256: string;
+}
+
+/** Consecutive events by one author, first and last inclusive. */
+export interface AuthorRun extends Author {
+  first: string;
+  last: string;
+  uncommitted?: boolean;
+}
+
+/** The project list, each session with its authors from git. */
+export type SessionIndex = Omit<ProjectIndex, "sessions"> & { current?: string; sessions: (ProjectIndex["sessions"][number] & { authors?: Author[] })[] };
+
 /** Project key (or root) passed on every call; empty means "engine default". Set from the URL by App. */
 export let project = "";
 export function setProject(key: string): void {
@@ -57,7 +73,8 @@ async function json<T>(url: string, init?: RequestInit): Promise<T> {
 export const api = {
   /** A pasted image of a session (content-addressed, cacheable). */
   imageUrl: (id: string, file: string) => `/api/sessions/${id}/images/${file}${qs({})}`,
-  sessions: () => json<ProjectIndex & { current?: string }>(`/api/sessions${qs({})}`),
+  sessions: () => json<SessionIndex>(`/api/sessions${qs({})}`),
+  authors: (id: string) => json<AuthorRun[]>(`/api/sessions/${id}/authors${qs({})}`),
   structure: (id: string) => json<StructureNode>(`/api/sessions/${id}/structure${qs({})}`),
   graph: async (id: string, level: 1 | 2 | 3) => {
     const res = await fetch(`/api/sessions/${id}/graph${qs({ level })}`);

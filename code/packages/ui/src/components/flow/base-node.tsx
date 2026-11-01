@@ -46,12 +46,13 @@ export const BaseHandle = forwardRef<HTMLDivElement, HandleProps>(({ className, 
 BaseHandle.displayName = "BaseHandle";
 
 /** A frame with its label on a tab at the top-left, for phases and subagent runs. */
-export function LabeledGroupNode({ label, icon, className, ...props }: HTMLAttributes<HTMLDivElement> & { label: string; icon?: React.ReactNode }) {
+export function LabeledGroupNode({ label, icon, after, className, ...props }: HTMLAttributes<HTMLDivElement> & { label: string; icon?: React.ReactNode; after?: React.ReactNode }) {
   return (
     <div className={cn("labeled-group h-full w-full rounded-xl border border-dashed", className)} {...props}>
       <div className="labeled-group-tab inline-flex max-w-[calc(100%-12px)] items-center gap-1.5 rounded-br-lg rounded-tl-xl px-2.5 py-1 text-[11.5px] font-semibold">
         {icon}
         <span className="truncate">{label}</span>
+        {after}
       </div>
     </div>
   );

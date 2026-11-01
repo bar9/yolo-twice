@@ -7,6 +7,8 @@ import { ancestors, api, fmtDuration, fmtTime, fmtTokens, walk, type Event, type
 import { DETAIL_LABEL, DETAIL_ORDER, eventKind, KIND, KindIcon, kindStyle, nodeKind, richText } from "./kinds";
 import { promptPlain } from "./harness";
 import { PromptText } from "./PromptText";
+import { Avatars, Takeover } from "./Avatar";
+import type { Handover } from "./authors";
 
 const ORDER = DETAIL_ORDER;
 
@@ -53,6 +55,8 @@ export const Zoom = memo(function Zoom(props: {
   onGranularity: (g: Granularity) => void;
   /** Parts set to their own detail, so the page switch can show them. */
   onOverrides: (o: Record<string, Granularity>) => void;
+  /** Parts where another author takes over (git blame). */
+  handover?: Map<string, Handover>;
   /** For the keyboard: open or close a part, step its own detail. */
   api?: React.Ref<ZoomApi>;
   /** The match being stepped to (an event id): marked in the text. */
@@ -387,6 +391,7 @@ export const Zoom = memo(function Zoom(props: {
     const images = imageCount(node, props.events);
     const tokens = node.stats.input_tokens + node.stats.output_tokens;
     const boundary = node.meta?.boundary && node.meta.boundary !== prev?.meta?.boundary ? boundaryText(node, prev) : undefined;
+    const who = props.handover?.get(node.id);
     const showText = asCall || (g !== "full" && !(text !== undefined && sameText(text, node.label)));
 
     return (
@@ -395,6 +400,11 @@ export const Zoom = memo(function Zoom(props: {
           <div className="boundary">
             <KindIcon kind={node.meta?.boundary === "gap" ? "phase" : "compaction"} />
             {boundary}
+          </div>
+        )}
+        {who?.here && (
+          <div className="boundary">
+            <Takeover authors={who.authors} />
           </div>
         )}
         <div
@@ -433,6 +443,11 @@ export const Zoom = memo(function Zoom(props: {
                   {hitCount}
                 </span>
               ) : null}
+              {who && !who.here && (
+                <span className="badge" title={`${who.authors.map((a) => a.name).join(", then ")} inside`}>
+                  <Avatars authors={who.authors} size={14} />
+                </span>
+              )}
               {images > 0 && (
                 <span className="badge image" title="Pasted images">
                   <Image aria-hidden />

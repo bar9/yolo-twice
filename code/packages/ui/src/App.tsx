@@ -5,7 +5,7 @@ import { useDefaultLayout } from "react-resizable-panels";
 import { ArrowDown, ArrowUp, BookOpenText, Clock, Coins, ListTree, TriangleAlert, Wrench } from "lucide-react";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { api, fmtDuration, fmtTime, fmtTokens, setProject, storage, store, type Attention, type AutoCommit, type Config, type Event, type Granularity, type ProjectIndex, type SearchHit, type StructureNode } from "./api";
+import { api, fmtDuration, fmtTime, fmtTokens, setProject, storage, store, type Attention, type AutoCommit, type Config, type Event, type Granularity, type Author, type AuthorRun, type ProjectIndex, type SearchHit, type SessionIndex, type StructureNode } from "./api";
 import { Header } from "./Header";
 import { FilterBar } from "./FilterBar";
 import { Timeline, type Bar, type Tick } from "./Timeline";
@@ -20,6 +20,8 @@ import { DemoBar, DemoCurtain, DemoPointer, useDemo } from "./DemoPlayer";
 import { useCtrlWheel } from "./wheelZoom";
 import { matchOrder, stepIn } from "./nav";
 import { useStream } from "./useStream";
+import { authorAt, authorCount, eventOrder, sameAuthors, takeovers, type Handover } from "./authors";
+import { Avatars } from "./Avatar";
 import { resolveId, shortId, useViewState, type Layout, type SetView, type ViewState } from "./state";
 import { computeScope, foldTree, followTarget, indexTree, walk } from "./scope";
 import { DETAIL, DETAIL_ORDER, KIND, KindIcon, kindStyle, nodeKind, richText, type Kind } from "./kinds";
@@ -27,7 +29,7 @@ import { DETAIL, DETAIL_ORDER, KIND, KindIcon, kindStyle, nodeKind, richText, ty
 // the tour pulls in react-joyride; it is only fetched when a tour starts
 const Tour = lazy(() => import("./Tour"));
 
-type Index = ProjectIndex & { current?: string };
+type Index = SessionIndex;
 const sessionNode = (id: string) => `s:${id}`;
 const WAVE_BUCKETS = 160;
 
@@ -70,6 +72,7 @@ export function App() {
   const [index, setIndex] = useState<Index | undefined>();
   const [structure, setStructure] = useState<StructureNode | undefined>();
   const [events, setEvents] = useState<Map<string, Event> | undefined>();
+  const [runs, setRuns] = useState<AuthorRun[]>([]);
   const [config, setConfig] = useState<Config | undefined>();
   const [autoCommit, setAutoCommit] = useState<AutoCommit | undefined>();
   const [digest, setDigest] = useState<string | undefined>();
@@ -111,7 +114,9 @@ export function App() {
   }, []);
   const loadEvents = useCallback(async (id: string) => {
     try {
-      setEvents(new Map((await api.events(id)).map((e) => [e.id, e])));
+      const [evs, who] = await Promise.all([api.events(id), api.authors(id).catch(() => [])]);
+      setEvents(new Map(evs.map((e) => [e.id, e])));
+      setRuns(who);
     } catch {
       /* the reader shows "loading" */
     }
@@ -135,6 +140,7 @@ export function App() {
   useEffect(() => {
     setStructure(undefined);
     setEvents(undefined);
+    setRuns([]);
     setDigest(undefined);
     if (!sessionId) return;
     void loadStructure(sessionId);
@@ -478,6 +484,22 @@ export function App() {
   }, [scope, events, tree, searchIndex, sessionId, sessions, projectHits, projectTools, view.window, dq, dk, foldRest]);
   const { bars, ticks, tlStart, tlEnd, flow, graphIds, dim, hits, matchCount, tools, scopeLabel, projectWindow } = vm;
 
+  // who takes over where: inside a session from the blame runs, across the project per session.
+  // Nothing at all while the project has a single author.
+  const fileOrder = useMemo(() => eventOrder(events), [events]);
+  const multiAuthor = authorCount(sessions) > 1;
+  const handover = useMemo((): Map<string, Handover> => {
+    if (!multiAuthor) return new Map();
+    if (scope) return takeovers(scope.focus, runs, fileOrder);
+    const m = new Map<string, Handover>();
+    let prev: Author[] | undefined;
+    for (const s of [...sessions].sort((a, b) => a.ts_first.localeCompare(b.ts_first))) {
+      if (s.authors?.length && !sameAuthors(s.authors, prev)) m.set(sessionNode(s.id), { authors: s.authors, here: true });
+      prev = s.authors;
+    }
+    return m;
+  }, [multiAuthor, scope, runs, fileOrder, sessions]);
+
   // how busy the agent was across the tape: events per time bucket
   const wave = useMemo(() => {
     const out = new Array<number>(WAVE_BUCKETS).fill(0);
@@ -664,12 +686,12 @@ export function App() {
           !scope ? (
             <p className="empty">Loading the session…</p>
           ) : reader === "outline" ? (
-            <Zoom session={sessionId} root={scope.focus} granularity={view.z} events={events} follow={view.follow} selected={sel} hover={hover} dim={dim} hits={hits} query={dq} active={scope.active} matches={scope.matches} collapseDim={foldRest && scope.active && scope.matches.size > 0} onSelect={select} onFocus={focusOn} onHover={setHover} onGranularity={setDetail} onOverrides={setOverrides} api={zoomApi} working={working} current={matchAt !== undefined ? resultIds[matchAt] : undefined} />
+            <Zoom session={sessionId} root={scope.focus} granularity={view.z} events={events} follow={view.follow} selected={sel} hover={hover} dim={dim} hits={hits} query={dq} active={scope.active} matches={scope.matches} collapseDim={foldRest && scope.active && scope.matches.size > 0} onSelect={select} onFocus={focusOn} onHover={setHover} onGranularity={setDetail} onOverrides={setOverrides} handover={handover} api={zoomApi} working={working} current={matchAt !== undefined ? resultIds[matchAt] : undefined} />
           ) : (
             <Results ids={resultIds} events={events} owner={scope.owner} selected={sel} query={view.q} onSelect={select} />
           )
         ) : reader === "outline" ? (
-          <SessionList index={index} selected={sel} hover={hover} hits={hits} dim={dim} onOpen={focusOn} onHover={setHover} />
+          <SessionList index={index} multiAuthor={multiAuthor} selected={sel} hover={hover} hits={hits} dim={dim} onOpen={focusOn} onHover={setHover} />
         ) : (
           <ProjectResults hits={projectHits} sessions={sessions} query={view.q} onOpen={(sid) => focusOn(sessionNode(sid))} />
         )}
@@ -693,7 +715,7 @@ export function App() {
   );
   const graphPane = (
     <section className="pane right" data-tour="map">
-      <Graph flow={flow} selected={sel} follow={view.follow} hover={hover} dim={dim} hits={hits} onFocus={graphFocus} onHover={hoverAt} onUserMove={onGraphMove} onView={onGraphView} api={graphApi} working={working?.state === "working"} head={graphHead} />
+      <Graph flow={flow} handover={handover} selected={sel} follow={view.follow} hover={hover} dim={dim} hits={hits} onFocus={graphFocus} onHover={hoverAt} onUserMove={onGraphMove} onView={onGraphView} api={graphApi} working={working?.state === "working"} head={graphHead} />
     </section>
   );
 
@@ -781,7 +803,7 @@ export function App() {
       <DemoBar demo={demo} />
       <DemoPointer at={demo.point} />
       <DemoCurtain demo={demo} />
-      {card && <HoverCard info={card} tree={tree} sessions={sessions} hits={hits} />}
+      {card && <HoverCard info={card} tree={tree} sessions={sessions} hits={hits} by={multiAuthor ? (node) => authorAt(node, runs, fileOrder) : undefined} />}
       <Sheet open={digest !== undefined} onOpenChange={(o) => !o && setDigest(undefined)}>
         <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
           <SheetHeader>
@@ -838,7 +860,7 @@ function LengthSwitch({ value, overrides, onChange }: { value: Granularity; over
 }
 
 /** What a block or node is, under the pointer: label, kind, when, how much, and the abstract when there is one. */
-function HoverCard({ info, tree, sessions, hits }: { info: HoverInfo; tree?: ReturnType<typeof indexTree>; sessions: ProjectIndex["sessions"]; hits: Map<string, number> }) {
+function HoverCard({ info, tree, sessions, hits, by }: { info: HoverInfo; tree?: ReturnType<typeof indexTree>; sessions: Index["sessions"]; hits: Map<string, number>; by?: (node: StructureNode) => Author | undefined }) {
   const node = tree?.byId.get(info.id);
   const session = info.id.startsWith("s:") ? sessions.find((s) => `s:${s.id}` === info.id) : undefined;
   if (!node && !session) return null;
@@ -849,6 +871,8 @@ function HoverCard({ info, tree, sessions, hits }: { info: HoverInfo; tree?: Ret
   const left = Math.min(info.x + 14, innerWidth - 360);
   const top = info.y + 16 + 160 > innerHeight ? info.y - 150 : info.y + 16;
   const abstract = node?.text?.abstract;
+  // git blame, in a multi-author project only
+  const who = !by ? [] : node ? [by(node)].filter((a): a is Author => Boolean(a)) : (session?.authors ?? []);
   return (
     <div className="hovercard" style={{ left, top, ...kindStyle(kind) }}>
       <strong className="flex items-start gap-2">
@@ -876,6 +900,12 @@ function HoverCard({ info, tree, sessions, hits }: { info: HoverInfo; tree?: Ret
           </span>
         )}
         {session && <span>{session.events} events</span>}
+        {who.length > 0 && (
+          <span>
+            <Avatars authors={who} size={14} />
+            by {who.map((a) => a.name).join(", ")}
+          </span>
+        )}
         {n ? <span className="text-ink">{n} matches</span> : null}
       </div>
       <div className="hint">Click to zoom in</div>
@@ -886,6 +916,7 @@ function HoverCard({ info, tree, sessions, hits }: { info: HoverInfo; tree?: Ret
 /** Project root: sessions as rows, linked to the graph and timeline like any other node. */
 function SessionList(props: {
   index?: Index;
+  multiAuthor: boolean;
   selected?: string;
   hover?: string;
   hits: Map<string, number>;
@@ -918,8 +949,10 @@ function SessionList(props: {
           </tr>
         </thead>
         <tbody>
-          {[...index.sessions].reverse().map((s) => {
+          {[...index.sessions].reverse().map((s, i, all) => {
             const id = sessionNode(s.id);
+            // a face where the author changes, reading down the list
+            const who = props.multiAuthor && s.authors?.length && !sameAuthors(s.authors, all[i - 1]?.authors) ? s.authors : undefined;
             const n = props.hits.get(id);
             const current = index.current === s.id;
             const cls = [id === props.selected ? "selected" : "", id === props.hover ? "hover" : "", props.dim.has(id) ? "dim" : ""].join(" ");
@@ -927,6 +960,7 @@ function SessionList(props: {
               <tr key={s.id} className={cls} onClick={() => props.onOpen(id)} onMouseEnter={() => props.onHover(id)} onMouseLeave={() => props.onHover(undefined)} title="Open this session">
                 <td className="title">
                   {current && <span className="live-dot live" title="Active now" />}
+                  {who && <Avatars authors={who} />}
                   {s.label || s.id}
                   {n ? <span className="badge hit ml-2">{n}</span> : null}
                   <small>{s.id.slice(0, 8)}</small>
