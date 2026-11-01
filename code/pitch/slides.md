@@ -201,12 +201,12 @@ The same three questions, plus one. Sessions can be found later: they stay with 
     <path d="M 0 74 C 6 71, 12 68.5, 16.7 66.7 S 40 55, 50 48.9 S 76 22, 83.3 9.1 S 96 -8, 99 -14" fill="none" stroke="url(#grow)" stroke-width="3" stroke-linecap="round" vector-effect="non-scaling-stroke" />
   </svg>
   <div class="step s1"><i class="node"></i><div class="label"><b>Agent agnostic</b><ul><li>Use and promote open formats</li><li>Agent interop</li><li>Integrate <a href="https://github.com/bar9/yolo-twice/issues/4">OpenCode</a></li></ul></div></div>
-  <div class="step s2"><i class="node"></i><div class="label"><b>Team work</b><ul><li>Build a knowledge base together</li><li>Discuss</li><li>Automated insights</li></ul></div></div>
+  <div class="step s2"><i class="node"></i><div class="label"><b>Team work</b><ul><li>Build a joint knowledge base</li><li>Discuss</li><li>Automated insights</li></ul></div></div>
   <div class="step s3"><i class="node"></i><div class="label"><b>Global community</b><ul><li>Coders become agentic engineers</li><li>Open data on prompting, for future research</li></ul></div></div>
 </div>
 
 <!--
-Where we would take it. Agent agnostic: open formats instead of one vendor's, sessions that work across agents, and OpenCode support next (issue #4). Team work: a shared knowledge base built from sessions, discussion on the exact step, and insights generated automatically. Global community: coders are becoming agentic engineers, and open data on how people prompt can enable future research.
+Where we would take it. Agent agnostic: open formats instead of one vendor's, sessions that work across agents, and OpenCode support next (issue #4). Team work: a joint knowledge base built from sessions, discussion on the exact step, and insights generated automatically. Global community: coders are becoming agentic engineers, and open data on how people prompt can enable future research.
 -->
 
 ---
