@@ -218,7 +218,7 @@ The demo showed how to find the answer inside a session. This is the other part:
   </svg>
   <div class="step s1"><i class="node"></i><div class="label"><b>Agent agnostic</b><ul><li>Use and promote open formats</li><li>Agent interop</li><li>Integrate <a href="https://github.com/bar9/yolo-twice/issues/4">OpenCode</a></li></ul></div></div>
   <div class="step s2"><i class="node"></i><div class="label"><b>Team work</b><ul><li>Build a joint knowledge base</li><li>Discuss</li><li>Automated insights</li></ul></div></div>
-  <div class="step s3"><i class="node"></i><div class="label"><b>Global community</b><ul><li>Coders become agentic engineers</li><li>Open data on prompting, for future research</li></ul></div><img class="sketch" src="./assets/global-vibe.svg" alt="Sketch: 1980 a lone developer at a computer; 2000 people connected to the world; 2027 people and an AI agent, with /yolo:twice, connected to the world" /></div>
+  <div class="step s3"><i class="node"></i><div class="label"><b>Global community</b><ul><li>Coders become agentic engineers</li><li>Open data on prompting, for future research</li></ul></div><img class="sketch" src="./assets/global-community.svg" alt="Sketch: 1980 a lone developer at a computer; 2000 people connected to the world; 2027 people and an AI agent, with /yolo:twice, connected to the world" /></div>
 </div>
 
 <!--
