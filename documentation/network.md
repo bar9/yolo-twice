@@ -34,7 +34,7 @@ The port is set separately: `--port` or `YOLO_TWICE_PORT` (default 9656).
 When the engine is reachable from elsewhere, it says so on start:
 
 ```
-yolo-twice engine 0.1.2 listening on http://127.0.0.1:9656
+yolo-twice engine 0.1.3 listening on http://127.0.0.1:9656
 yolo-twice: reachable from other machines (http://192.168.21.59:9656), without a login: anyone who can reach this port can read your sessions
 ```
 
