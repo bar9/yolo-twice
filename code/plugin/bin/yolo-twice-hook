@@ -1,19 +1,25 @@
 #!/bin/sh
 # Forward the Claude Code hook JSON on stdin to the local yolo-twice engine. Never fails, never blocks.
-# Reach the engine where it actually runs (engine.json, written at start), so `start --port` works too.
+# Where: an explicit YOLO_TWICE_PORT wins; else the port a live engine recorded at start (engine.json,
+# so `start --port` reaches the hooks too); else the default. A stale engine.json (dead pid) is ignored.
 STATE="${YOLO_TWICE_HOME:-$HOME/.yolo-twice}/engine.json"
-PORT="${YOLO_TWICE_PORT:-9656}"
+PORT=9656
 HOST="127.0.0.1"
-if [ -r "$STATE" ]; then
-  P=$(sed -n 's/.*"port"[[:space:]]*:[[:space:]]*\([0-9][0-9]*\).*/\1/p' "$STATE" | head -n 1)
-  H=$(sed -n 's/.*"host"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$STATE" | head -n 1)
-  [ -n "$P" ] && PORT="$P"
-  case "$H" in
-    ""|0.0.0.0) ;;
-    ::) HOST="[::1]" ;;
-    *:*) HOST="[$H]" ;;
-    *) HOST="$H" ;;
-  esac
+if [ -n "$YOLO_TWICE_PORT" ]; then
+  PORT="$YOLO_TWICE_PORT"
+elif [ -r "$STATE" ]; then
+  PID=$(sed -n 's/.*"pid"[[:space:]]*:[[:space:]]*\([0-9][0-9]*\).*/\1/p' "$STATE" | head -n 1)
+  if [ -n "$PID" ] && kill -0 "$PID" 2>/dev/null; then
+    P=$(sed -n 's/.*"port"[[:space:]]*:[[:space:]]*\([0-9][0-9]*\).*/\1/p' "$STATE" | head -n 1)
+    H=$(sed -n 's/.*"host"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$STATE" | head -n 1)
+    [ -n "$P" ] && PORT="$P"
+    case "$H" in
+      ""|0.0.0.0) ;;
+      ::) HOST="[::1]" ;;
+      *:*) HOST="[$H]" ;;
+      *) HOST="$H" ;;
+    esac
+  fi
 fi
 if command -v curl >/dev/null 2>&1; then
   curl -s -m 2 --data-binary @- -H 'content-type: application/json' "http://${HOST}:${PORT}/hook" >/dev/null 2>&1 || true

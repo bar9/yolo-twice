@@ -120,11 +120,11 @@ describe("one writer per committed file", () => {
       cache.put({ node: "t1.s1", granularity: "title", hash: "x", analyzer: "fake", version: 1, text: "step title", created: "9999-01-01T00:00:00.000Z" } as never);
       expect(cache.latest("t1").title?.text).toBe("turn:title");
       expect(cache.latest("t1.s1").title?.text).toBe("step title");
-      // re-decorating clears text a node has no artifact for (stale text from an older run)
+      // re-decorating sets a node's own text and keeps text it has no local artifact for
       const t2 = findNode(root, "t2")!;
-      t2.text = { title: "stale" };
+      t2.text = { title: "from a teammate's open folder" };
       decorate(root, cache);
-      expect(t2.text).toBeUndefined();
+      expect(t2.text?.title).toBe("from a teammate's open folder");
       expect(t1.text?.title).toBe("turn:title");
       // a reset clears the local copies too
       store.resetSession(FIXTURE_SESSION);

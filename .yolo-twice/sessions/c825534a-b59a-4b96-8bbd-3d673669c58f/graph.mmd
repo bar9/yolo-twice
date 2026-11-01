@@ -8,6 +8,9 @@ flowchart TD
     t4["yes, restart the engine and test it"]
     t5["commit this"]
     t6["yes, commit the session data and push"]
+    t7["/code-review again for obvious problems / errors /bugs"]
+    t8["yes"]
+    t9["pull first, then commit"]
   end
   s_c825534a_b59a_4b96_8bbd_3d673669c58f --> t1
   t1 --> t2
@@ -15,6 +18,9 @@ flowchart TD
   t3 --> t4
   t4 --> t5
   t5 --> t6
+  t6 --> t7
+  t7 --> t8
+  t8 --> t9
   classDef session fill:#1f2937,color:#fff,stroke:#111;
   classDef phase fill:#e5e7eb,stroke:#9ca3af;
   classDef turn fill:#dbeafe,stroke:#60a5fa;
@@ -31,3 +37,6 @@ flowchart TD
   class t4 turn;
   class t5 turn;
   class t6 turn;
+  class t7 turn;
+  class t8 turn;
+  class t9 turn;

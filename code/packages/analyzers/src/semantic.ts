@@ -318,9 +318,9 @@ export function decorate(session: StructureNode, cache: TextCache): StructureNod
     const latest = all.get(n.id) ?? {};
     const text: Partial<Record<Granularity, string>> = {};
     for (const g of ["title", "abstract", "summary"] as const) if (latest[g]) text[g] = latest[g]!.text;
-    // replace, never merge: text already on the node may be stale (structure.json is re-decorated in place)
+    // a node with no artifact here keeps its text: summaries of open nodes live in a local, uncommitted
+    // folder, so on a teammate's machine "no artifact" does not mean the committed text is wrong
     if (Object.keys(text).length) n.text = text;
-    else delete n.text;
   }
   return session;
 }
