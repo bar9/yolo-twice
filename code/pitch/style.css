@@ -273,11 +273,6 @@ ul.plain li::before { content: ""; position: absolute; left: 0; top: 0.55em; wid
 .term.wall pre { font-size: 0.4rem; line-height: 1.22; padding: 1.2rem 1rem; column-count: 2; column-gap: 1.6rem; column-fill: auto; height: 23rem; overflow: hidden; }
 .term.wall .scroll-hint { z-index: 1; }
 
-/* values: a word and one short line per tile */
-.hood.tiles.values { grid-template-columns: repeat(2, 1fr); gap: 1.1rem; margin-top: 1.4rem; }
-.hood.tiles.values .card { min-height: 7.2rem; gap: 0.35rem; align-content: center; }
-.hood.tiles.values .card b { font-size: 1.5rem; }
-.hood.tiles.values .card span { font-size: 0.85rem; color: var(--muted) !important; }
 
 /* outlook: three steps along a road */
 .road { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.1rem; margin-top: 2.4rem; position: relative; }

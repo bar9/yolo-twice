@@ -28,7 +28,7 @@ Hi, we are yolo-twice. The name: YOLO, "you only live once", is also the nicknam
 
 ---
 
-<div class="kicker">01 · The scene</div>
+<div class="kicker">The scene</div>
 
 # Did we just leak everything?
 
@@ -59,7 +59,7 @@ We built yolo-twice for 24 hours with an AI agent, and committed every session. 
 
 ---
 
-<div class="kicker">02 · Scrolling back</div>
+<div class="kicker">Scrolling back</div>
 
 # The transcript
 <div class="term wall">
@@ -125,7 +125,7 @@ layout: center
 class: text-center
 ---
 
-<div class="kicker">03 · Demo</div>
+<div class="kicker">Demo</div>
 
 # Live demo
 
@@ -159,7 +159,7 @@ The deck hands over to the real product (.yolo-twice/demos/privacy.json). Page D
 
 ---
 
-<div class="kicker">04 · Benefits</div>
+<div class="kicker">Benefits</div>
 
 # Find, share, review, continue
 
@@ -191,24 +191,7 @@ The same three questions, plus one. Sessions can be found later: they stay with 
 
 ---
 
-<div class="kicker">05 · Values</div>
-
-# What we care about
-
-<div class="hood tiles values">
-  <div class="card"><b>Transparency</b><span>The reasoning is reviewable, not only the result</span></div>
-  <div class="card"><b>Privacy</b><span>Runs locally, secrets removed before saving</span></div>
-  <div class="card"><b>Openness</b><span>Plain files in your repo, MIT licensed</span></div>
-  <div class="card"><b>Economy</b><span>Structure without AI, summaries only when asked</span></div>
-</div>
-
-<!--
-Transparency: as more code is written with AI agents, the reasoning behind it should be as reviewable as the code. Privacy: everything runs on your machine; passwords, keys and personal folder names are removed before anything is written, and you decide what to commit. Openness: plain JSON and text files that any tool can read, and the project is open source. Economy: chapters, exchanges and helper agents come straight from the transcript with no model call; short summaries are written by Claude only when wanted, cached, and the cost is shown.
--->
-
----
-
-<div class="kicker">06 · Outlook</div>
+<div class="kicker">Outlook</div>
 
 # Outlook
 
@@ -224,7 +207,7 @@ Where we would take it. Support for other coding agents beyond Claude Code. Comm
 
 ---
 
-<div class="kicker">07 · Thanks</div>
+<div class="kicker">Thanks</div>
 
 # Thank you
 
