@@ -165,10 +165,11 @@ export class Engine {
       return c.json(info(rt));
     });
 
-    app.get("/api/sessions", (c) => {
+    app.get("/api/sessions", async (c) => {
       const rt = need(c.req.query("project"));
       const index = rt.store.readProjectIndex() ?? { version: 1 as const, project: rt.name, sessions: [] };
-      return c.json({ ...index, current: rt.currentSession() });
+      const sessions = await Promise.all(index.sessions.map(async (s) => ({ ...s, authors: await rt.authors.authors(s.id) })));
+      return c.json({ ...index, sessions, current: rt.currentSession() });
     });
 
     // the id becomes a path segment under .yolo-twice/sessions: refuse anything that could leave it
@@ -186,6 +187,8 @@ export class Engine {
       if (!structure) throw new NotFound("session not found");
       return c.json({ structure, graph: rt.store.readGraph(id, 2) ?? "", events: rt.store.readEvents(id).length, config: rt.config() });
     });
+
+    app.get("/api/sessions/:id/authors", async (c) => c.json(await need(c.req.query("project")).authors.runs(c.req.param("id"))));
 
     app.get("/api/sessions/:id/structure", (c) => {
       const rt = need(c.req.query("project"));
