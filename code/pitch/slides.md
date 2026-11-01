@@ -122,10 +122,8 @@ The answer is on this screen. Three times: the leak count, a false alarm, the sc
 -->
 
 ---
-
 layout: center
 class: text-center
-
 ---
 
 <div class="kicker">Demo</div>
