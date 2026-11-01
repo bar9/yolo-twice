@@ -725,7 +725,7 @@ export function App() {
       {error && (
         <div className="banner error" role="alert">
           <TriangleAlert size={15} aria-hidden />
-          Lost contact with the engine: {error}. Run /yolo-twice:yolo-twice to start it again.
+          Lost contact with the engine: {error}. Run /yolo:twice to start it again.
         </div>
       )}
       <FilterBar q={view.q} k={view.k} tools={tools} matches={matchCount} scopeLabel={scopeLabel} onQuery={(q) => setView({ q })} onCodes={(k: FilterCode[]) => setView({ k })} folded={foldRest} onFolded={setFoldRest} position={sessionId && matchAt !== undefined ? matchAt + 1 : undefined} onStep={sessionId && resultIds.length ? stepMatch : undefined} onSubmit={() => ((pendingFirst.current = true), setSubmitted((n) => n + 1))} widen={widenLabel ? { label: widenLabel, run: widen } : undefined} />
