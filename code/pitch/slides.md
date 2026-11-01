@@ -196,13 +196,13 @@ The same three questions, plus one. Sessions can be found later: they stay with 
 # Outlook
 
 <div class="road">
-  <div class="card"><span class="when">next</span><b>More agents</b><span>Beyond Claude Code</span></div>
-  <div class="card"><span class="when">next</span><b>Comments</b><span>Discuss a step where it happened</span></div>
-  <div class="card"><span class="when">later</span><b>Agents that remember</b><span>The AI searches its own history</span></div>
+  <div class="card"><span class="when">next</span><b>Agent agnostic</b><ul><li>Use and promote open formats</li><li>Agent interop</li><li>Integrate <a href="https://github.com/bar9/yolo-twice/issues/4">OpenCode</a></li></ul></div>
+  <div class="card"><span class="when">next</span><b>Team work</b><ul><li>Build a knowledge base together</li><li>Discuss</li><li>Automated insights</li></ul></div>
+  <div class="card"><span class="when">later</span><b>Global community</b><ul><li>Coders become agentic engineers</li><li>Open data on prompting, for future research</li></ul></div>
 </div>
 
 <!--
-Where we would take it. Support for other coding agents beyond Claude Code. Comments on saved sessions, so a review discussion can sit on the exact step it is about. And letting the AI search its own history, so the next session can build on what earlier ones decided and why.
+Where we would take it. Agent agnostic: open formats instead of one vendor's, sessions that work across agents, and OpenCode support next (issue #4). Team work: a shared knowledge base built from sessions, discussion on the exact step, and insights generated automatically. Global community: coders are becoming agentic engineers, and open data on how people prompt can enable future research.
 -->
 
 ---

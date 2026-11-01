@@ -282,3 +282,6 @@ ul.plain li::before { content: ""; position: absolute; left: 0; top: 0.55em; wid
 .road .when { font-size: 0.7rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: #f25c05 !important; }
 .road b { font-size: 1.35rem; }
 .road .card > span:last-child { font-size: 0.85rem; color: var(--muted) !important; }
+.road ul { list-style: none; margin: 0.2rem 0 0; padding: 0; display: grid; gap: 0.3rem; }
+.road li { font-size: 0.85rem; line-height: 1.35; color: var(--muted) !important; }
+.road li a { color: var(--fg) !important; text-decoration: underline; text-decoration-color: #f25c05; text-underline-offset: 3px; }
