@@ -1,0 +1,60 @@
+flowchart TD
+  s_d2fd5778_37fb_4e8c_b4ca_fa85731ee42b(["yolo-twice issue 2"])
+  subgraph p1 ["plan https://github.com/bar9/yolo-twice/issues/2 …"]
+    direction TD
+    t1["plan https://github.com/bar9/yolo-twice/issues/2"]
+    t2["exit plan mode so I can give feedback"]
+    t3[" Request interrupted by user "]
+    t4["resume"]
+    t5["yolo-twice:yolo-twice /yolo-twice:yolo-twice"]
+    t6["fix layout. the circle is cut on the left"]
+    t7["yolo-twice:yolo-twice /yolo-twice:yolo-twice resume 5fb805"]
+    t8["can we detetct if we are running inside VS code plugin and …"]
+    t9[" Request interrupted by user for tool use "]
+    t10["resume"]
+    t11["yolo-twice:yolo-twice /yolo-twice:yolo-twice"]
+    t12["yolo-twice:yolo-twice /yolo-twice:yolo-twice resume 2f6b20"]
+  end
+  subgraph p2 ["regaring the top level conversation view at http:…"]
+    direction TD
+    t13["regaring the top level conversation view at http://127.0.0.…"]
+    t14["is it correct that we didn't fork and collaborate on a sess…"]
+  end
+  s_d2fd5778_37fb_4e8c_b4ca_fa85731ee42b --> t1
+  t1 --> t2
+  t2 --> t3
+  t3 --> t4
+  t4 --> t5
+  t5 --> t6
+  t6 --> t7
+  t7 --> t8
+  t8 --> t9
+  t9 --> t10
+  t10 --> t11
+  t11 --> t12
+  t12 --> t13
+  t13 --> t14
+  classDef session fill:#1f2937,color:#fff,stroke:#111;
+  classDef phase fill:#e5e7eb,stroke:#9ca3af;
+  classDef turn fill:#dbeafe,stroke:#60a5fa;
+  classDef branch fill:#fde68a,stroke:#d97706;
+  classDef subagent fill:#ede9fe,stroke:#8b5cf6;
+  classDef tool fill:#dcfce7,stroke:#22c55e;
+  classDef error fill:#fee2e2,stroke:#ef4444;
+  classDef text fill:#f3f4f6,stroke:#9ca3af;
+  classDef thinking fill:#f3f4f6,stroke:#d1d5db,stroke-dasharray: 3 3;
+  class s_d2fd5778_37fb_4e8c_b4ca_fa85731ee42b session;
+  class t1 turn;
+  class t2 turn;
+  class t3 turn;
+  class t4 turn;
+  class t5 turn;
+  class t6 turn;
+  class t7 turn;
+  class t8 turn;
+  class t9 turn;
+  class t10 turn;
+  class t11 turn;
+  class t12 turn;
+  class t13 turn;
+  class t14 turn;

@@ -1,0 +1,136 @@
+{
+  "children": [
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": [],
+              "event_ids": [
+                "76315fe7-3ead-4c38-8224-33de16b49b40"
+              ],
+              "id": "t1.s1",
+              "kind": "step",
+              "label": "yolo:twice /yolo:twice status",
+              "level": 3,
+              "meta": {
+                "step_kind": "prompt"
+              },
+              "span": {
+                "first": "76315fe7-3ead-4c38-8224-33de16b49b40",
+                "last": "76315fe7-3ead-4c38-8224-33de16b49b40",
+                "ts_first": "2026-11-01T08:27:26.565Z",
+                "ts_last": "2026-11-01T08:27:26.565Z"
+              },
+              "stats": {
+                "events": 1,
+                "input_tokens": 0,
+                "output_tokens": 0,
+                "tool_calls": 0
+              }
+            },
+            {
+              "children": [],
+              "event_ids": [
+                "21516c25-83c8-4392-b3a3-c7aa0fb82d21"
+              ],
+              "id": "t1.s2",
+              "kind": "step",
+              "label": "thinking (hidden)",
+              "level": 3,
+              "meta": {
+                "step_kind": "thinking"
+              },
+              "span": {
+                "first": "21516c25-83c8-4392-b3a3-c7aa0fb82d21",
+                "last": "21516c25-83c8-4392-b3a3-c7aa0fb82d21",
+                "ts_first": "2026-11-01T08:27:27.989Z",
+                "ts_last": "2026-11-01T08:27:27.989Z"
+              },
+              "stats": {
+                "events": 1,
+                "input_tokens": 37092,
+                "output_tokens": 64,
+                "tool_calls": 0
+              }
+            },
+            {
+              "children": [],
+              "event_ids": [
+                "a55e14b6-9a9c-4f90-9148-b3e315a86744"
+              ],
+              "id": "t1.s3",
+              "kind": "step",
+              "label": "The yolo-twice engine is running at http://127.0.0.1:9677/ (pid 44422, attentio…",
+              "level": 3,
+              "meta": {
+                "step_kind": "text"
+              },
+              "span": {
+                "first": "a55e14b6-9a9c-4f90-9148-b3e315a86744",
+                "last": "a55e14b6-9a9c-4f90-9148-b3e315a86744",
+                "ts_first": "2026-11-01T08:27:28.623Z",
+                "ts_last": "2026-11-01T08:27:28.623Z"
+              },
+              "stats": {
+                "events": 1,
+                "input_tokens": 37092,
+                "output_tokens": 64,
+                "tool_calls": 0
+              }
+            }
+          ],
+          "id": "t1",
+          "kind": "turn",
+          "label": "yolo:twice /yolo:twice status",
+          "level": 2,
+          "span": {
+            "first": "76315fe7-3ead-4c38-8224-33de16b49b40",
+            "last": "03fd5a48-eb70-417c-8151-9b40ad41d312",
+            "ts_first": "2026-11-01T08:27:26.565Z",
+            "ts_last": "2026-11-01T08:27:28.722Z"
+          },
+          "stats": {
+            "events": 3,
+            "input_tokens": 74184,
+            "output_tokens": 128,
+            "tool_calls": 0
+          }
+        }
+      ],
+      "id": "p1",
+      "kind": "phase",
+      "label": "yolo:twice /yolo:twice status",
+      "level": 1,
+      "span": {
+        "first": "76315fe7-3ead-4c38-8224-33de16b49b40",
+        "last": "03fd5a48-eb70-417c-8151-9b40ad41d312",
+        "ts_first": "2026-11-01T08:27:26.565Z",
+        "ts_last": "2026-11-01T08:27:28.722Z"
+      },
+      "stats": {
+        "events": 3,
+        "input_tokens": 74184,
+        "output_tokens": 128,
+        "tool_calls": 0
+      }
+    }
+  ],
+  "id": "s:7d382259-bf19-462a-ab08-0f02d165a5ab",
+  "kind": "session",
+  "label": "yolo:twice /yolo:twice status",
+  "level": 0,
+  "span": {
+    "first": "76315fe7-3ead-4c38-8224-33de16b49b40",
+    "last": "03fd5a48-eb70-417c-8151-9b40ad41d312",
+    "ts_first": "2026-11-01T08:27:26.565Z",
+    "ts_last": "2026-11-01T08:27:28.722Z"
+  },
+  "stats": {
+    "cost_usd": 0.1074306,
+    "events": 3,
+    "input_tokens": 74184,
+    "output_tokens": 128,
+    "tool_calls": 0
+  }
+}

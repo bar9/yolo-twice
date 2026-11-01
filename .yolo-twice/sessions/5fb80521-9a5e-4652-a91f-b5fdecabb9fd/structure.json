@@ -104,6 +104,9 @@
             "input_tokens": 82095,
             "output_tokens": 204,
             "tool_calls": 1
+          },
+          "text": {
+            "abstract": "Ran the yolo-twice launcher at `/home/bar9/yolo-twice/code/plugin/bin/yolo-twice` with `2>&1 || true`, so any failure would have been silent. It returned an insights UI URL on 127.0.0.1:9656 for project `/home/bar9/yolo-twice`, session `7f825bc9-97c2-4932-8575-d8beab55a0eb`. The UI is running, and the assistant reported that URL without opening it or checking the server."
           }
         }
       ],
@@ -122,6 +125,9 @@
         "input_tokens": 82095,
         "output_tokens": 204,
         "tool_calls": 1
+      },
+      "text": {
+        "abstract": "[user.prompt] <command-message>yolo-twice:yolo-twice</command-message> <command-name>/yolo-twice:yolo-twice</command-name> [tool Bash] {\"command\":\"\\\"/home/bar9/yolo-twice/code/plugin\\\"/bin/yolo-twice 2>&1 || true\",\"description\":\"Run yolo-twice launcher\"} [tool.result] http://127.0.0.1:9656/?project…"
       }
     }
   ],
@@ -140,5 +146,8 @@
     "input_tokens": 82095,
     "output_tokens": 204,
     "tool_calls": 1
+  },
+  "text": {
+    "abstract": "Ran the bundled launcher `/home/bar9/yolo-twice/code/plugin/bin/yolo-twice` with stderr merged and failures suppressed by `|| true`, which printed one URL: http://127.0.0.1:9656 for project `/home/bar9/yolo-twice`, session `7f825bc9-97c2-4932-8575-d8beab55a0eb`. The launcher produced no error output, so the insights UI was reported as running and the URL was handed back to open in a browser. No files were edited or committed."
   }
 }

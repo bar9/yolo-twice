@@ -1,0 +1,9 @@
+{
+  "analyzer": "structural",
+  "created": "2026-11-01T08:47:30.268Z",
+  "granularity": "abstract",
+  "hash": "6cf14d7ef5115ce0",
+  "node": "t1",
+  "text": "[user.prompt] on a feature branch, try the following ui improvements: The graph, instead of just mermaid, should be composed of Shadcn React Flow Blocks for Workflow and Agent Builders or something the like. And in all text views showing \"raw\", don't just show plain json but rather a rendered view …",
+  "version": "2"
+}

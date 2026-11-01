@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-11-01T09:45:15.557Z",
+  "granularity": "abstract",
+  "hash": "abad5f50be61d2d4",
+  "node": "s:5b3c91a7-eeb4-413b-87f7-57215363681c",
+  "text": "Fixed the hero poster overlapping the nav below 960px: VitePress applies a negative top margin (76px, or 108px from 640px) to `.VPHero .image`, which pulled the static poster under the nav. A max-width:959px block in code/site/.vitepress/theme/custom.css resets that margin, sizes the image box to its content and centers the poster, and screenshots at 390, 600, 880 and 1280px showed no overlap with the desktop layout unchanged. Committed as 4794225 (\"Fixes #1\") with only the CSS staged, not pushed; a `pkill -f` pattern matched its own shell and aborted the first commit attempt (exit 144), so it was re-run alone.",
+  "version": "2"
+}

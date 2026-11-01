@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-11-01T08:47:38.744Z",
+  "granularity": "abstract",
+  "hash": "ed531bf8fe54031f",
+  "node": "t11",
+  "text": "Rewrote code/pitch/slides.md so slides 02–11 carry one headline and one visual, moving the cut wording into speaker notes for a live audience. Replaced the detail ladder and branch diagram with Playwright dark-mode screenshots of the split view and the Map (assets/ui-split.png, assets/ui-map.png), and added picture-slide styles to style.css. All 12 slides were rendered on localhost:3030, and the diagram overflow and Map crop were fixed; changes are uncommitted.",
+  "version": "2"
+}

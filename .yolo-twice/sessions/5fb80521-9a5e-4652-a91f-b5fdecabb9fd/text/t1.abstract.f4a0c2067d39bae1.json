@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-11-01T09:30:44.072Z",
+  "granularity": "abstract",
+  "hash": "f4a0c2067d39bae1",
+  "node": "t1",
+  "text": "Ran the yolo-twice launcher at `/home/bar9/yolo-twice/code/plugin/bin/yolo-twice` with `2>&1 || true`, so any failure would have been silent. It returned an insights UI URL on 127.0.0.1:9656 for project `/home/bar9/yolo-twice`, session `7f825bc9-97c2-4932-8575-d8beab55a0eb`. The UI is running, and the assistant reported that URL without opening it or checking the server.",
+  "version": "2"
+}

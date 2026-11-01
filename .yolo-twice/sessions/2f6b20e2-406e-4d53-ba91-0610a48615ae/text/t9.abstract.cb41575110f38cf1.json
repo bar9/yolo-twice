@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-11-01T08:47:35.565Z",
+  "granularity": "abstract",
+  "hash": "cb41575110f38cf1",
+  "node": "t9",
+  "text": "Replaced the cover subtitle in code/pitch/slides.md with \"Give your AI conversations the attention they deserve.\", pluralizing \"conversation\" so it agrees with \"they\". Raised the .cover-why font-size in code/pitch/style.css from 0.72rem to 0.85rem to fill the shorter line, then re-rendered the deck screenshot with deck.mjs. Changes are uncommitted; the speaker notes still explain the YOLO name.",
+  "version": "2"
+}

@@ -1,0 +1,9 @@
+{
+  "analyzer": "structural",
+  "created": "2026-11-01T08:47:28.548Z",
+  "granularity": "abstract",
+  "hash": "3e0e5f133dd1caac",
+  "node": "t7",
+  "text": "[user.prompt] formulations such as \"Same questions. now they have answers\" are too catchy, salesy. how about a more modes tone for the whole slideshow? [assistant.thinking] [tool Bash] {\"command\":\"cd $PROJECT/code/pitch && ls; git diff --stat HEAD origin/main -- . ; wc -l slides.md\",\"description\":\"…",
+  "version": "2"
+}

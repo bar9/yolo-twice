@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-11-01T08:47:35.766Z",
+  "granularity": "abstract",
+  "hash": "c74a619fb99f9ec5",
+  "node": "t8",
+  "text": "Cover slide in code/pitch/slides.md and style.css now reads \"You only live ~~once~~ twice\", with the strikethrough and \"twice\" in the wordmark's orange, plus a one-line explanation that a recorded session can be revisited. Speaker notes explain the double meaning (YOLO is also the nickname for running an agent without approval), and the slides.md info line changed from \"a black box\" to \"hard to look at afterwards\". The first render had the text overlapping the wordmark, so .cover-band moved from bottom 13% to 6%, and a re-rendered deck-1.png confirmed the fix. All changes are uncommitted on main, pending approval to commit and push.",
+  "version": "2"
+}

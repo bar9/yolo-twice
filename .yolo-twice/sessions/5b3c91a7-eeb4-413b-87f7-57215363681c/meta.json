@@ -1,0 +1,9 @@
+{
+  "agent": "claude-code",
+  "cost_usd": 0.6214483000000001,
+  "events": 73,
+  "id": "5b3c91a7-eeb4-413b-87f7-57215363681c",
+  "label": "yolo-twice issue 1",
+  "ts_first": "2026-11-01T08:01:33.595Z",
+  "ts_last": "2026-11-01T08:04:47.764Z"
+}

@@ -1,0 +1,27 @@
+flowchart TD
+  s_5b3c91a7_eeb4_413b_87f7_57215363681c(["yolo-twice issue 1"])
+  subgraph p1 ["FIX https://github.com/bar9/yolo-twice/issues/1  …"]
+    direction TD
+    t1["FIX https://github.com/bar9/yolo-twice/issues/1"]
+    t2["yolo-twice:yolo-twice /yolo-twice:yolo-twice help"]
+    t3["plan https://github.com/bar9/yolo-twice/issues/2"]
+    t4[" Request interrupted by user for tool use "]
+  end
+  s_5b3c91a7_eeb4_413b_87f7_57215363681c --> t1
+  t1 --> t2
+  t2 --> t3
+  t3 --> t4
+  classDef session fill:#1f2937,color:#fff,stroke:#111;
+  classDef phase fill:#e5e7eb,stroke:#9ca3af;
+  classDef turn fill:#dbeafe,stroke:#60a5fa;
+  classDef branch fill:#fde68a,stroke:#d97706;
+  classDef subagent fill:#ede9fe,stroke:#8b5cf6;
+  classDef tool fill:#dcfce7,stroke:#22c55e;
+  classDef error fill:#fee2e2,stroke:#ef4444;
+  classDef text fill:#f3f4f6,stroke:#9ca3af;
+  classDef thinking fill:#f3f4f6,stroke:#d1d5db,stroke-dasharray: 3 3;
+  class s_5b3c91a7_eeb4_413b_87f7_57215363681c session;
+  class t1 turn;
+  class t2 turn;
+  class t3 turn;
+  class t4 turn;

@@ -1,0 +1,9 @@
+{
+  "analyzer": "claude-cli:haiku",
+  "created": "2026-11-01T08:47:32.812Z",
+  "granularity": "abstract",
+  "hash": "e7766c124fce3590",
+  "node": "s:2f6b20e2-406e-4d53-ba91-0610a48615ae",
+  "text": "Replaced the pele/mermaid map with @xyflow/react and dagre layout in packages/ui/src/Graph.tsx, using shadcn-style BaseNode cards from components/flow/base-node.tsx fed by new focusFlow/projectFlow builders in analyzers/src/graph.ts, and added Json.tsx so raw tool results render as folding tables and labelled rows with a JSON source toggle. Map opened with its first box in the top-left corner because the initial viewport was set before React Flow's onInit, so the view is now deferred until init; the branch was merged into main (9560214 and 91ab1ff are pushed), and the same session reworked the pitch deck in code/pitch into picture-first slides with a Silo incoming-call popover that plays public/ringtone.mp3 and a DEMO.md newsletter script.",
+  "version": "2"
+}
