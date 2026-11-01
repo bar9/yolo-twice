@@ -186,6 +186,7 @@ export const ProjectIndex = z.object({
       ts_first: z.string(),
       ts_last: z.string(),
       events: z.number(),
+      tokens: z.number().optional(),
       cost_usd: z.number().optional(),
     }),
   ),

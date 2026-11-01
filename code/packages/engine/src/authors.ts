@@ -2,6 +2,7 @@ import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import { execFile } from "node:child_process";
+import type { Fork } from "./forks.js";
 
 /**
  * Who wrote which part of a session, straight from git: every line of events.ndjson was committed
@@ -35,34 +36,52 @@ export function emailHash(email: string): string {
   return crypto.createHash("sha256").update(email.trim().toLowerCase()).digest("hex");
 }
 
-/** Parse `git blame --line-porcelain` of an events file into author runs. `local` stands in for uncommitted lines. */
-export function parseBlame(porcelain: string, local: Author): AuthorRun[] {
-  const runs: AuthorRun[] = [];
+/** The author of one line of an events file. */
+export interface BlameLine {
+  id: string;
+  author: Author;
+  uncommitted?: boolean;
+}
+
+/** Parse `git blame --line-porcelain` of an events file. `local` stands in for uncommitted lines. */
+export function parseBlame(porcelain: string, local: Author): BlameLine[] {
+  const out: BlameLine[] = [];
   let sha = "";
   let name = "";
   let mail = "";
   for (const line of porcelain.split("\n")) {
     if (line.startsWith("\t")) {
-      let id: unknown;
-      try {
-        id = (JSON.parse(line.slice(1)) as { id?: unknown }).id;
-      } catch {
-        continue;
-      }
-      if (typeof id !== "string") continue;
+      const id = lineId(line.slice(1));
+      if (id === undefined) continue;
       const uncommitted = UNCOMMITTED.test(sha);
-      const who: Author = uncommitted ? local : { name, email_sha256: emailHash(mail) };
-      const prev = runs[runs.length - 1];
-      // a run changes with the person only: committing your own lines is not a takeover
-      if (prev && prev.email_sha256 === who.email_sha256) {
-        prev.last = id;
-        if (!uncommitted) delete prev.uncommitted;
-      } else runs.push({ ...who, first: id, last: id, ...(uncommitted ? { uncommitted: true } : {}) });
+      out.push({ id, author: uncommitted ? local : { name, email_sha256: emailHash(mail) }, ...(uncommitted ? { uncommitted } : {}) });
     } else if (line.startsWith("author ")) name = line.slice("author ".length);
     else if (line.startsWith("author-mail ")) mail = line.slice("author-mail ".length).replace(/^<|>$/g, "");
     else if (/^[0-9a-f]{40} /.test(line)) sha = line.slice(0, 40);
   }
+  return out;
+}
+
+/** Consecutive lines by one person become one run: committing your own lines is not a takeover. */
+export function toRuns(lines: BlameLine[]): AuthorRun[] {
+  const runs: AuthorRun[] = [];
+  for (const { id, author, uncommitted } of lines) {
+    const prev = runs[runs.length - 1];
+    if (prev && prev.email_sha256 === author.email_sha256) {
+      prev.last = id;
+      if (!uncommitted) delete prev.uncommitted;
+    } else runs.push({ ...author, first: id, last: id, ...(uncommitted ? { uncommitted: true } : {}) });
+  }
   return runs;
+}
+
+function lineId(line: string): string | undefined {
+  try {
+    const id = (JSON.parse(line) as { id?: unknown }).id;
+    return typeof id === "string" ? id : undefined;
+  } catch {
+    return undefined;
+  }
 }
 
 /** The distinct authors of a session, in order of first appearance. */
@@ -72,27 +91,29 @@ export function authorsOf(runs: AuthorRun[]): Author[] {
   return [...out.values()];
 }
 
-function untracked(file: string, local: Author): AuthorRun[] {
-  const ids = fs
+function untracked(file: string, local: Author): BlameLine[] {
+  return fs
     .readFileSync(file, "utf8")
     .split("\n")
     .flatMap((l) => {
-      try {
-        const id = (JSON.parse(l) as { id?: unknown }).id;
-        return typeof id === "string" ? [id] : [];
-      } catch {
-        return [];
-      }
+      const id = lineId(l);
+      return id === undefined ? [] : [{ id, author: local, uncommitted: true }];
     });
-  return ids.length ? [{ ...local, first: ids[0]!, last: ids[ids.length - 1]!, uncommitted: true }] : [];
 }
 
-/** Blame per session, cached until HEAD or the events file changes. Not a git repo: no runs. */
+/**
+ * Blame per session, cached until HEAD or the events file changes. Not a git repo: no runs.
+ * A fork's copied history is credited to whoever wrote it in the original session, not to the
+ * person who resumed it (who committed those lines).
+ */
 export class AuthorIndex {
-  private cache = new Map<string, { key: string; runs: Promise<AuthorRun[]> }>();
+  private cache = new Map<string, { key: string; lines: Promise<BlameLine[]> }>();
   private local: Promise<Author> | undefined;
 
-  constructor(private readonly dir: string) {}
+  constructor(
+    private readonly dir: string,
+    private readonly forks: () => Map<string, Fork> = () => new Map(),
+  ) {}
 
   private eventsFile(session: string): string {
     return path.join(this.dir, "sessions", session, "events.ndjson");
@@ -107,6 +128,27 @@ export class AuthorIndex {
   }
 
   async runs(session: string): Promise<AuthorRun[]> {
+    return toRuns(await this.attributed(session, new Set()));
+  }
+
+  private async attributed(session: string, seen: Set<string>): Promise<BlameLine[]> {
+    const lines = await this.lines(session);
+    const fork = this.forks().get(session);
+    if (!fork || seen.has(fork.from)) return lines;
+    seen.add(session);
+    const theirs = new Map((await this.attributed(fork.from, seen)).map((l) => [l.id, l]));
+    const copied = (l: BlameLine) => (fork.shared.has(l.id) ? theirs.get(l.id) : undefined);
+    // the resume title above the copied history is not a takeover: it goes with the first copied line
+    const head = lines.map(copied).find(Boolean);
+    let before = true;
+    return lines.map((l) => {
+      const c = copied(l);
+      if (c) before = false;
+      return c ?? (before && head ? { ...head, id: l.id } : l);
+    });
+  }
+
+  private async lines(session: string): Promise<BlameLine[]> {
     const file = this.eventsFile(session);
     let stat: fs.Stats;
     try {
@@ -119,15 +161,15 @@ export class AuthorIndex {
     if (!head) return [];
     const key = `${head.trim()}:${stat.size}:${stat.mtimeMs}`;
     const hit = this.cache.get(session);
-    if (hit?.key === key) return hit.runs;
-    const runs = this.localAuthor().then((local) =>
+    if (hit?.key === key) return hit.lines;
+    const lines = this.localAuthor().then((local) =>
       git(this.dir, ["blame", "--line-porcelain", "--", file]).then(
         (out) => parseBlame(out, local),
         () => untracked(file, local), // a session nobody committed yet is the local user's
       ),
     );
-    this.cache.set(session, { key, runs });
-    return runs;
+    this.cache.set(session, { key, lines });
+    return lines;
   }
 
   async authors(session: string): Promise<Author[]> {

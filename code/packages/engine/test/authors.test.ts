@@ -45,4 +45,18 @@ describe("authors", () => {
     expect(authorsOf(runs).map((a) => a.name)).toEqual(["Ann", "Bob", "Local"]);
     expect(await idx.runs("missing")).toEqual([]);
   });
+
+  test("a fork's copied history belongs to the original author, the rest to whoever resumed it", async () => {
+    const forkFile = path.join(dir, "sessions", "f1", "events.ndjson");
+    fs.mkdirSync(path.dirname(forkFile), { recursive: true });
+    fs.writeFileSync(forkFile, ev("a1") + ev("a2") + ev("b1") + ev("z1"));
+    git("add", ".yolo-twice");
+    commitAs("Zoe", "zoe@example.com");
+    const idx = new AuthorIndex(dir, () => new Map([["f1", { from: "s1", shared: new Set(["a1", "a2", "b1"]) }]]));
+    expect((await idx.runs("f1")).map((r) => [r.name, r.first, r.last])).toEqual([
+      ["Ann", "a1", "a2"],
+      ["Bob", "b1", "b1"],
+      ["Zoe", "z1", "z1"],
+    ]);
+  });
 });

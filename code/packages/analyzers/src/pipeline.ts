@@ -12,7 +12,7 @@ export function deriveSession(store: Store, session: string): ReturnType<typeof 
   store.writeGraph(session, toMermaid(built.session, { level: 2 }), 2);
   store.writeGraph(session, toMermaid(built.session, { level: 1 }), 1);
   const s = built.session;
-  store.writeSessionMeta({ id: session, agent: "claude-code", label: s.label, ts_first: s.span.ts_first, ts_last: s.span.ts_last, events: s.stats.events, cost_usd: s.stats.cost_usd });
+  store.writeSessionMeta({ id: session, agent: "claude-code", label: s.label, ts_first: s.span.ts_first, ts_last: s.span.ts_last, events: s.stats.events, tokens: s.stats.input_tokens + s.stats.output_tokens, cost_usd: s.stats.cost_usd });
   return built;
 }
 

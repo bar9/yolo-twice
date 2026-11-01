@@ -19,6 +19,7 @@ import { isOpenNode,
   type TextArtifact,
 } from "@yolo-twice/analyzers";
 import { AuthorIndex } from "./authors.js";
+import { ForkIndex } from "./forks.js";
 import { AutoCommitter } from "./autocommit.js";
 import { lastActiveSession } from "./resume.js";
 
@@ -51,6 +52,7 @@ export class ProjectRuntime {
   private readonly structural = new StructuralSummarizer();
   readonly autoCommit: AutoCommitter;
   readonly authors: AuthorIndex;
+  readonly forks: ForkIndex;
 
   constructor(
     readonly root: string,
@@ -63,7 +65,8 @@ export class ProjectRuntime {
     this.name = path.basename(root);
     const cfg = this.store.readConfig();
     this.summarizer = hasClaudeCli() && cfg.analyzers.semantic && !process.env.YOLO_TWICE_NO_LLM ? new ClaudeCliSummarizer({ model: cfg.analyzers.model }) : this.structural;
-    this.authors = new AuthorIndex(this.store.dir);
+    this.forks = new ForkIndex(this.store);
+    this.authors = new AuthorIndex(this.store.dir, () => this.forks.get());
     this.autoCommit = new AutoCommitter(root, this.store.dir, (st) => broadcast("autocommit", st), (m) => this.log(m), opts.autoCommitMs);
     // warm the search index from what is already on disk
     for (const id of this.store.listSessions()) this.indexSession(id);

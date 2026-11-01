@@ -76,7 +76,7 @@ function lay(flow: FlowGraph): Laid {
     else g.setNode(n.id, { width: sizeOf(n).w, height: sizeOf(n).h });
   }
   for (const n of flow.nodes) if (n.parent) g.setParent(n.id, n.parent);
-  for (const e of flow.edges) g.setEdge(e.source, e.target, { weight: e.kind === "seq" ? 2 : 1 });
+  for (const e of flow.edges) g.setEdge(e.source, e.target, { weight: e.kind === "seq" || e.kind === "order" ? 2 : 1 });
   layout(g);
 
   const rects = new Map<string, Rect>();
@@ -348,8 +348,8 @@ function FlowMap(props: Props) {
 
   const edges = useMemo(
     (): Edge[] =>
-      props.flow.edges.map((e) => {
-        const color = e.kind === "rewind" ? "var(--k-rewind)" : e.kind === "spawn" ? "var(--k-agent)" : "var(--rule-strong)";
+      props.flow.edges.filter((e) => e.kind !== "order").map((e) => {
+        const color = e.kind === "rewind" ? "var(--k-rewind)" : e.kind === "spawn" ? "var(--k-agent)" : e.kind === "fork" ? "var(--k-you)" : "var(--rule-strong)";
         const dim = props.dim.has(flowById.get(e.target)?.ref ?? "");
         return {
           id: e.id,
@@ -357,7 +357,7 @@ function FlowMap(props: Props) {
           target: e.target,
           type: "smoothstep",
           pathOptions: { borderRadius: 10 },
-          label: e.kind === "rewind" ? "rewind" : undefined,
+          label: e.kind === "rewind" ? "rewind" : e.kind === "fork" ? "forked" : undefined,
           className: cn("flow-edge", `edge-${e.kind}`, dim && "is-dim"),
           style: { stroke: color, strokeWidth: 1.5, strokeDasharray: e.kind === "seq" ? undefined : "5 4" },
           markerEnd: { type: MarkerType.ArrowClosed, color, width: 16, height: 16 },

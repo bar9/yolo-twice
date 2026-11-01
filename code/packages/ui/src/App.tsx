@@ -20,7 +20,7 @@ import { DemoBar, DemoCurtain, DemoPointer, useDemo } from "./DemoPlayer";
 import { useCtrlWheel } from "./wheelZoom";
 import { matchOrder, stepIn } from "./nav";
 import { useStream } from "./useStream";
-import { authorAt, authorCount, eventOrder, sameAuthors, takeovers, type Handover } from "./authors";
+import { authorAt, eventOrder, takeovers, type Handover } from "./authors";
 import { Avatars } from "./Avatar";
 import { resolveId, shortId, useViewState, type Layout, type SetView, type ViewState } from "./state";
 import { computeScope, foldTree, followTarget, indexTree, walk } from "./scope";
@@ -475,7 +475,7 @@ export function App() {
       for (const h of visibleHits) hits.set(sessionNode(h.session), (hits.get(sessionNode(h.session)) ?? 0) + 1);
       const active = Boolean(dq.trim()) || dk.length > 0;
       for (const b of bars) if ((active && visibleHits.length > 0 && !hits.has(b.id)) || (projectWindow && (b.end < tlStart + projectWindow[0] * 1000 || b.start > tlStart + projectWindow[1] * 1000))) dim.add(b.id);
-      flow = projectFlow(ordered.map((s) => ({ id: s.id, label: s.label })));
+      flow = projectFlow(ordered.map((s) => ({ id: s.id, label: s.label, forked_from: s.forked_from })));
       matchCount = visibleHits.length;
     }
     // the boxes the map shows, in its order (↑ ↓ in the Map view)
@@ -484,21 +484,13 @@ export function App() {
   }, [scope, events, tree, searchIndex, sessionId, sessions, projectHits, projectTools, view.window, dq, dk, foldRest]);
   const { bars, ticks, tlStart, tlEnd, flow, graphIds, dim, hits, matchCount, tools, scopeLabel, projectWindow } = vm;
 
-  // who takes over where: inside a session from the blame runs, across the project per session.
-  // Nothing at all while the project has a single author.
+  // who wrote what: inside a session a mark where someone takes over (blame runs), on the project
+  // level everyone who took part in each session
   const fileOrder = useMemo(() => eventOrder(events), [events]);
-  const multiAuthor = authorCount(sessions) > 1;
   const handover = useMemo((): Map<string, Handover> => {
-    if (!multiAuthor) return new Map();
     if (scope) return takeovers(scope.focus, runs, fileOrder);
-    const m = new Map<string, Handover>();
-    let prev: Author[] | undefined;
-    for (const s of [...sessions].sort((a, b) => a.ts_first.localeCompare(b.ts_first))) {
-      if (s.authors?.length && !sameAuthors(s.authors, prev)) m.set(sessionNode(s.id), { authors: s.authors, here: true });
-      prev = s.authors;
-    }
-    return m;
-  }, [multiAuthor, scope, runs, fileOrder, sessions]);
+    return new Map(sessions.flatMap((s) => (s.authors?.length ? [[sessionNode(s.id), { authors: s.authors, here: true }] as const] : [])));
+  }, [scope, runs, fileOrder, sessions]);
 
   // how busy the agent was across the tape: events per time bucket
   const wave = useMemo(() => {
@@ -691,7 +683,7 @@ export function App() {
             <Results ids={resultIds} events={events} owner={scope.owner} selected={sel} query={view.q} onSelect={select} />
           )
         ) : reader === "outline" ? (
-          <SessionList index={index} multiAuthor={multiAuthor} selected={sel} hover={hover} hits={hits} dim={dim} onOpen={focusOn} onHover={setHover} />
+          <SessionList index={index} selected={sel} hover={hover} hits={hits} dim={dim} onOpen={focusOn} onHover={setHover} />
         ) : (
           <ProjectResults hits={projectHits} sessions={sessions} query={view.q} onOpen={(sid) => focusOn(sessionNode(sid))} />
         )}
@@ -803,7 +795,7 @@ export function App() {
       <DemoBar demo={demo} />
       <DemoPointer at={demo.point} />
       <DemoCurtain demo={demo} />
-      {card && <HoverCard info={card} tree={tree} sessions={sessions} hits={hits} by={multiAuthor ? (node) => authorAt(node, runs, fileOrder) : undefined} />}
+      {card && <HoverCard info={card} tree={tree} sessions={sessions} hits={hits} by={(node) => authorAt(node, runs, fileOrder)} />}
       <Sheet open={digest !== undefined} onOpenChange={(o) => !o && setDigest(undefined)}>
         <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
           <SheetHeader>
@@ -916,7 +908,6 @@ function HoverCard({ info, tree, sessions, hits, by }: { info: HoverInfo; tree?:
 /** Project root: sessions as rows, linked to the graph and timeline like any other node. */
 function SessionList(props: {
   index?: Index;
-  multiAuthor: boolean;
   selected?: string;
   hover?: string;
   hits: Map<string, number>;
@@ -945,14 +936,13 @@ function SessionList(props: {
             <th>When</th>
             <th>Length</th>
             <th className="right">Events</th>
-            <th className="right">Cost</th>
+            <th className="right">Tokens</th>
           </tr>
         </thead>
         <tbody>
-          {[...index.sessions].reverse().map((s, i, all) => {
+          {[...index.sessions].reverse().map((s) => {
             const id = sessionNode(s.id);
-            // a face where the author changes, reading down the list
-            const who = props.multiAuthor && s.authors?.length && !sameAuthors(s.authors, all[i - 1]?.authors) ? s.authors : undefined;
+            const who = s.authors?.length ? s.authors : undefined;
             const n = props.hits.get(id);
             const current = index.current === s.id;
             const cls = [id === props.selected ? "selected" : "", id === props.hover ? "hover" : "", props.dim.has(id) ? "dim" : ""].join(" ");
@@ -973,7 +963,7 @@ function SessionList(props: {
                 </td>
                 <td>{fmtDuration(Date.parse(s.ts_last) - Date.parse(s.ts_first))}</td>
                 <td className="right">{s.events}</td>
-                <td className="right">{s.cost_usd !== undefined ? `$${s.cost_usd.toFixed(2)}` : ""}</td>
+                <td className="right">{s.tokens ? fmtTokens(s.tokens) : ""}</td>
               </tr>
             );
           })}

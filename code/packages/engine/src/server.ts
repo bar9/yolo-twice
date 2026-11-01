@@ -168,7 +168,8 @@ export class Engine {
     app.get("/api/sessions", async (c) => {
       const rt = need(c.req.query("project"));
       const index = rt.store.readProjectIndex() ?? { version: 1 as const, project: rt.name, sessions: [] };
-      const sessions = await Promise.all(index.sessions.map(async (s) => ({ ...s, authors: await rt.authors.authors(s.id) })));
+      const forks = rt.forks.get();
+      const sessions = await Promise.all(index.sessions.map(async (s) => ({ ...s, authors: await rt.authors.authors(s.id), forked_from: forks.get(s.id)?.from })));
       return c.json({ ...index, sessions, current: rt.currentSession() });
     });
 

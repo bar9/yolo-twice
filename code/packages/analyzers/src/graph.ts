@@ -179,6 +179,8 @@ export function focusMermaid(node: StructureNode, direction: "TD" | "LR" = "TD")
 export interface ProjectSessionRef {
   id: string;
   label: string;
+  /** The session this one was resumed from. */
+  forked_from?: string;
 }
 
 /** The project root: sessions in chronological order. Node ids are `s:<id>` like session nodes. */
@@ -220,7 +222,8 @@ export interface FlowEdge {
   id: string;
   source: string;
   target: string;
-  kind: "seq" | "rewind" | "spawn";
+  /** `order` only keeps the layout in time order and is not drawn. */
+  kind: "seq" | "rewind" | "spawn" | "order" | "fork";
 }
 
 export interface FlowGraph {
@@ -305,12 +308,17 @@ export function focusFlow(node: StructureNode): FlowGraph {
 /** The project root: sessions in chronological order, ids `s:<id>`. */
 export function projectFlow(sessions: ProjectSessionRef[]): FlowGraph {
   const b = new FlowBuilder();
+  const known = new Set(sessions.map((s) => s.id));
   let prev: string | undefined;
   for (const s of sessions) {
     const id = `s:${s.id}`;
     b.nodes.push({ id, ref: id, label: s.label || s.id, cls: "session" });
-    if (prev) b.edge(prev, id);
-    prev = id;
+    // sessions are stacked in time order without arrows; a fork hangs off the session it was resumed from
+    if (s.forked_from && known.has(s.forked_from)) b.edge(`s:${s.forked_from}`, id, "fork");
+    else {
+      if (prev) b.edge(prev, id, "order");
+      prev = id;
+    }
   }
   return { root: "project", nodes: b.nodes, edges: b.edges };
 }

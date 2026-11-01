@@ -48,7 +48,7 @@ export interface AuthorRun extends Author {
 }
 
 /** The project list, each session with its authors from git. */
-export type SessionIndex = Omit<ProjectIndex, "sessions"> & { current?: string; sessions: (ProjectIndex["sessions"][number] & { authors?: Author[] })[] };
+export type SessionIndex = Omit<ProjectIndex, "sessions"> & { current?: string; sessions: (ProjectIndex["sessions"][number] & { authors?: Author[]; forked_from?: string })[] };
 
 /** Project key (or root) passed on every call; empty means "engine default". Set from the URL by App. */
 export let project = "";

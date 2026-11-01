@@ -20,6 +20,8 @@ export interface SessionMeta {
   ts_first: string;
   ts_last: string;
   events: number;
+  /** Tokens in and out. */
+  tokens?: number;
   cost_usd?: number;
 }
 
@@ -285,10 +287,12 @@ export class Store {
   /** Session summary from meta.json, or from structure.json for folders written before meta existed. */
   readSessionMeta(session: string): SessionMeta | undefined {
     const meta = readJson<SessionMeta>(path.join(this.sessionDir(session), "meta.json"));
-    if (meta) return meta;
+    // meta written before tokens were counted: the structure has them
+    if (meta && meta.tokens !== undefined) return meta;
     const s = this.readStructure(session);
-    if (!s) return undefined;
-    return { id: session, agent: "claude-code", label: s.label, ts_first: s.span.ts_first, ts_last: s.span.ts_last, events: s.stats.events, cost_usd: s.stats.cost_usd };
+    if (!s) return meta;
+    const tokens = s.stats.input_tokens + s.stats.output_tokens;
+    return meta ? { ...meta, tokens } : { id: session, agent: "claude-code", label: s.label, ts_first: s.span.ts_first, ts_last: s.span.ts_last, events: s.stats.events, tokens, cost_usd: s.stats.cost_usd };
   }
 
   get projectIndexFile(): string {
@@ -301,7 +305,9 @@ export class Store {
   }
 
   readProjectIndex(): ProjectIndex | undefined {
-    return readJson<ProjectIndex>(this.projectIndexFile) ?? this.buildProjectIndex();
+    const cached = readJson<ProjectIndex>(this.projectIndexFile);
+    // a list cached before tokens were counted is rebuilt
+    return cached?.sessions.every((s) => s.tokens !== undefined) ? cached : this.buildProjectIndex();
   }
 
   /** Project list straight from the session folders (a fresh clone has no cache yet). */
@@ -311,7 +317,7 @@ export class Store {
       .filter((m): m is SessionMeta => Boolean(m))
       .sort((a, b) => a.ts_first.localeCompare(b.ts_first) || a.id.localeCompare(b.id));
     if (sessions.length === 0) return undefined;
-    return { version: 1, project: name, sessions: sessions.map((m) => ({ id: m.id, agent: m.agent, label: m.label, ts_first: m.ts_first, ts_last: m.ts_last, events: m.events, cost_usd: m.cost_usd })) };
+    return { version: 1, project: name, sessions: sessions.map((m) => ({ id: m.id, agent: m.agent, label: m.label, ts_first: m.ts_first, ts_last: m.ts_last, events: m.events, tokens: m.tokens, cost_usd: m.cost_usd })) };
   }
 
   cacheDir(): string {

@@ -1,16 +1,9 @@
 /**
  * Who wrote what, from the engine's git blame of events.ndjson (GET /api/sessions/:id/authors).
- * Shown only where the author changes, so a single-author project shows nothing at all.
+ * Inside a session it is marked only where the author changes.
  */
 import type { Event, StructureNode } from "@yolo-twice/core";
 import type { Author, AuthorRun } from "./api";
-
-export const sameAuthors = (a: Author[] = [], b: Author[] = []) => a.map((x) => x.email_sha256).join() === b.map((x) => x.email_sha256).join();
-
-/** Distinct authors over every session of the project. */
-export function authorCount(sessions: { authors?: Author[] }[]): number {
-  return new Set(sessions.flatMap((s) => (s.authors ?? []).map((a) => a.email_sha256))).size;
-}
 
 /** Position of every event in the session file: blame is per line, so file order is the order that counts. */
 export function eventOrder(events: Map<string, Event> | undefined): Map<string, number> {
