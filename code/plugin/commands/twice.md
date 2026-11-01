@@ -8,4 +8,4 @@ yolo-twice result:
 
 !`"${CLAUDE_PLUGIN_ROOT}"/bin/yolo-twice $ARGUMENTS 2>&1 || true`
 
-Relay the result above to the user in one line. If it contains a URL, show it as the place to open. If it contains a `claude --resume` command, tell the user to run it in a terminal. Do not run anything else.
+Relay the result above to the user in one line. If it contains a URL, show it as the place to open. If it says a VS Code tab was opened, say so. If it contains a `claude --resume` command, tell the user to run it in a terminal. Do not run anything else.

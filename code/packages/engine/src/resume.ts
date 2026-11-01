@@ -1,7 +1,8 @@
+import crypto from "node:crypto";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { expandPaths, mapStrings, type Event, type ImageRef, type Store } from "@yolo-twice/core";
+import { claudeProjectDir, expandPaths, mapStrings, type Event, type ImageRef, type Store } from "@yolo-twice/core";
 
 /**
  * Rebuild a Claude Code transcript (JSONL) from the redacted events committed in .yolo-twice,
@@ -171,13 +172,8 @@ export function lastActiveSession(store: Store): string | undefined {
   return best?.id;
 }
 
-/**
- * Rebuild the transcript into the gitignored cache and return the command that continues it.
- * `--fork-session` gives the continuation a new session id: the committed session never gets a
- * second writer, so resuming a teammate's session cannot cause merge conflicts in .yolo-twice.
- * Nothing is written to ~/.claude: Claude Code resumes straight from the transcript path.
- */
-export function prepareResume(store: Store, projectRoot: string, session?: string, home = os.homedir()): ResumeResult {
+/** Rebuild a committed session's transcript, by full id or unique prefix (the latest without one); `as` is the session id to write. */
+function rebuild(store: Store, projectRoot: string, session: string | undefined, home: string, as?: string): { id: string; rebuilt: Reconstructed } {
   const ids = store.listSessions();
   let id: string | undefined;
   if (!session) id = lastActiveSession(store);
@@ -190,10 +186,43 @@ export function prepareResume(store: Store, projectRoot: string, session?: strin
   if (!id) throw new Error(session ? `no session ${session} in .yolo-twice` : "no session in .yolo-twice to resume");
   const events = store.readEvents(id);
   if (events.length === 0) throw new Error(`session ${id} has no events in .yolo-twice`);
+  const found = id;
+  return { id, rebuilt: reconstructTranscript(as ?? id, events, projectRoot, "yolo-twice", home, (f) => store.imageFile(found, f)) };
+}
+
+/**
+ * Rebuild the transcript into the gitignored cache and return the command that continues it.
+ * `--fork-session` gives the continuation a new session id: the committed session never gets a
+ * second writer, so resuming a teammate's session cannot cause merge conflicts in .yolo-twice.
+ * Nothing is written to ~/.claude: Claude Code resumes straight from the transcript path
+ * (prepareFork below does write there, for an editor that opens sessions by id).
+ */
+export function prepareResume(store: Store, projectRoot: string, session?: string, home = os.homedir()): ResumeResult {
+  const { id, rebuilt } = rebuild(store, projectRoot, session, home);
   const dir = path.join(store.cacheDir(), "resume");
   const transcript = path.join(dir, `${id}.jsonl`);
-  const rebuilt = reconstructTranscript(id, events, projectRoot, "yolo-twice", home, (f) => store.imageFile(id, f));
   fs.mkdirSync(dir, { recursive: true });
   fs.writeFileSync(transcript, rebuilt.lines.join("\n") + "\n", { mode: 0o600 });
   return { session: id, transcript, records: rebuilt.records, command: ["claude", "--resume", transcript, "--fork-session"] };
+}
+
+export interface ForkResult {
+  session: string;
+  fork: string;
+  transcript: string;
+  records: number;
+}
+
+/**
+ * The fork made here instead of by `--fork-session`: the rebuilt transcript under a new session id,
+ * written into Claude Code's own project folder, where the VS Code extension opens sessions by id.
+ * The committed session still never gets a second writer.
+ */
+export function prepareFork(store: Store, projectRoot: string, session?: string, home = os.homedir(), claudeDir = claudeProjectDir(projectRoot)): ForkResult {
+  const fork = crypto.randomUUID();
+  const { id, rebuilt } = rebuild(store, projectRoot, session, home, fork);
+  const transcript = path.join(claudeDir, `${fork}.jsonl`);
+  fs.mkdirSync(claudeDir, { recursive: true });
+  fs.writeFileSync(transcript, rebuilt.lines.join("\n") + "\n", { mode: 0o600 });
+  return { session: id, fork, transcript, records: rebuilt.records };
 }

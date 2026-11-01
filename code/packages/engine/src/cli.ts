@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 import fs from "node:fs";
 import path from "node:path";
-import { spawn } from "node:child_process";
+import { execFile, spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { findProjectRoot, ingestProject, Store, Attention } from "@yolo-twice/core";
 import { deriveProject, deriveSession } from "@yolo-twice/analyzers";
 import { Engine } from "./server.js";
-import { lastActiveSession, prepareResume } from "./resume.js";
+import { lastActiveSession, prepareFork, prepareResume } from "./resume.js";
 import { clearEngineState, DEFAULT_HOST, DEFAULT_PORT, health, homeDir, isExposed, localUrl, logFile, pidAlive, reachableAt, readEngineState, readSettings, VERSION, writeEngineState } from "./state.js";
 
 const args = process.argv.slice(2);
@@ -209,6 +209,15 @@ async function main(): Promise<void> {
       const root = findProjectRoot(cwd);
       const store = new Store(root);
       const session = args[1] && !args[1].startsWith("--") ? args[1] : undefined;
+      // inside the VS Code extension: fork into Claude's project folder and open it in a new Claude tab
+      if (process.env.CLAUDE_CODE_ENTRYPOINT === "claude-vscode" && !has("print")) {
+        const f = prepareFork(store, root, session);
+        if (await openUrl(`vscode://anthropic.claude-code/open?session=${f.fork}`)) {
+          console.log(`opened a fork of session ${f.session.slice(0, 8)} in a new VS Code tab (session ${f.fork.slice(0, 8)}, ${f.records} records)`);
+          break;
+        }
+        fs.rmSync(f.transcript, { force: true });
+      }
       const r = prepareResume(store, root, session);
       const where = `rebuilt ${r.records} records of session ${r.session.slice(0, 8)} into ${path.relative(root, r.transcript)}; resuming forks a new session`;
       if (has("print") || process.env.CLAUDE_PLUGIN_ROOT || !process.stdin.isTTY) {
@@ -258,3 +267,12 @@ main().catch((e) => {
   console.error(`yolo-twice: ${(e as Error).message}`);
   process.exit(cmd === "hook" ? 0 : 1);
 });
+
+/** Hand a URL to VS Code (its CLI), else to the system's opener. False when neither takes it. */
+async function openUrl(url: string): Promise<boolean> {
+  const run = (cmd: string, args: string[]) => new Promise<boolean>((resolve) => execFile(cmd, args, { timeout: 15_000 }, (err) => resolve(!err)));
+  if (await run("code", ["--open-url", url])) return true;
+  if (process.platform === "darwin") return run("open", [url]);
+  if (process.platform === "win32") return run("cmd", ["/c", "start", "", url]);
+  return run("xdg-open", [url]);
+}

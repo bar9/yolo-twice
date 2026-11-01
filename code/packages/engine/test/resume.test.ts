@@ -3,7 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { ingestProject, Store } from "@yolo-twice/core";
 import { buildStructure } from "@yolo-twice/analyzers";
-import { prepareResume, reconstructTranscript } from "../src/resume.js";
+import { prepareFork, prepareResume, reconstructTranscript } from "../src/resume.js";
 import { FIXTURE_CWD, FIXTURE_SESSION, tempFixture } from "../../../fixtures/helper.js";
 
 describe("resume", () => {
@@ -78,6 +78,29 @@ describe("resume", () => {
       expect(prepareResume(store, "/home/bob/clone", FIXTURE_SESSION.slice(0, 8), "/home/bob").session).toBe(FIXTURE_SESSION);
     } finally {
       if (prev === undefined) delete process.env.CLAUDE_CONFIG_DIR; else process.env.CLAUDE_CONFIG_DIR = prev;
+      fx.cleanup();
+    }
+  });
+
+  test("prepareFork writes a new session into Claude's project folder and leaves the committed one alone", () => {
+    const fx = tempFixture("rf");
+    try {
+      const store = new Store(fx.projectRoot);
+      ingestProject({ cwd: FIXTURE_CWD, store, originDir: fx.originDir });
+      const before = fs.readFileSync(store.eventsFile(FIXTURE_SESSION), "utf8");
+      const claudeDir = path.join(fx.projectRoot, "claude-home", "projects", "-home-bob-clone");
+      const f = prepareFork(store, "/home/bob/clone", FIXTURE_SESSION.slice(0, 8), "/home/bob", claudeDir);
+      expect(f.session).toBe(FIXTURE_SESSION);
+      expect(f.fork).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[0-9a-f]{4}-[0-9a-f]{12}$/);
+      expect(f.fork).not.toBe(FIXTURE_SESSION);
+      expect(f.transcript).toBe(path.join(claudeDir, `${f.fork}.jsonl`));
+      const recs = fs.readFileSync(f.transcript, "utf8").split("\n").filter(Boolean).map((l) => JSON.parse(l));
+      expect(recs.length).toBe(f.records + 1); // + the title
+      expect(recs.every((r) => r.sessionId === f.fork)).toBe(true);
+      expect(fs.readFileSync(store.eventsFile(FIXTURE_SESSION), "utf8")).toBe(before);
+      // every fork is a session of its own
+      expect(prepareFork(store, "/home/bob/clone", FIXTURE_SESSION, "/home/bob", claudeDir).fork).not.toBe(f.fork);
+    } finally {
       fx.cleanup();
     }
   });
