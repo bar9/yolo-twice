@@ -301,7 +301,7 @@ Design rules:
   the current session and the expected lag of the summaries.
 - The team default is `attention` in `.yolo-twice/config.json`; each person's choice goes to the
   gitignored `.yolo-twice/local.json`, changeable live from the UI header or
-  `/yolo-twice:yolo-twice mode <micro|attentive|balanced|yolo>`. The engine reloads it without
+  `/yolo:twice mode <micro|attentive|balanced|yolo>`. The engine reloads it without
   restart.
 - "Catch me up" summarizes the events after a last-seen cursor. The cursor is stored per
   session in the browser (`localStorage`, `yt.seen.<session>`) and moves whenever the reader
@@ -450,7 +450,7 @@ A `.claude-plugin/marketplace.json` at the repo root lets the README promise one
 Claude Code 2.1.316):
 
 ```
-claude plugin install yolo-twice --marketplace bar9/yolo-twice
+claude plugin install yolo --marketplace bar9/yolo-twice
 ```
 
 Requires Node 22 or newer. A standalone binary (Node SEA or `bun build --compile`) is a

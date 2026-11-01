@@ -1,5 +1,5 @@
 {
-  "name": "yolo-twice",
+  "name": "yolo",
   "displayName": "yolo-twice",
   "version": "0.1.2",
   "description": "Insights into long-running Claude Code sessions: semantic zoom, live flow graph, attention slider, project-local history.",

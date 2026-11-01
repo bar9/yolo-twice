@@ -7,7 +7,7 @@ slide 02 and the PR numbers on slide 01 from the real transcript if they differ.
 
 ## Setup (once)
 
-In a fresh folder with the yolo-twice plugin enabled (`/yolo-twice:yolo-twice mode attentive`):
+In a fresh folder with the yolo-twice plugin enabled (`/yolo:twice mode attentive`):
 
 ```text
 Create a simple website for a local running club, "Rhine Runners Basel": a home page, training times and a contact page, in plain HTML and CSS, plus a tiny server that can save form entries to a file. Initialise git and commit it as "First version of the club website".

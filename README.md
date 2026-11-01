@@ -34,19 +34,22 @@ One command, in a terminal where Claude Code is installed (version 2.1.275 or ne
 or newer):
 
 ```
-claude plugin install yolo-twice --marketplace bar9/yolo-twice
+claude plugin install yolo --marketplace bar9/yolo-twice
 ```
+
+Installed it before it was called `yolo`? Switch once:
+`claude plugin uninstall yolo-twice && claude plugin install yolo --marketplace bar9/yolo-twice`.
 
 ## Use
 
-Inside any Claude Code session (plugin commands are namespaced, so the command is `/yolo-twice:yolo-twice`):
+Inside any Claude Code session (plugin commands are namespaced, so the command is `/yolo:twice`):
 
 ```
-/yolo-twice:yolo-twice                  start the engine for this project and open the UI
-/yolo-twice:yolo-twice stop             stop the engine
-/yolo-twice:yolo-twice status           show engine, session and index state
-/yolo-twice:yolo-twice mode yolo        set the attention slider: micro | attentive | balanced | yolo
-/yolo-twice:yolo-twice resume [id]      rebuild a committed session's transcript and print the claude --resume command
+/yolo:twice                  start the engine for this project and open the UI
+/yolo:twice stop             stop the engine
+/yolo:twice status           show engine, session and index state
+/yolo:twice mode yolo        set the attention slider: micro | attentive | balanced | yolo
+/yolo:twice resume [id]      rebuild a committed session's transcript and print the claude --resume command
 ```
 
 New to the UI? Help (the ? button in the header) has a short guide and a one-minute guided tour.

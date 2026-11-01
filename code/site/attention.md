@@ -41,7 +41,7 @@ prompts that change the topic.
   the current session, together with the expected lag.
 - **The setting is personal.** The team default is `attention` in `.yolo-twice/config.json`
   (balanced). Your own choice lives in the gitignored `.yolo-twice/local.json` and can be
-  changed live from the UI or with `/yolo-twice:yolo-twice mode <micro|attentive|balanced|yolo>`.
+  changed live from the UI or with `/yolo:twice mode <micro|attentive|balanced|yolo>`.
 - **The model is configurable.** All summaries use the model set in `analyzers.model` in
   `config.json` (default: haiku), whatever the mode.
 

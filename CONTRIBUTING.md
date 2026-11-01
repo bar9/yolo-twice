@@ -65,10 +65,10 @@ Edits to the plugin files take effect in new sessions:
 
 ```sh
 claude plugin marketplace add /path/to/yolo-twice
-claude plugin install yolo-twice@yolo-twice
+claude plugin install yolo@yolo-twice
 ```
 
-Inside Claude Code the command is `/yolo-twice:yolo-twice`, with `stop`, `status`,
+Inside Claude Code the command is `/yolo:twice`, with `stop`, `status`,
 `mode <micro|attentive|balanced|yolo>` and `resume [id]`. The plugin's launcher finds the engine in your checkout,
 so it runs your local code. It prefers `code/packages/engine/dist/cli.js` when present, so
 run `bun run build` after changing engine code, or delete `dist/` to fall back to running
@@ -80,7 +80,7 @@ without the engine is never disturbed.
 To remove the dev install:
 
 ```sh
-claude plugin uninstall yolo-twice@yolo-twice
+claude plugin uninstall yolo@yolo-twice
 claude plugin marketplace remove yolo-twice
 ```
 
@@ -221,7 +221,7 @@ the client. Every push to `main` deploys both to https://bar9.github.io/yolo-twi
 |---|---|
 | `Vite requires Node.js version 20.19+` | a warning on older Node 20; the build still succeeds. Upgrade to Node 22 to silence it |
 | Slidev fails under Node with a `styleText` error | Slidev 53 needs Node 22; the deck scripts already run it through bun |
-| `/yolo-twice:yolo-twice` runs old engine code | the launcher prefers `dist/`; run `bun run build`, then restart the engine (`bun run cli stop`) |
+| `/yolo:twice` runs old engine code | the launcher prefers `dist/`; run `bun run build`, then restart the engine (`bun run cli stop`) |
 | A new UI feature is missing although the UI was rebuilt | the engine still runs the old API; restart it, or use `bun run dev` |
 | Port 9656 in use | another engine is running: `bun run cli status`, `bun run cli stop`, or use `YOLO_TWICE_PORT` |
 | UI shows "not built" | run `bun run build`, the engine serves `packages/ui/dist` |

@@ -72,17 +72,17 @@ already use.
 We used yolo-twice to build yolo-twice. The repository keeps the AI sessions that built it,
 right next to its code, in
 [`.yolo-twice/`](https://github.com/bar9/yolo-twice/tree/main/.yolo-twice). Clone it, run
-`/yolo-twice:yolo-twice`, and read how the project came to be.
+`/yolo:twice`, and read how the project came to be.
 
 ## Install
 
 In a terminal where Claude Code is installed (version 2.1.275 or newer, Node 22 or newer):
 
 ```
-claude plugin install yolo-twice --marketplace bar9/yolo-twice
+claude plugin install yolo --marketplace bar9/yolo-twice
 ```
 
-Then, inside any Claude Code session, run `/yolo-twice:yolo-twice` to start recording this
+Then, inside any Claude Code session, run `/yolo:twice` to start recording this
 project and open the reader. See [Install and use](/install) for all commands.
 
 ## What's next

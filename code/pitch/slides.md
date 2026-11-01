@@ -132,8 +132,8 @@ class: text-center
 <div class="term narrow">
   <div class="term-bar"><span></span><span></span><span></span><em>Claude Code</em></div>
 <pre>
-<span class="prompt">&#36;</span> claude plugin install yolo-twice --marketplace bar9/yolo-twice
-<b class="u">&gt;</b> /yolo-twice:yolo-twice
+<span class="prompt">&#36;</span> claude plugin install yolo --marketplace bar9/yolo-twice
+<b class="u">&gt;</b> /yolo:twice
 </pre>
 </div>
 
@@ -148,7 +148,7 @@ layout: full
 <HandOver ui="http://localhost:9656/yolo-twice" script="privacy" />
 
 <!--
-The deck hands over to the real product (.yolo-twice/demos/privacy.json). Page Down steps; after step 6 it comes back to the next slide, and Page Up from step 1 returns to the slide before. Needs the engine: /yolo-twice:yolo-twice.
+The deck hands over to the real product (.yolo-twice/demos/privacy.json). Page Down steps; after step 6 it comes back to the next slide, and Page Up from step 1 returns to the slide before. Needs the engine: /yolo:twice.
 1. Yes. 24 hours of AI work, in the repo.
 2. [Page Down] We asked first. One word finds it: "disclosure", our own prompt.
 3. [Page Down] The agent counted every leak. Then masked them: $PROJECT, ~.

@@ -11,7 +11,7 @@ flowchart TB
   CC -- writes --> JSONL[(~/.claude/projects/&lt;slug&gt;/*.jsonl<br/>+ subagents/*.jsonl)]
   JSONL -- "read from cursor" --> ENG[Engine daemon]
   WATCH[File watcher fallback] --> ENG
-  PLUGIN[Claude plugin<br/>/yolo-twice:yolo-twice] --> ENG
+  PLUGIN[Claude plugin<br/>/yolo:twice] --> ENG
   ENG --> NORM[Normalize + redact]
   NORM --> STORE[(.yolo-twice/<br/>events.ndjson, structure.json,<br/>graph.mmd, text/)]
   STORE --> AN[Analyzers<br/>structural, search,<br/>semantic via claude -p]
@@ -41,7 +41,7 @@ sequenceDiagram
 
 The transcript file lags the live conversation, so every hook triggers a re-read from the
 cursor and the next hook or watcher event picks up anything missed. If the engine is not
-running the hook fails silently and the watcher catches up when `/yolo-twice:yolo-twice` starts it.
+running the hook fails silently and the watcher catches up when `/yolo:twice` starts it.
 
 ## Semantic zoom: two axes
 
@@ -103,5 +103,5 @@ render that text with [pele](https://pele.run/), so one source renders everywher
    its head changed, the session is rebuilt from zero.
 3. Every derived artifact is keyed by the hash of its inputs plus analyzer name and version.
 4. Files are written atomically with sorted keys, so git diffs are small and merges are sane.
-5. `/yolo-twice:yolo-twice` reuses a healthy engine instead of starting a second one.
+5. `/yolo:twice` reuses a healthy engine instead of starting a second one.
 6. Redaction runs before anything is written. The original stays in `~/.claude` untouched.

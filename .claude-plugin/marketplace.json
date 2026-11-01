@@ -4,9 +4,9 @@
   "owner": { "name": "yolo-twice team (bar9)", "url": "https://github.com/bar9/yolo-twice" },
   "plugins": [
     {
-      "name": "yolo-twice",
+      "name": "yolo",
       "source": "./code/plugin",
-      "description": "Semantic zoom, live flow graph and attention slider for your Claude Code sessions. /yolo-twice opens the UI.",
+      "description": "Semantic zoom, live flow graph and attention slider for your Claude Code sessions. /yolo:twice opens the UI.",
       "category": "productivity",
       "tags": ["transcript", "insights", "sessions"]
     }
