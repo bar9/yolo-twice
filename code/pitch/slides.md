@@ -34,8 +34,8 @@ Hi, we are yolo-twice. The name: YOLO, "you only live once", is also the nicknam
 
 <div class="pr">
   <div class="pr-head">
-    <span class="pr-state">Open</span>
-    <span class="pr-title">Commit the AI sessions <span class="dim">#37</span></span>
+    <span class="pr-state merged">Merged</span>
+    <span class="pr-title">DO NOT MERGE <span class="dim">#37</span></span>
     <span class="pr-meta"><span>24 hours of AI work</span><span class="add">+37 files</span></span>
   </div>
   <div v-click class="comment">
@@ -52,7 +52,7 @@ Hi, we are yolo-twice. The name: YOLO, "you only live once", is also the nicknam
 <IncomingCall :active="$clicks >= 3" :sound="$renderContext === 'slide'" avatar="./assets/silo-avatar.png" />
 
 <!--
-We built yolo-twice for 24 hours with an AI agent, and committed every session. The reviewer: are our API keys in here? The author: Claude dealt with that. Somewhere.
+We built yolo-twice for 24 hours with an AI agent, and committed every session. The PR says DO NOT MERGE, but it is already merged. The reviewer: are our API keys in here? The author: Claude dealt with that. Somewhere.
 
 [click] And then the tech lead calls: "Are you crazy? You have been pushing your whole internal development context for the last 24 hours?" (The ringtone plays in the audience window only.)
 -->
@@ -159,34 +159,50 @@ The deck hands over to the real product (.yolo-twice/demos/privacy.json). Page D
 
 ---
 
-<div class="kicker">Benefits</div>
+<div class="kicker">Share &amp; resume</div>
 
-# Find, share, review, continue
+<h1 class="handoff-title">Pick up where someone else left off.</h1>
 
-<div class="solo">
-<div class="term">
-  <div class="term-bar"><span></span><span></span><span></span><em>terminal</em></div>
-<pre>
-<span class="tag t-find">find</span>
-<span class="prompt">&#36;</span> git log --oneline -- .yolo-twice/sessions
-<span class="hash">63a2b55</span> Add a newsletter sign-up
-<i></i>
-<span class="tag t-share">share</span>
-<span class="ok">→ localhost:9656/api/7f825b/t4</span>
-<i></i>
-<span class="tag t-review">review</span>
-<span class="prompt">&#36;</span> gh pr diff 142 --name-only | grep yolo
-<span class="ok">.yolo-twice/sessions/7f825bc9/events.ndjson</span>
-<i></i>
-<span class="tag t-continue">continue</span>
-<span class="prompt">&#36;</span> yolo-twice resume 7f825bc9
-<span class="ok">✓ claude --resume … --fork-session</span>
-</pre>
+<div class="handoff-flow">
+  <div class="handoff-card handoff-before">
+    <img class="handoff-avatar" src="./assets/handoff-author.jpg" alt="Original session author" />
+    <div class="handoff-agent">AI agent <span>✦</span></div>
+    <div class="handoff-rows">
+      <div class="handoff-row"><span class="handoff-glyph">▤</span><span>Messages &amp; goals</span></div>
+      <div class="handoff-row"><span class="handoff-glyph">⌘</span><span>Tool calls</span></div>
+      <div class="handoff-row"><span class="handoff-glyph">&lt;/&gt;</span><span>Code &amp; diffs</span></div>
+      <div class="handoff-row"><span class="handoff-glyph">✧</span><span>Visible decisions</span></div>
+    </div>
+    <div class="handoff-status">Original session</div>
+  </div>
+
+  <div class="handoff-arrow" aria-hidden="true">→</div>
+
+  <div class="handoff-store">
+    <div class="handoff-file"><img class="handoff-file-mark" src="./assets/mark.png" alt="" /><span class="handoff-file-name">.yolo-twice/</span></div>
+    <strong>Save the full context</strong>
+    <span>with the code, in git</span>
+  </div>
+
+  <div class="handoff-arrow" aria-hidden="true">→</div>
+
+  <div class="handoff-card handoff-after">
+    <img class="handoff-avatar" src="./assets/handoff-teammate.jpg" alt="Teammate continuing the session" />
+    <div class="handoff-agent">AI agent <span>✦</span></div>
+    <div class="handoff-rows">
+      <div class="handoff-row"><span class="handoff-glyph">▤</span><span>Messages &amp; goals</span><b>✓</b></div>
+      <div class="handoff-row"><span class="handoff-glyph">⌘</span><span>Tool calls</span><b>✓</b></div>
+      <div class="handoff-row"><span class="handoff-glyph">&lt;/&gt;</span><span>Code &amp; diffs</span><b>✓</b></div>
+      <div class="handoff-row"><span class="handoff-glyph">✧</span><span>Visible decisions</span><b>✓</b></div>
+    </div>
+    <div class="handoff-status">Resumed &amp; continued</div>
+  </div>
 </div>
-</div>
+
+<div class="handoff-footer"><span>✦</span> Resume it yourself or hand it to a teammate</div>
 
 <!--
-The same three questions, plus one. Sessions can be found later: they stay with the project, also when people move on. A link opens a specific step for others on the team. Reviewers can see the reasoning in addition to the resulting code. And a colleague can resume the session on their own machine. Back to the reviewer: they open the link, land on the exchange, and have the answer. As more code is written with AI agents, it becomes more useful to know why it was written that way.
+The demo showed how to find the answer inside a session. This is the other part: the whole recorded context lives with the code. Commit the session, then you or a teammate can clone the repo and resume it as a new Claude Code session. Prompts, tool calls, code changes and visible decisions are there to continue from; private hidden reasoning is not claimed. The resumed session is a fork, so the original stays intact.
 -->
 
 ---
