@@ -211,19 +211,37 @@ Where we would take it. Agent agnostic: open formats instead of one vendor's, se
 
 ---
 
-<div class="kicker">Thanks</div>
+<div class="kicker">Your turn</div>
 
-# Thank you
+# Try it yourselves
 
-<div class="team big">
-  <p>Matthias Cullmann · Roland Brand · Jan Babin · Thomas Schöller</p>
-  <p class="dim"><a href="https://github.com/bar9/yolo-twice">github.com/bar9/yolo-twice</a></p>
+<p class="try-intro">Install the Claude Code plugin, then open your own session.</p>
+
+<div class="try-grid">
+  <div class="term try-term">
+    <div class="term-bar"><span></span><span></span><span></span><em>terminal</em></div>
+<pre><span class="term-comment"># Install</span>
+<span class="prompt">&#36;</span> claude plugin install yolo-twice \
+    --marketplace bar9/yolo-twice
+<span class="term-comment"># In Claude Code, inside your project</span>
+<b class="u">&gt;</b> /yolo-twice:yolo-twice</pre>
+  </div>
+  <div class="try-qr">
+    <div class="try-qr-card">
+      <svg class="try-pumpkin" viewBox="0 0 64 48" role="img" aria-label="Pumpkin">
+        <path d="M30 10c-2-7 1-10 7-10-1 4-2 7-2 10" fill="#4ac26b"/>
+        <path d="M32 10C19 1 7 11 7 26c0 14 10 22 25 22s25-8 25-22C57 11 45 1 32 10Z" fill="#fd5f02"/>
+        <path d="M18 17c-3 5-4 13-2 20M46 17c3 5 4 13 2 20" fill="none" stroke="#d74800" stroke-width="2" opacity=".7"/>
+        <path d="m19 25 7-5 2 8-9-3Zm26 0-7-5-2 8 9-3ZM20 34c7 9 17 9 24 0l-5 1-3-4-4 4-4-4-3 4-5-1Z" fill="#11163f"/>
+      </svg>
+      <a href="https://bar9.github.io/yolo-twice/" aria-label="Open the yolo-twice website"><img src="./assets/try-qr.svg" alt="QR code for bar9.github.io/yolo-twice" /></a>
+    </div>
+    <a class="try-url" href="https://bar9.github.io/yolo-twice/">bar9.github.io/yolo-twice/</a>
+  </div>
 </div>
 
-<p class="credits">Built on ideas from Claudescope, claude-code-history-viewer and cc_transcript_viewer · diagrams by pele</p>
-
 <!--
-Thanks to the projects that came before us: Claudescope, claude-code-history-viewer, cc_transcript_viewer; every diagram is rendered with pele. The site is bar9.github.io/yolo-twice.
+Here is how to try it: install the Claude Code plugin, then use the slash command in a project. The QR code opens the site, which has the installation guide. Leave this slide up for the audience to scan.
 -->
 
 ---

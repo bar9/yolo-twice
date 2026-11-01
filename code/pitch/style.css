@@ -268,6 +268,18 @@ ul.plain li::before { content: ""; position: absolute; left: 0; top: 0.55em; wid
 .team.big p { font-size: 1.2rem; }
 .credits { position: absolute; left: 0; right: 0; bottom: 1.6rem; text-align: center; font-size: 0.68rem; color: var(--muted) !important; }
 
+/* closing slide: large install command and a scan-friendly rounded QR */
+.try-intro { font-size: 1.05rem; margin: -0.15rem 0 0; }
+.try-grid { display: grid; grid-template-columns: minmax(0, 1fr) 15.5rem; gap: 2.2rem; align-items: center; margin-top: 1.2rem; }
+.try-term pre { font-size: 0.92rem; line-height: 1.65; padding: 1.25rem 1.35rem 1.4rem; }
+.try-term .term-comment { color: var(--muted); }
+.try-qr { display: flex; flex-direction: column; align-items: center; }
+.try-qr-card { width: 15.5rem; position: relative; padding: 0.5rem; background: #fff8eb; border-radius: 16px; border: 2px solid #fd5f02; box-shadow: 0 20px 50px rgb(0 0 0 / .35), 0 0 32px rgb(253 95 2 / .12); }
+.try-qr-card a, .try-qr-card img { display: block; width: 100%; }
+.try-qr-card a { border: 0; }
+.try-pumpkin { position: absolute; width: 3.2rem; right: -1rem; top: -1.9rem; filter: drop-shadow(0 4px 6px rgb(0 0 0 / .4)); }
+.try-url { display: block; margin-top: 0.7rem; font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 0.73rem; white-space: nowrap; color: var(--fg) !important; border-bottom: 1px solid var(--orange) !important; }
+
 /* scrolling back: an impenetrable wall of transcript */
 .term.wall { margin-top: 0.8rem; height: 25.5rem; }
 .term.wall pre { font-size: 0.4rem; line-height: 1.22; padding: 1.2rem 1rem; column-count: 2; column-gap: 1.6rem; column-fill: auto; height: 23rem; overflow: hidden; }
