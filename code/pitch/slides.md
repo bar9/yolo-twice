@@ -237,10 +237,10 @@ Where we would take it. Agent agnostic: open formats instead of one vendor's, se
   <div class="term try-term">
     <div class="term-bar"><span></span><span></span><span></span><em>terminal</em></div>
 <pre><span class="term-comment"># Install</span>
-<span class="prompt">&#36;</span> claude plugin install yolo-twice \
+<span class="prompt">&#36;</span> claude plugin install yolo \
     --marketplace bar9/yolo-twice
 <span class="term-comment"># In Claude Code, inside your project</span>
-<b class="u">&gt;</b> /yolo-twice:yolo-twice</pre>
+<b class="u">&gt;</b> /yolo:twice</pre>
   </div>
   <div class="try-qr">
     <div class="try-qr-card">
