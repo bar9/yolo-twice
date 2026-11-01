@@ -1,0 +1,9 @@
+{
+  "analyzer": "structural",
+  "created": "2026-11-01T10:18:19.977Z",
+  "granularity": "abstract",
+  "hash": "13c7d7ceaafbffdd",
+  "node": "p1",
+  "text": "[user.prompt] <command-message>yolo-twice:yolo-twice</command-message> <command-name>/yolo-twice:yolo-twice</command-name> [tool Bash] {\"command\":\"\\\"~/yolo-twice/code/plugin\\\"/bin/yolo-twice 2>&1 || true\",\"description\":\"Run yolo-twice launcher\"} [tool.result] http://127.0.0.1:9656/?project=%2Fhome%…",
+  "version": "2"
+}

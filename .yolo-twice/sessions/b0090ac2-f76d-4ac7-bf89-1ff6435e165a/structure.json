@@ -97,6 +97,9 @@
             "input_tokens": 4,
             "output_tokens": 204,
             "tool_calls": 1
+          },
+          "text": {
+            "abstract": "Ran the yolo-twice launcher at `~/yolo-twice/code/plugin/bin/yolo-twice` with `|| true`, which hides its exit status. It printed `http://127.0.0.1:9656/?project=/home/bar9/yolo-twice&session=7f825bc9-97c2-4932-8575-d8beab55a0eb`, and the insights UI was reported as running there. The UI was not opened in a browser, so the page itself was not checked."
           }
         }
       ],
@@ -115,6 +118,9 @@
         "input_tokens": 4,
         "output_tokens": 204,
         "tool_calls": 1
+      },
+      "text": {
+        "abstract": "[user.prompt] <command-message>yolo-twice:yolo-twice</command-message> <command-name>/yolo-twice:yolo-twice</command-name> [tool Bash] {\"command\":\"\\\"~/yolo-twice/code/plugin\\\"/bin/yolo-twice 2>&1 || true\",\"description\":\"Run yolo-twice launcher\"} [tool.result] http://127.0.0.1:9656/?project=%2Fhome%…"
       }
     }
   ],
@@ -134,5 +140,8 @@
     "input_tokens": 4,
     "output_tokens": 204,
     "tool_calls": 1
+  },
+  "text": {
+    "abstract": "Ran the yolo-twice launcher script (`bin/yolo-twice` under the plugin directory) to start the insights UI, which returned a local server URL at http://127.0.0.1:9656 for project /home/bar9/yolo-twice and session 7f825bc9-97c2-4932-8575-d8beab55a0eb. No files were changed and the launcher reported no errors. The UI is left running for browsing the session."
   }
 }
