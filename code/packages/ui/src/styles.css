@@ -791,6 +791,8 @@ a.link:hover { text-decoration-color: currentColor; }
 .avatars { display: inline-flex; flex: none; vertical-align: middle; }
 .avatars .avatar + .avatar { margin-left: -5px; }
 .sessions td.title .avatars { margin-right: 8px; vertical-align: -3px; }
-.takeover { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--ink-2); font-weight: 500; }
+.takeover { display: inline-flex; min-width: 0; align-items: center; gap: 6px; white-space: nowrap; color: var(--ink-2); font-weight: 500; }
+/* room for the ring around a face, which overflow would clip */
+.avatars { padding: 1.5px; }
 .flow .base-node > .takeover { padding: 2px 10px 0; font-size: 11px; max-width: 100%; }
 .labeled-group-tab .takeover { margin-left: 6px; font-size: 11px; font-weight: 500; }

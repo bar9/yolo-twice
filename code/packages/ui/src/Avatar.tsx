@@ -34,7 +34,7 @@ export function Takeover({ authors, size = 14 }: { authors: Author[]; size?: num
   return (
     <span className="takeover">
       <Avatars authors={authors} size={size} />
-      {authors.map((a) => a.name).join(", ")} takes over
+      <span className="truncate">{authors.map((a) => a.name).join(", ")} takes over</span>
     </span>
   );
 }

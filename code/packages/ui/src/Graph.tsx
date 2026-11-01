@@ -222,9 +222,9 @@ const SessionNode = memo(function SessionNode({ data }: NodeProps<Node<BoxData>>
         <KindIcon kind="session" size={12} />
         <BaseNodeHeaderTitle>Session</BaseNodeHeaderTitle>
         {data.who && (
-          <span className="ml-auto inline-flex items-center gap-1 truncate text-[11px] opacity-80">
+          <span className="ml-auto inline-flex min-w-0 items-center gap-1 text-[11px] opacity-80">
             <Avatars authors={data.who.authors} size={14} />
-            {data.who.authors.map((a) => a.name).join(", ")}
+            <span className="truncate">{data.who.authors.map((a) => a.name).join(", ")}</span>
           </span>
         )}
       </BaseNodeHeader>
