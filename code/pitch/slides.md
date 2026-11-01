@@ -7,7 +7,7 @@ fonts:
   sans: Inter
   serif: Nunito
   mono: JetBrains Mono
-  weights: '400,500,600,700,800,900'
+  weights: "400,500,600,700,800,900"
 highlighter: shiki
 drawings:
   persist: false
@@ -18,7 +18,7 @@ mdc: true
 <img src="./assets/wordmark.png" class="cover-bg" alt="yolo-twice wordmark: YOLO, with the last O struck through by an orange brush-stroke T" />
 
 <div class="cover-band">
-  <p class="cover-tag">Give your AI conversations the attention they deserve.</p>
+  <p class="cover-tag">Give our AI conversations the attention they deserve.</p>
   <p class="cover-team">BaselHack 2026 · Matthias Cullmann · Roland Brand · Jan Babin · Thomas Schöller</p>
 </div>
 
@@ -62,6 +62,7 @@ We built yolo-twice for 24 hours with an AI agent, and committed every session. 
 <div class="kicker">Scrolling back</div>
 
 # The transcript
+
 <div class="term wall">
   <div class="term-bar"><span></span><span></span><span></span><em>Claude Code</em></div>
   <div class="scroll-hint">↑ 9,870 more lines</div>
@@ -121,8 +122,10 @@ The answer is on this screen. Three times: the leak count, a false alarm, the sc
 -->
 
 ---
+
 layout: center
 class: text-center
+
 ---
 
 <div class="kicker">Demo</div>
@@ -142,8 +145,8 @@ One command installs it. Next slide: the real product, live. We click through it
 -->
 
 ---
-layout: full
----
+
+## layout: full
 
 <HandOver ui="http://localhost:9656/yolo-twice" script="privacy" />
 
