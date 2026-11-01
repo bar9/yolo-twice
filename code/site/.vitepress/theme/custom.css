@@ -97,6 +97,12 @@ div.pele {
   max-width: 100%; width: 520px; border-radius: 16px;
   box-shadow: 0 24px 60px rgb(4 6 28 / 0.55);
 }
+/* below 960px VitePress tucks the image under the nav with a negative margin, sized for its own
+   square image box; the static poster has no such padding, so it would overlap the nav */
+@media (max-width: 959px) {
+  .VPHero.has-image .image { margin: 0 0 32px; }
+  .VPHero.has-image .image-container { display: flex; justify-content: center; width: auto; height: auto; }
+}
 
 /* nav logo */
 .VPNavBarTitle .logo { height: 30px; }
