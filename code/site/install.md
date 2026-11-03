@@ -2,8 +2,8 @@
 
 ## Install
 
-One command, in a terminal where Claude Code is installed (version 2.1.275 or newer, Node 22
-or newer):
+One command, in a terminal where Claude Code is installed (version 2.1.275 or newer, and Node 20
+or newer or bun):
 
 ```
 claude plugin install yolo --marketplace bar9/yolo-twice

@@ -2,8 +2,8 @@
 # Run the yolo-twice engine CLI. Resolution order:
 #   1. $YOLO_TWICE_ENGINE  (path to cli.js, or a command)
 #   2. repo dev layout next to this plugin (code/packages/engine)
-#   3. a marketplace clone under ~/.claude/plugins/marketplaces/*/code/packages/engine (built on first use with bun)
-#   4. npx -y yolo-twice@latest
+#   3. a marketplace clone under ~/.claude/plugins/marketplaces/*/code/packages/engine (needs bun: built on first use)
+#   4. npx -y yolo-twice@latest  (plain Node 20+, the UI is bundled; used when bun is missing or the build fails)
 set -u
 HERE="$(cd "$(dirname "$0")/.." && pwd)"
 CMD="${1:-open}"; [ $# -gt 0 ] && shift
@@ -17,7 +17,16 @@ run_engine_dir() {
   dir="$1"; shift
   if [ -f "$dir/dist/cli.js" ]; then exec node "$dir/dist/cli.js" "$@"; fi
   if command -v bun >/dev/null 2>&1 && [ -f "$dir/src/cli.ts" ]; then
-    if [ ! -d "$dir/../../node_modules" ]; then (cd "$dir/../.." && bun install >/dev/null 2>&1); fi
+    root="$dir/../.."; ui="$dir/../ui"
+    # a source checkout ships no UI build: build it when missing, and again when a marketplace update moved HEAD
+    # (the stamp is ours only; a dev build without it is left alone)
+    head="$(git -C "$root" rev-parse HEAD 2>/dev/null || echo unknown)"
+    stamp="$ui/dist/.yolo-twice-build"
+    if [ ! -f "$ui/dist/index.html" ] || { [ -f "$stamp" ] && [ "$(cat "$stamp")" != "$head" ]; }; then
+      (cd "$root" && bun install >/dev/null 2>&1)
+      # the workspace build: the UI imports the analyzers/core packages through their compiled dist
+      if (cd "$root" && bun run build >/dev/null 2>&1); then echo "$head" > "$stamp"; else echo "yolo-twice: UI build failed, falling back to the published package (run: cd $root && bun run build)" >&2; return 1; fi
+    elif [ ! -d "$root/node_modules" ]; then (cd "$root" && bun install >/dev/null 2>&1); fi
     exec bun run "$dir/src/cli.ts" "$@"
   fi
   return 1
