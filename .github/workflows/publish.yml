@@ -34,9 +34,9 @@ jobs:
           if [ "$p" != "$v" ]; then
             echo "::error::plugin.json version $p does not match package.json version $v"; exit 1
           fi
-      - name: Build UI
-        working-directory: code/packages/ui
-        run: bun run build
+      - name: Build packages and UI
+        working-directory: code
+        run: bun run build  # the UI imports analyzers/core through their compiled dist
       - name: Publish
         working-directory: code/packages/engine
         run: npm publish --access public
