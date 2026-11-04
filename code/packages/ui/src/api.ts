@@ -47,8 +47,42 @@ export interface AuthorRun extends Author {
   uncommitted?: boolean;
 }
 
-/** The project list, each session with its authors from git. */
-export type SessionIndex = Omit<ProjectIndex, "sessions"> & { current?: string; sessions: (ProjectIndex["sessions"][number] & { authors?: Author[]; forked_from?: string })[] };
+/** private: never leaves this machine. shared: committed with the project. undecided: waits for the user. */
+export type Visibility = "shared" | "private" | "undecided";
+/** restricted: this environment holds data that must not be published. open: it does not. */
+export type Environment = "restricted" | "open";
+
+/** Where the project's sessions may go (absent outside a git repository). The rules: packages/engine/src/sharing.ts. */
+export interface Sharing {
+  environment: Environment;
+  /** false while the environment question is unanswered; it counts as restricted until then */
+  answered: boolean;
+  remotes: { name: string; url: string; id: string; class: "restricted" | "open" | "unknown"; by: "pattern" | "gh" | "local" | "none" }[];
+  class: "restricted" | "open" | "unknown" | "none";
+  decidedBy?: string;
+  default: Visibility;
+  prompt: boolean;
+  unpushed?: number;
+  /** only on the SSE event: sharing just became stricter */
+  alert?: boolean;
+}
+
+/** The environment setting (GET/PUT /api/environment): machine-wide, never committed. */
+export interface EnvironmentInfo {
+  environment?: Environment;
+  restricted_remotes: string[];
+  guess: Environment;
+  signals: string[];
+  /** patterns from this project's remotes, to offer as restricted */
+  candidates: string[];
+}
+
+/** The project list, each session with its authors from git and its visibility. */
+export type SessionIndex = Omit<ProjectIndex, "sessions"> & {
+  current?: string;
+  sharing?: Sharing;
+  sessions: (ProjectIndex["sessions"][number] & { authors?: Author[]; forked_from?: string; visibility?: Visibility; decided?: boolean })[];
+};
 
 /** Project key (or root) passed on every call; empty means "engine default". Set from the URL by App. */
 export let project = "";
@@ -120,6 +154,15 @@ export const api = {
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ project: project || undefined, enabled }),
     }),
+  setVisibility: (id: string, visibility: "shared" | "private") =>
+    json<{ visibility: Visibility; decided: boolean; warning?: string }>(`/api/sessions/${id}/visibility`, {
+      method: "PUT",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ project: project || undefined, visibility }),
+    }),
+  environment: () => json<EnvironmentInfo>(`/api/environment${qs({})}`),
+  setEnvironment: (patch: { environment?: Environment; restricted_remotes?: string[] }) =>
+    json<EnvironmentInfo>(`/api/environment`, { method: "PUT", headers: { "content-type": "application/json" }, body: JSON.stringify({ project: project || undefined, ...patch }) }),
   network: () => json<NetworkInfo>(`/api/network`),
   setNetwork: (host: string) => json<NetworkInfo>(`/api/network`, { method: "PUT", headers: { "content-type": "application/json" }, body: JSON.stringify({ host }) }),
   streamUrl: () => `/api/stream${qs({})}`,

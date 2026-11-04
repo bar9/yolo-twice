@@ -25,8 +25,11 @@ export interface SessionMeta {
   cost_usd?: number;
 }
 
-/** Personal overrides of config.json, never committed. */
-export type LocalConfig = Partial<Pick<Config, "attention">>;
+/** A session's explicit sharing decision: shared is committed with the project, private never leaves this machine. */
+export type SessionDecision = "shared" | "private";
+
+/** Personal overrides of config.json and personal decisions, never committed. */
+export type LocalConfig = Partial<Pick<Config, "attention">> & { visibility?: Record<string, SessionDecision> };
 
 /** The project-local .yolo-twice folder. All writes are atomic and deterministic. */
 const IMAGE_EXT: Record<string, string> = { "image/png": "png", "image/jpeg": "jpg", "image/gif": "gif", "image/webp": "webp" };
@@ -88,6 +91,16 @@ export class Store {
   /** Personal settings such as the attention slider: never committed, never conflicting. */
   writeLocalConfig(patch: LocalConfig): void {
     writeJsonAtomic(this.localConfigFile, { ...(readJson<LocalConfig>(this.localConfigFile) ?? {}), ...patch });
+  }
+
+  /** The sessions the user decided on explicitly; the rest follow the project's default. */
+  readDecisions(): Record<string, SessionDecision> {
+    const v = readJson<LocalConfig>(this.localConfigFile)?.visibility ?? {};
+    return Object.fromEntries(Object.entries(v).filter(([id, d]) => isSafeSessionId(id) && (d === "shared" || d === "private")));
+  }
+
+  writeDecision(session: string, decision: SessionDecision): void {
+    this.writeLocalConfig({ visibility: { ...this.readDecisions(), [safeSessionId(session)]: decision } });
   }
 
   writeConfig(config: Config): void {

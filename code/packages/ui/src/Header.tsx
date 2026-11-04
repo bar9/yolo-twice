@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Slider } from "@/components/ui/slider";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { api, ATTENTION, ATTENTION_LABEL, fmtTime, type NetworkInfo, type Attention, type AutoCommit, type Config, type StructureNode } from "./api";
+import { api, ATTENTION, ATTENTION_LABEL, fmtTime, type NetworkInfo, type Attention, type AutoCommit, type Config, type Sharing, type StructureNode, type Visibility } from "./api";
+import { SharingButton, VisibilityBadge, VisibilityMenu } from "./Sharing";
 import { KIND } from "./kinds";
 import type { Layout } from "./state";
 import { Tip } from "./Tip";
@@ -46,7 +47,11 @@ export function BrandMark({ className = "brand-mark" }: { className?: string }) 
  */
 export function Header(props: {
   project: string;
-  session?: { id: string; label: string; pinned: boolean };
+  session?: { id: string; label: string; pinned: boolean; visibility?: Visibility; decided?: boolean };
+  /** where the project's sessions go; absent outside a git repository */
+  sharing?: Sharing;
+  onVisibility: (id: string, v: "shared" | "private") => void;
+  onSharingChanged: () => void;
   path: Crumb[]; // focus path inside the session, excluding the session itself
   canReset: boolean;
   onProject: () => void;
@@ -109,7 +114,9 @@ export function Header(props: {
                 <SessionIcon size={15} aria-hidden />
                 <span>{props.session.label}</span>
               </button>
+              <VisibilityBadge visibility={props.session.visibility} decided={props.session.decided} sharing={props.sharing} />
             </span>
+            <VisibilityMenu visibility={props.session.visibility} decided={props.session.decided} sharing={props.sharing} onChange={(v) => props.onVisibility(props.session!.id, v)} />
             <Tip label={pinned ? "Pinned: Esc and reset stay inside this session. Click to unpin." : "Go into this session: pin it as the root."}>
               <Button variant="ghost" size="icon-sm" className={`pin ${pinned ? "on" : ""} size-7 text-ink-3`} onClick={() => props.onPin(!pinned)} aria-pressed={pinned} aria-label={pinned ? "Unpin the session" : "Pin the session"}>
                 {pinned ? <Pin className="size-3.5" /> : <PinOff className="size-3.5" />}
@@ -161,6 +168,8 @@ export function Header(props: {
           <span className="hidden xl:inline">Map</span>
         </ToggleGroupItem>
       </ToggleGroup>
+
+      <SharingButton sharing={props.sharing} onChanged={props.onSharingChanged} />
 
       <Popover>
         <Tip label="Appearance, summaries and auto-commit">
@@ -221,7 +230,7 @@ export function Header(props: {
                       ]
                         .filter(Boolean)
                         .join(" ")
-                    : "Commit the .yolo-twice folder now and every 10 minutes, so it stops cluttering git status. Your staged work is left alone. Stays on until the engine restarts."}
+                    : "Commit the .yolo-twice folder now and every 10 minutes, so it stops cluttering git status. Your staged work is left alone. Private and undecided sessions stay out. Stays on until the engine restarts."}
                 </p>
               </div>
             )}

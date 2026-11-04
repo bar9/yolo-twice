@@ -1,8 +1,8 @@
 import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
-import { execFile } from "node:child_process";
 import type { Fork } from "./forks.js";
+import { git } from "./git.js";
 
 /**
  * Who wrote which part of a session, straight from git: every line of events.ndjson was committed
@@ -24,13 +24,6 @@ export interface AuthorRun extends Author {
 
 const UNCOMMITTED = /^0{40}$/;
 
-function git(cwd: string, args: string[]): Promise<string> {
-  return new Promise((resolve, reject) =>
-    execFile("git", args, { cwd, timeout: 30_000, maxBuffer: 256 * 1024 * 1024 }, (err, stdout, stderr) =>
-      err ? reject(new Error((stderr || err.message).trim())) : resolve(stdout),
-    ),
-  );
-}
 
 export function emailHash(email: string): string {
   return crypto.createHash("sha256").update(email.trim().toLowerCase()).digest("hex");
@@ -163,7 +156,7 @@ export class AuthorIndex {
     const hit = this.cache.get(session);
     if (hit?.key === key) return hit.lines;
     const lines = this.localAuthor().then((local) =>
-      git(this.dir, ["blame", "--line-porcelain", "--", file]).then(
+      git(this.dir, ["blame", "--line-porcelain", "--", file], 256 * 1024 * 1024).then(
         (out) => parseBlame(out, local),
         () => untracked(file, local), // a session nobody committed yet is the local user's
       ),

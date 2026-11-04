@@ -74,9 +74,14 @@ export async function health(port: number, timeoutMs = 800, host?: string): Prom
 
 export const DEFAULT_HOST = "127.0.0.1";
 
-/** Settings chosen in the UI that outlive the engine (the network address). */
+/** Settings chosen in the UI that outlive the engine: machine-wide, never committed. */
 export interface Settings {
+  /** the network address */
   host?: string;
+  /** does this environment hold data that must not be published? unanswered counts as restricted */
+  environment?: "restricted" | "open";
+  /** remotes that count as restricted (internal), e.g. `git.acme.example` or `github.com/acme-*` */
+  restricted_remotes?: string[];
 }
 export function settingsFile(): string {
   return path.join(homeDir(), "settings.json");
@@ -84,9 +89,10 @@ export function settingsFile(): string {
 export function readSettings(): Settings {
   return readJson<Settings>(settingsFile()) ?? {};
 }
-export function writeSettings(s: Settings): void {
+/** Merges into what is there: each part of the UI owns its own keys. */
+export function writeSettings(patch: Settings): void {
   fs.mkdirSync(homeDir(), { recursive: true });
-  writeJsonAtomic(settingsFile(), s);
+  writeJsonAtomic(settingsFile(), { ...readSettings(), ...patch });
 }
 
 /** Bound to every interface (0.0.0.0, ::), or to one that is not this machine's loopback. */

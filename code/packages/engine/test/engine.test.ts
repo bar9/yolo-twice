@@ -140,4 +140,19 @@ describe("engine", () => {
     const old = ((await (await fetch(`${base}/api/search?${q}&q=login&k=u`)).json()) as { hits: { id: string }[] }).hits;
     expect(old.map((h) => h.id)).not.toContain("u1");
   });
+  test("sharing: nothing to decide outside git, the environment is validated and stored", async () => {
+    const list = (await (await fetch(`${base}/api/sessions?${q}`)).json()) as { sharing?: unknown; sessions: { visibility?: string }[] };
+    expect(list.sharing).toBeUndefined();
+    expect(list.sessions[0]!.visibility).toBeUndefined();
+    const put = (body: unknown, path = "/api/environment") => fetch(`${base}${path}`, { method: "PUT", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
+    expect((await put({ project, visibility: "public" }, `/api/sessions/${FIXTURE_SESSION}/visibility`)).status).toBe(400);
+    expect((await put({ project, visibility: "private" }, `/api/sessions/${FIXTURE_SESSION}/visibility`)).status).toBe(409);
+    expect((await put({ project, visibility: "private" }, `/api/sessions/nope/visibility`)).status).toBe(404);
+    expect((await put({ project, environment: "secret" })).status).toBe(400);
+    expect((await put({ project, restricted_remotes: ["", 3] })).status).toBe(400);
+    const env = (await (await put({ project, environment: "open", restricted_remotes: ["git.acme.example", "git.acme.example"] })).json()) as { environment: string; restricted_remotes: string[]; guess: string };
+    expect(env.environment).toBe("open");
+    expect(env.restricted_remotes).toEqual(["git.acme.example"]);
+    expect(["open", "restricted"]).toContain(env.guess);
+  });
 });

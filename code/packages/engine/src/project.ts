@@ -21,6 +21,7 @@ import { isOpenNode,
 import { AuthorIndex } from "./authors.js";
 import { ForkIndex } from "./forks.js";
 import { AutoCommitter } from "./autocommit.js";
+import { VisibilityIndex } from "./visibility.js";
 import { lastActiveSession } from "./resume.js";
 
 export type Broadcast = (event: string, data: unknown) => void;
@@ -53,6 +54,8 @@ export class ProjectRuntime {
   readonly autoCommit: AutoCommitter;
   readonly authors: AuthorIndex;
   readonly forks: ForkIndex;
+  readonly visibility: VisibilityIndex;
+  private gitWatcher: FSWatcher | undefined;
 
   constructor(
     readonly root: string,
@@ -67,7 +70,11 @@ export class ProjectRuntime {
     this.summarizer = hasClaudeCli() && cfg.analyzers.semantic && !process.env.YOLO_TWICE_NO_LLM ? new ClaudeCliSummarizer({ model: cfg.analyzers.model }) : this.structural;
     this.forks = new ForkIndex(this.store);
     this.authors = new AuthorIndex(this.store.dir, () => this.forks.get());
-    this.autoCommit = new AutoCommitter(root, this.store.dir, (st) => broadcast("autocommit", st), (m) => this.log(m), opts.autoCommitMs);
+    this.visibility = new VisibilityIndex(this.store, root, broadcast, (m) => this.log(m));
+    this.autoCommit = new AutoCommitter(root, this.store.dir, (st) => broadcast("autocommit", st), (m) => this.log(m), opts.autoCommitMs, async () => {
+      await this.visibility.refresh();
+      return this.visibility.excludedPaths();
+    });
     // warm the search index from what is already on disk
     for (const id of this.store.listSessions()) this.indexSession(id);
   }
@@ -88,6 +95,12 @@ export class ProjectRuntime {
 
   start(): void {
     if (this.opts.watch === false || this.watcher) return;
+    // a remote can be added at any time: re-classify when git's config changes
+    const gitConfig = this.visibility.gitConfigFile();
+    if (gitConfig) {
+      this.gitWatcher = chokidar.watch(gitConfig, { ignoreInitial: true });
+      this.gitWatcher.on("all", () => void this.visibility.refresh().catch((e: Error) => this.log(`sharing check failed: ${e.message}`)));
+    }
     if (!fs.existsSync(this.originDir)) fs.mkdirSync(this.originDir, { recursive: true });
     this.watcher = chokidar.watch(this.originDir, { ignoreInitial: true, depth: 3, awaitWriteFinish: { stabilityThreshold: 150, pollInterval: 50 } });
     this.watcher.on("all", (ev, file) => {
@@ -100,7 +113,9 @@ export class ProjectRuntime {
     clearTimeout(this.timer);
     this.autoCommit.stop();
     await this.watcher?.close();
+    await this.gitWatcher?.close();
     this.watcher = undefined;
+    this.gitWatcher = undefined;
   }
 
   /** Debounced ingest. Safe to call from hooks and watcher at any rate. */
@@ -119,6 +134,8 @@ export class ProjectRuntime {
   ingest(session?: string): string[] {
     const res = ingestProject({ cwd: this.root, store: this.store, originDir: this.originDir, session });
     const changed = [...new Set([...res.changed, ...res.reset])];
+    // before anything else: a new session stays out of git until it has its sharing state
+    this.visibility.guard(changed);
     if (res.reset.length) {
       // a rebuilt session reuses its event ids with new content: the search index must start over
       this.search = new SearchIndex();
@@ -135,6 +152,7 @@ export class ProjectRuntime {
     }
     if (changed.length) deriveProject(this.store, this.name);
     else if (!this.store.readProjectIndex()) deriveProject(this.store, this.name);
+    if (changed.length || !this.visibility.get()) void this.visibility.refresh().catch((e: Error) => this.log(`sharing check failed: ${e.message}`));
     return changed;
   }
 

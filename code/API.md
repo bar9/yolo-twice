@@ -12,7 +12,8 @@ most recently registered project is used. All JSON uses the types from `@yolo-tw
 | GET | `/health` | | `{ ok, version, pid, started, projects: string[] }` |
 | GET | `/api/projects` | | `[{ root, slug, name, sessions }]` |
 | POST | `/api/projects` | `{ cwd }` | registers the project root of `cwd`, runs an ingest, returns `{ root, slug, name, sessions }` (idempotent) |
-| GET | `/api/sessions` | `project` | `ProjectIndex & { current?: string }` where `current` is the session with the latest activity |
+| GET | `/api/sessions` | `project` | `ProjectIndex & { current?: string, sharing?: Sharing }` where `current` is the session with the latest activity. In a git repository each session also carries `visibility` (`shared \| private \| undecided`) and `decided` (the user chose, or it was already committed), and `sharing` is `{ environment, answered, remotes: [{ name, url, id, class, by }], class, decidedBy?, default, prompt, unpushed? }`; the rules are in `packages/engine/src/sharing.ts`, the user guide in [site/install.md](site/install.md#private-sessions) |
+| PUT | `/api/sessions/:id/visibility` | `{ project, visibility: shared \| private }` | `{ visibility, decided, sharing, warning? }`. Stored in the gitignored `local.json`. Private and undecided sessions are listed in the clone's `.git/info/exclude`; making a committed session private runs `git rm -r --cached` on it and returns a `warning` that earlier commits keep it. 409 outside a git repository. Broadcast as `visibility` |
 | GET | `/api/sessions/:id` | `project` | `{ structure: StructureNode, graph: string, events: number, config: Config }` |
 | GET | `/api/sessions/:id/structure` | `project` | `StructureNode`, decorated with cached `text` granularities |
 | GET | `/api/sessions/:id/graph` | `project`, `level=1\|2\|3` | `text/plain` mermaid |
@@ -24,9 +25,11 @@ most recently registered project is used. All JSON uses the types from `@yolo-tw
 | GET | `/api/config` | `project` | `Config` |
 | PUT | `/api/config` | `{ project, attention }` | `Config` (persisted to `.yolo-twice/config.json`, broadcast on the stream) |
 | GET | `/api/autocommit` | `project` | `{ enabled, intervalMs, lastCommit?: { ts, sha, files }, lastCheck?, next?, skipped? }` (`next`: when the next check runs, while enabled) |
+| GET | `/api/environment` | `project?` | `{ environment?, restricted_remotes, guess, signals, candidates }`: whether this environment holds data that must not be published (machine-wide, `~/.yolo-twice/settings.json`, unanswered counts as restricted), the patterns of remotes that count as restricted, a guess from local signals, and patterns offered from the project's remotes |
+| PUT | `/api/environment` | `{ project?, environment?: restricted \| open, restricted_remotes?: string[] }` | same shape; every registered project re-evaluates its sharing |
 | GET | `/api/network` | | `{ host, port, exposed, urls, lockedBy?, container? }`: the interface the engine listens on; `lockedBy` (`--host` or `YOLO_TWICE_HOST`) when set at start, `container` inside Docker. See [documentation/network.md](../documentation/network.md) |
 | PUT | `/api/network` | `{ host }` | same shape. Re-binds on the same port without a restart and remembers the choice; 400 for an address that is not this machine's, 409 when locked at start |
-| PUT | `/api/autocommit` | `{ project, enabled }` | same shape. Opt-in: commits only `.yolo-twice` (`git commit --only`, staged work stays staged) right away and every 10 min when it changed; skips during merges, rebases and on a detached HEAD. Engine memory only, off after every engine restart. Broadcast as `autocommit` |
+| PUT | `/api/autocommit` | `{ project, enabled }` | same shape. Opt-in: commits only `.yolo-twice` (`git commit --only`, staged work stays staged) right away and every 10 min when it changed; skips during merges, rebases and on a detached HEAD. Leaves out private and undecided sessions. Engine memory only, off after every engine restart. Broadcast as `autocommit` |
 | GET | `/api/stream` | `project` | Server-Sent Events, see below |
 | POST | `/hook` | Claude Code hook JSON (`session_id`, `transcript_path`, `cwd`, `hook_event_name`, …) | `{}` within 50 ms; ingestion is scheduled, never awaited |
 | GET | `/` and `/assets/*` | | the built UI from `packages/ui/dist` when present |
@@ -45,6 +48,8 @@ most recently registered project is used. All JSON uses the types from `@yolo-tw
 | `semantic` | `{ session, node, granularity, interim }` | a text artifact was written |
 | `config` | `Config` | attention changed |
 | `autocommit` | auto-commit status (see `/api/autocommit`) | toggled, or a commit attempt finished |
+| `sharing` | `Sharing & { alert }` | the remotes, the environment or a session's default changed; `alert` when sessions stopped being shared by default (a public remote was added, say) |
+| `visibility` | `{ session, visibility, decided }` | a session was made shared or private |
 | `activity` | `{ session_id, activity: working \| waiting \| idle, ts }` | a hook changed what Claude is doing (also sent for every session on connect) |
 | `ping` | `{}` | every 25 s keep-alive |
 
@@ -60,7 +65,9 @@ yolo-twice stop                                                stop the daemon
 yolo-twice status [--cwd <dir>] [--json]                       engine and project state
 yolo-twice index [--cwd <dir>]                                 one-shot ingest + derive, no daemon
 yolo-twice mode <micro|attentive|balanced|yolo> [--cwd <dir>]  set the attention mode
-yolo-twice autocommit [on|off] [--cwd <dir>]     commit only .yolo-twice every 10 min, until the engine stops
+yolo-twice autocommit [on|off] [--cwd <dir>]     commit only .yolo-twice every 10 min, until the engine stops; private and undecided sessions stay out
+yolo-twice visibility [<session> shared|private] [--cwd <dir>]  list the sessions' visibility, or share one with the project or keep it private
+yolo-twice environment [restricted|open]          whether this environment holds data that must not be published; restricted shares sessions only with restricted remotes
 yolo-twice resume [session] [--cwd <dir>] [--print]  rebuild a committed session from .yolo-twice into .yolo-twice/cache/resume/<id>.jsonl, with $PROJECT and ~ expanded to this machine's paths, and run `claude --resume <that file> --fork-session` (a new session id, so the committed session never gets a second writer)
 yolo-twice hook                                                read a Claude Code hook JSON from stdin and forward it (used by the plugin)
 ```

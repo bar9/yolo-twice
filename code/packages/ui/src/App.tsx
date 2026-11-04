@@ -5,7 +5,8 @@ import { useDefaultLayout } from "react-resizable-panels";
 import { ArrowDown, ArrowUp, BookOpenText, Clock, Coins, ListTree, TriangleAlert, Wrench } from "lucide-react";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { api, fmtDuration, fmtTime, fmtTokens, setProject, storage, store, type Attention, type AutoCommit, type Config, type Event, type Granularity, type Author, type AuthorRun, type ProjectIndex, type SearchHit, type SessionIndex, type StructureNode } from "./api";
+import { api, fmtDuration, fmtTime, fmtTokens, setProject, storage, store, type Attention, type AutoCommit, type Config, type Event, type Granularity, type Author, type AuthorRun, type ProjectIndex, type SearchHit, type SessionIndex, type Sharing, type StructureNode } from "./api";
+import { SharingBanner, VisibilityBadge } from "./Sharing";
 import { Header } from "./Header";
 import { FilterBar } from "./FilterBar";
 import { Timeline, type Bar, type Tick } from "./Timeline";
@@ -75,6 +76,9 @@ export function App() {
   const [runs, setRuns] = useState<AuthorRun[]>([]);
   const [config, setConfig] = useState<Config | undefined>();
   const [autoCommit, setAutoCommit] = useState<AutoCommit | undefined>();
+  // sharing became stricter (a public remote was added, say), and the warning after making a committed session private
+  const [sharingAlert, setSharingAlert] = useState<Sharing | undefined>();
+  const [sharingWarning, setSharingWarning] = useState<string | undefined>();
   const [digest, setDigest] = useState<string | undefined>();
   const [error, setError] = useState<string | undefined>();
   const [hover, setHover] = useState<string | undefined>();
@@ -171,6 +175,13 @@ export function App() {
         break;
       case "autocommit":
         setAutoCommit(ev.data);
+        break;
+      case "sharing":
+        if (ev.data.alert) setSharingAlert(ev.data);
+        void loadIndex();
+        break;
+      case "visibility":
+        void loadIndex();
         break;
       case "activity":
         setActivity((a) => ({ ...a, [ev.data.session_id]: ev.data }));
@@ -411,6 +422,17 @@ export function App() {
     } catch (e) {
       setError(String(e));
     }
+  };
+
+  const setVisibility = async (id: string, v: "shared" | "private") => {
+    setIndex((i) => (i ? { ...i, sessions: i.sessions.map((s) => (s.id === id ? { ...s, visibility: v, decided: true } : s)) } : i));
+    try {
+      const res = await api.setVisibility(id, v);
+      if (res.warning) setSharingWarning(res.warning);
+    } catch (e) {
+      setError(String(e));
+    }
+    void loadIndex();
   };
 
   const catchMeUp = async () => {
@@ -715,7 +737,10 @@ export function App() {
     <div className="app">
       <Header
         project={view.project}
-        session={sessionId ? { id: sessionId, label: sessionMeta?.label || sessionId.slice(0, 8), pinned: view.pinned } : undefined}
+        session={sessionId ? { id: sessionId, label: sessionMeta?.label || sessionId.slice(0, 8), pinned: view.pinned, visibility: sessionMeta?.visibility, decided: sessionMeta?.decided } : undefined}
+        sharing={index?.sharing}
+        onVisibility={setVisibility}
+        onSharingChanged={() => void loadIndex()}
         path={path}
         canReset={Boolean(view.focus || view.window || (sessionId && !view.pinned))}
         onProject={leaveSession}
@@ -742,6 +767,7 @@ export function App() {
           Lost contact with the engine: {error}. Run /yolo:twice to start it again.
         </div>
       )}
+      <SharingBanner index={index} alert={sharingAlert} warning={sharingWarning} onDismissAlert={() => setSharingAlert(undefined)} onDismissWarning={() => setSharingWarning(undefined)} onVisibility={setVisibility} onChanged={() => void loadIndex()} />
       <FilterBar q={view.q} k={view.k} tools={tools} matches={matchCount} scopeLabel={scopeLabel} onQuery={(q) => setView({ q })} onCodes={(k: FilterCode[]) => setView({ k })} folded={foldRest} onFolded={setFoldRest} position={sessionId && matchAt !== undefined ? matchAt + 1 : undefined} onStep={sessionId && resultIds.length ? stepMatch : undefined} onSubmit={() => ((pendingFirst.current = true), setSubmitted((n) => n + 1))} widen={widenLabel ? { label: widenLabel, run: widen } : undefined} />
       {bars.length > 0 && (
         <Timeline
@@ -952,6 +978,7 @@ function SessionList(props: {
                   {current && <span className="live-dot live" title="Active now" />}
                   {who && <Avatars authors={who} />}
                   {s.label || s.id}
+                  <VisibilityBadge visibility={s.visibility} decided={s.decided} sharing={index.sharing} />
                   {n ? <span className="badge hit ml-2">{n}</span> : null}
                   <small>{s.id.slice(0, 8)}</small>
                 </td>

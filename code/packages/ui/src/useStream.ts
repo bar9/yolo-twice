@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { api, type AutoCommit } from "./api";
+import { api, type AutoCommit, type Sharing, type Visibility } from "./api";
 
 export type StreamEvent =
   | { type: "hook"; data: { hook_event_name: string; session_id: string } }
@@ -8,6 +8,10 @@ export type StreamEvent =
   | { type: "semantic"; data: { session: string; node: string; granularity: string; interim?: boolean } }
   | { type: "config"; data: { attention: string } }
   | { type: "autocommit"; data: AutoCommit }
+  /** The project's sharing state changed: remotes, environment or the sessions' defaults. */
+  | { type: "sharing"; data: Sharing }
+  /** One session was made shared or private. */
+  | { type: "visibility"; data: { session: string; visibility: Visibility; decided: boolean } }
   /** What Claude is doing in a session, from Claude Code's hooks (sent again on every connect). */
   | { type: "activity"; data: { session_id: string; activity: "working" | "waiting" | "idle"; ts: string } };
 
@@ -44,7 +48,7 @@ export function useStream(onEvent: (e: StreamEvent) => void): "connecting" | "li
         checkBuild(ev);
       });
       es.addEventListener("build", checkBuild);
-      for (const type of ["hook", "ingest", "structure", "semantic", "config", "autocommit", "activity"] as const) {
+      for (const type of ["hook", "ingest", "structure", "semantic", "config", "autocommit", "sharing", "visibility", "activity"] as const) {
         es.addEventListener(type, (ev) => {
           try {
             handler.current({ type, data: JSON.parse((ev as MessageEvent).data) } as StreamEvent);

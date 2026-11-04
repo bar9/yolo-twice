@@ -7,6 +7,7 @@ import path from "node:path";
 import { ingestProject, Store, type Attention, type Granularity } from "@yolo-twice/core";
 import { parseCodes, deriveProject, deriveSession, findNode, nodeFullText, SearchIndex, StructuralSummarizer, TextCache, toMermaid, inputHash } from "@yolo-twice/analyzers";
 import { FIXTURE_CWD, FIXTURE_SESSION, tempFixture } from "../../../fixtures/helper";
+import { candidatePatterns, defaultVisibility, matchRemote, type Environment, type Remote } from "../../engine/src/sharing";
 
 const fx = tempFixture("ui-mock");
 const store = new Store(fx.projectRoot);
@@ -23,6 +24,20 @@ const json = (data: unknown, status = 200) => new Response(JSON.stringify(data),
 const broadcast = (type: string, data: unknown) => listeners.forEach((l) => l(type, data));
 setInterval(() => broadcast("structure", { session: FIXTURE_SESSION }), 10_000);
 
+// sharing: a public remote and an unanswered environment, so the banner and the mask show; MOCK_REMOTE=none drops the remote
+const mockEnv: { environment?: Environment; restricted_remotes: string[] } = { restricted_remotes: [] };
+const decisions = new Map<string, "shared" | "private">();
+function sharing() {
+  const id = "github.com/example/yolo-demo";
+  const remotes: Remote[] = process.env.MOCK_REMOTE === "none" ? [] : [{ name: "origin", url: `https://${id}.git`, id, class: mockEnv.restricted_remotes.some((p) => matchRemote(p, id)) ? "restricted" : "open", by: mockEnv.restricted_remotes.length ? "pattern" : "gh" }];
+  const cls = remotes[0]?.class ?? "none";
+  const environment = mockEnv.environment ?? "restricted";
+  const def = defaultVisibility(environment, cls);
+  return { environment, answered: !!mockEnv.environment, remotes, class: cls, decidedBy: remotes[0]?.name, default: def, prompt: def !== "shared", unpushed: cls === "open" && environment === "restricted" ? 1 : undefined };
+}
+const visibility = (id: string) => (decisions.has(id) ? { visibility: decisions.get(id)!, decided: true } : { visibility: sharing().default, decided: false });
+const environmentInfo = () => ({ ...mockEnv, guess: "restricted", signals: ["an HTTP proxy is configured (mock)"], candidates: candidatePatterns(sharing().remotes) });
+
 Bun.serve({
   port: Number(process.env.MOCK_PORT ?? 9656),
   hostname: "127.0.0.1",
@@ -33,7 +48,18 @@ Bun.serve({
 
     if (p === "/health") return json({ ok: true, version: "mock", pid: process.pid, started: new Date().toISOString(), projects: [fx.projectRoot] });
     if (p === "/api/projects") return json([{ root: fx.projectRoot, key: "yolo-demo", slug: "-tmp-yolo-demo", name: "yolo-demo", sessions: 1 }]);
-    if (p === "/api/sessions") return json({ ...store.readProjectIndex(), current: FIXTURE_SESSION });
+    if (p === "/api/sessions") {
+      const index = store.readProjectIndex()!;
+      return json({ ...index, sessions: index.sessions.map((s) => ({ ...s, ...visibility(s.id) })), current: FIXTURE_SESSION, sharing: sharing() });
+    }
+    if (p === "/api/environment" && req.method === "GET") return json(environmentInfo());
+    if (p === "/api/environment" && req.method === "PUT") {
+      const body = (await req.json()) as { environment?: Environment; restricted_remotes?: string[] };
+      if (body.environment) mockEnv.environment = body.environment;
+      if (body.restricted_remotes) mockEnv.restricted_remotes = body.restricted_remotes;
+      broadcast("sharing", { ...sharing(), alert: false });
+      return json(environmentInfo());
+    }
     if (p === "/api/config" && req.method === "GET") return json(store.readConfig());
     if (p === "/api/config" && req.method === "PUT") {
       const body = (await req.json()) as { attention: Attention };
@@ -73,6 +99,12 @@ Bun.serve({
       const [, id, sub] = m;
       if (id !== FIXTURE_SESSION) return json({ error: "unknown session" }, 404);
       const structure = store.readStructure(id)!;
+      if (sub === "visibility" && req.method === "PUT") {
+        const body = (await req.json()) as { visibility: "shared" | "private" };
+        decisions.set(id, body.visibility);
+        broadcast("visibility", { session: id, ...visibility(id) });
+        return json({ ...visibility(id), sharing: sharing() });
+      }
       if (!sub) return json({ structure, graph: store.readGraph(id), events: store.readEvents(id).length, config: store.readConfig() });
       if (sub === "structure") return json(structure);
       if (sub === "graph") {

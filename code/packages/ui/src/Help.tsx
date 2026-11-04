@@ -1,5 +1,5 @@
 import { Tabs } from "radix-ui";
-import { ArrowUpRight, BookOpenText, Focus, GitBranch, GitCommitHorizontal, GitPullRequest, Globe, MessageSquarePlus, Network, Radio, Scale, Search, SlidersVertical, Sparkles, type LucideIcon } from "lucide-react";
+import { ArrowUpRight, BookOpenText, Focus, GitBranch, GitCommitHorizontal, GitPullRequest, Globe, MessageSquarePlus, Network, Radio, Scale, Search, SlidersVertical, Sparkles, VenetianMask, type LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { Kbd } from "@/components/ui/kbd";
@@ -45,6 +45,11 @@ const GUIDE: { icon: LucideIcon; title: string; text: string }[] = [
     icon: GitBranch,
     title: "It lives with your code",
     text: "Sessions are saved in the project's .yolo-twice folder. Commit it, or turn on auto-commit in the settings, and the team can open, review and continue them.",
+  },
+  {
+    icon: VenetianMask,
+    title: "Private sessions",
+    text: "A session can hold things that must not be published: internal names, accounts, customer data. Say once whether this environment is restricted (it holds such data) or open. A restricted environment shares sessions only with restricted remotes, so in a public repository new sessions start private, marked with the mask. The Sessions button in the header says why and holds the settings; the menu beside the pin shares or hides one session. Private sessions are listed in this clone's .git/info/exclude, so even git add -A leaves them out. Making a committed session private removes it from git from then on, but earlier commits and pushed copies keep it.",
   },
 ];
 

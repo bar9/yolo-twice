@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import { execFile } from "node:child_process";
+import { git } from "./git.js";
 
 /**
  * Every 10 minutes: often enough that `git status` stays mostly clean, rare enough that the
@@ -19,13 +19,6 @@ export interface AutoCommitStatus {
   skipped?: string;
 }
 
-function git(cwd: string, args: string[]): Promise<string> {
-  return new Promise((resolve, reject) =>
-    execFile("git", args, { cwd, timeout: 30_000, maxBuffer: 16 * 1024 * 1024 }, (err, stdout, stderr) =>
-      err ? reject(new Error((stderr || err.message).trim())) : resolve(stdout),
-    ),
-  );
-}
 
 /**
  * Opt-in auto-commit of the project's .yolo-twice folder. Lives only in engine memory: it is off
@@ -43,6 +36,8 @@ export class AutoCommitter {
     private readonly onChange: (s: AutoCommitStatus) => void,
     private readonly log: (msg: string) => void,
     intervalMs = AUTO_COMMIT_INTERVAL_MS,
+    /** Runs before each commit; returns the paths (relative to the repo top) to leave out: private and undecided sessions. */
+    private readonly prepare: () => Promise<string[]> = async () => [],
   ) {
     this.status.intervalMs = intervalMs;
   }
@@ -104,12 +99,15 @@ export class AutoCommitter {
       if (fs.existsSync(abs)) return `git busy (${p})`;
     }
     if (!(await git(this.root, ["symbolic-ref", "-q", "HEAD"]).catch(() => ""))) return "detached HEAD";
-    const rel = path.relative(top, this.dir) || ".";
-    const changed = (await git(top, ["status", "--porcelain", "--untracked-files=all", "--", rel])).split("\n").filter(Boolean);
+    const rel = path.relative(top, this.dir).split(path.sep).join("/") || ".";
+    // the exclude file already keeps them out; the pathspecs make sure even if someone edited it
+    const spec = [rel, ...(await this.prepare()).map((p) => `:(exclude)${p}`)];
+    const changed = (await git(top, ["status", "--porcelain", "--untracked-files=all", "--", ...spec])).split("\n").filter(Boolean);
     if (changed.length === 0) return undefined;
+    // add gets no :(exclude) pathspecs (git refuses those for ignored paths); the exclude file keeps them out of it
     await git(top, ["add", "-A", "--", rel]);
-    // --only commits just this path from the work tree; the rest of the user's index is left as it was
-    await git(top, ["commit", "--only", "--no-verify", "-q", "-m", `yolo-twice: auto-commit session data (${changed.length} files)`, "--", rel]);
+    // --only commits just these paths from the work tree; the rest of the user's index is left as it was
+    await git(top, ["commit", "--only", "--no-verify", "-q", "-m", `yolo-twice: auto-commit session data (${changed.length} files)`, "--", ...spec]);
     const sha = (await git(top, ["rev-parse", "--short", "HEAD"])).trim();
     this.status = { ...this.status, lastCommit: { ts: new Date().toISOString(), sha, files: changed.length } };
     this.log(`auto-commit ${sha}: ${changed.length} files`);

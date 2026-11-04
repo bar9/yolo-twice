@@ -319,6 +319,20 @@ button.crumb:hover { background: var(--sheet-2); color: var(--ink); }
 .badge.error { --k: var(--k-error); }
 .badge.redacted { --k: var(--k-system); }
 .badge.image { --k: var(--k-you); }
+/* private sessions: the incognito violet, quiet; shared sessions carry no badge */
+.badge.private { --k: var(--k-agent); }
+.badge.undecided { --k: var(--k-system); }
+.badge.remote-restricted { --k: var(--k-tool); }
+.badge.remote-open { --k: var(--k-error); }
+.badge.remote-unknown { --k: var(--k-system); }
+.badge.suggest { --k: var(--ink-3); background: transparent; box-shadow: inset 0 0 0 1px var(--rule-strong); cursor: pointer; }
+.badge.suggest:hover { --k: var(--ink); }
+.badge > button { display: inline-grid; place-items: center; margin-right: -3px; color: inherit; opacity: .65; }
+.badge > button:hover { opacity: 1; }
+.visibility { color: var(--ink-3); }
+.visibility.private, .visibility.undecided, .sharing.private svg, .sharing.undecided svg { color: var(--k-agent); }
+.input { height: 24px; padding: 0 8px; border-radius: 6px; border: 1px solid var(--rule-strong); background: var(--sheet); color: var(--ink); font-size: 12.5px; }
+.input:focus { outline: 2px solid color-mix(in srgb, var(--k-you) 45%, transparent); outline-offset: 0; }
 .zoom-in {
   flex: none; display: inline-grid; place-items: center; width: 24px; height: 24px; margin-top: -2px;
   border-radius: 6px; color: var(--ink-3); visibility: hidden;
@@ -498,6 +512,8 @@ button.crumb:hover { background: var(--sheet-2); color: var(--ink); }
 /* ---------- catch me up ---------- */
 .digest { font-family: var(--font-read); font-size: 17px; line-height: 1.65; white-space: pre-wrap; color: var(--ink); }
 
+.banner.ask { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; background: color-mix(in srgb, var(--k-agent) 7%, var(--sheet)); color: var(--ink); padding: 7px 16px; font-size: 13px; border-bottom: 1px solid var(--rule); }
+.banner.ask > svg { flex: none; color: var(--k-agent); }
 .banner.error { display: flex; align-items: center; gap: 8px; background: color-mix(in srgb, var(--k-error) 10%, var(--sheet)); color: var(--k-error); padding: 8px 16px; font-size: 13px; border-bottom: 1px solid var(--rule); }
 
 @media (max-width: 860px) {
