@@ -1,55 +1,36 @@
+import fs from "node:fs";
 import path from "node:path";
-import type { SessionDecision, Store } from "@yolo-twice/core";
+import type { SessionPlace, Store } from "@yolo-twice/core";
 import { git, gitSync } from "./git.js";
-import {
-  classifyRemotes,
-  defaultVisibility,
-  ghVisibility,
-  parseRemotes,
-  projectClass,
-  writeExcludeBlock,
-  type GhLookup,
-  type Sharing,
-  type Visibility,
-} from "./sharing.js";
+import { classifyRemotes, ghVisibility, parseRemotes, projectClass, sharesWith, writeExcludeBlock, type GhLookup, type Sharing } from "./sharing.js";
 import { readSettings } from "./state.js";
 
-export interface SessionVisibility {
-  visibility: Visibility;
-  /** the user decided, or the session was already in git: no question to ask */
-  decided: boolean;
-}
-
-export interface DecideResult extends SessionVisibility {
-  sharing?: Sharing;
-  /** set when a private session had been committed before */
-  warning?: string;
-}
-
 /**
- * Which of a project's sessions reach git.
+ * Keeps a project's session folders in line with the sharing rule (sharesWith in sharing.ts).
  *
- * A session's state is the user's decision when there is one (local.json), else shared when it is
- * already tracked in git (sessions committed before this existed stay shared, nothing is
- * untracked on upgrade), else the project's default (defaultVisibility in sharing.ts). Only
- * explicit decisions are stored, so the rest follow a changed default: adding a public remote
- * turns them private at once.
+ * The folder decides, not git tricks: sessions/<id>/ is committed, private/sessions/<id>/ is
+ * gitignored. The Store sends new content to the right one (writableDir); this class tells it
+ * whether the project shares and moves what is already there when the answer changes:
  *
- * Private and undecided sessions are listed in a managed block of the clone's own exclude file
- * (never committed), so neither auto-commit nor `git add -A` picks them up. Auto-commit adds
- * :(exclude) pathspecs as a second guard. Re-evaluated when .git/config changes (a remote can be
- * added at any time), on ingest and on every auto-commit tick. The engine never pushes.
- * Outside a git repository nothing is committed, so there is nothing to decide.
+ * - not sharing: a session folder in sessions/ that is not in HEAD moves to private/. A committed
+ *   one with uncommitted changes is copied to private/ and restored to HEAD, so the committed copy
+ *   stays exactly as pulled (a pull never stops on it) and new content stays here.
+ * - sharing: every private copy moves back to sessions/ (replacing the frozen committed copy) and
+ *   is committed like any other change. Sessions in `keep_private` (made private in 0.1.5) never
+ *   move back.
+ *
+ * Re-evaluated when .git/config changes (a remote can be added at any time), on ingest and before
+ * every auto-commit. Until the first answer the Store does not share (fail-safe). Outside a git
+ * repository nothing is committed, so the folders do not matter and nothing is moved.
+ * The engine never pushes; `unpushed` counts what an earlier push would publish.
  */
-export class VisibilityIndex {
+export class SharingIndex {
   private sharing: Sharing | undefined;
-  private states = new Map<string, SessionVisibility>();
   private top: string | undefined;
   private rel = "";
   private excludeFile: string | undefined;
-  private excluded = new Set<string>();
-  private inHead = new Set<string>();
-  private located = false;
+  private migrated: Sharing["migrated"];
+  private checkedLegacy = false;
   private chain: Promise<unknown> = Promise.resolve();
   private queued: Promise<Sharing | undefined> | undefined;
 
@@ -61,13 +42,15 @@ export class VisibilityIndex {
     private readonly lookup: GhLookup = ghVisibility,
   ) {}
 
-  /** undefined outside a git repository: then nothing is ever committed and there is nothing to decide. */
+  /** undefined outside a git repository: then nothing is ever committed. */
   get(): Sharing | undefined {
     return this.sharing;
   }
 
-  of(session: string): SessionVisibility | undefined {
-    return this.sharing ? this.states.get(session) : undefined;
+  /** Where a session's content is (kept: made private in 0.1.5, stays private for good); undefined outside a git repository. */
+  of(session: string): { visibility: SessionPlace; kept?: true } | undefined {
+    if (!this.sharing) return undefined;
+    return this.store.keptPrivate().has(session) ? { visibility: this.store.place(session), kept: true } : { visibility: this.store.place(session) };
   }
 
   /** The git config file, to watch for added or changed remotes. */
@@ -76,44 +59,15 @@ export class VisibilityIndex {
     return p ? path.resolve(this.root, p) : undefined;
   }
 
+  /** Found once; a folder that is not a repository yet is checked again (git init happens). */
   private locate(): boolean {
-    if (!this.located) {
-      this.located = true;
+    if (!this.top) {
       this.top = gitSync(this.root, ["rev-parse", "--show-toplevel"])?.trim() || undefined;
-      const ex = gitSync(this.root, ["rev-parse", "--git-path", "info/exclude"])?.trim();
+      const ex = this.top ? gitSync(this.root, ["rev-parse", "--git-path", "info/exclude"])?.trim() : undefined;
       this.excludeFile = ex ? path.resolve(this.root, ex) : undefined;
       if (this.top) this.rel = path.relative(this.top, this.store.dir).split(path.sep).join("/") || ".";
     }
-    return !!(this.top && this.excludeFile);
-  }
-
-  private sessionPath(id: string): string {
-    return `${this.rel}/sessions/${id}`;
-  }
-
-  private writeExclude(): void {
-    if (!this.excludeFile) return;
-    try {
-      writeExcludeBlock(this.excludeFile, [...this.excluded].map((id) => `/${this.sessionPath(id)}/`));
-    } catch (e) {
-      this.log(`could not write ${this.excludeFile}: ${(e as Error).message}`);
-    }
-  }
-
-  /**
-   * Synchronous, right after ingest: a session seen for the first time is kept out of git before
-   * anything can commit it. refresh() then gives it the project's default.
-   */
-  guard(sessions: string[]): void {
-    if (!this.locate()) return;
-    const decisions = this.store.readDecisions();
-    let added = false;
-    for (const id of sessions) {
-      if (this.states.has(id) || decisions[id] === "shared" || this.excluded.has(id)) continue;
-      this.excluded.add(id);
-      added = true;
-    }
-    if (added) this.writeExclude();
+    return !!this.top;
   }
 
   /** Re-evaluate everything. Calls are serialized; a call while one is waiting joins it. */
@@ -132,6 +86,7 @@ export class VisibilityIndex {
 
   private async run(): Promise<Sharing | undefined> {
     if (!this.locate()) {
+      this.store.setSharing(true);
       this.sharing = undefined;
       return undefined;
     }
@@ -140,63 +95,88 @@ export class VisibilityIndex {
     const environment = settings.environment ?? "restricted";
     const remotes = await classifyRemotes(parseRemotes(await git(top, ["remote", "-v"]).catch(() => "")), settings.restricted_remotes ?? [], this.lookup);
     const { class: cls, decidedBy } = projectClass(remotes);
-    const def = defaultVisibility(environment, cls);
+    const shares = sharesWith(environment, cls);
+    // first: from here on, every write goes the right way
+    this.store.setSharing(shares);
 
     const sessionsDir = `${this.rel}/sessions/`;
-    const ids = (out: string) => new Set(out.split("\n").filter((l) => l.startsWith(sessionsDir)).map((l) => l.slice(sessionsDir.length).split("/")[0]!));
-    const tracked = ids(await git(top, ["ls-files", "--", sessionsDir]).catch(() => ""));
-    this.inHead = ids(await git(top, ["ls-tree", "-r", "--name-only", "HEAD", "--", sessionsDir]).catch(() => ""));
-
-    const decisions = this.store.readDecisions();
-    const states = new Map<string, SessionVisibility>();
-    for (const id of this.store.listSessions()) {
-      const d: SessionDecision | undefined = decisions[id];
-      states.set(id, d ? { visibility: d, decided: true } : tracked.has(id) ? { visibility: "shared", decided: true } : { visibility: def, decided: false });
-    }
-    this.excluded = new Set([...states].filter(([, s]) => s.visibility !== "shared").map(([id]) => id));
-    this.writeExclude();
-
+    const ids = (out: string, porcelain = false) =>
+      new Set(
+        out
+          .split("\n")
+          // porcelain lines are "XY path"
+          .map((l) => (porcelain ? l.slice(3) : l))
+          .filter((l) => l.startsWith(sessionsDir))
+          .map((l) => l.slice(sessionsDir.length).split("/")[0]!),
+      );
+    const inHead = ids(await git(top, ["ls-tree", "-r", "--name-only", "HEAD", "--", sessionsDir]).catch(() => ""));
+    const dirty = shares ? new Set<string>() : ids(await git(top, ["status", "--porcelain", "--untracked-files=all", "--no-renames", "--", sessionsDir]).catch(() => ""), true);
     let unpushed: number | undefined;
-    if (environment === "restricted" && (cls === "open" || cls === "unknown")) {
+    if (!shares && (cls === "open" || cls === "unknown")) {
       const out = await git(top, ["diff", "--name-only", "@{u}..HEAD", "--", sessionsDir]).catch(() => undefined);
       if (out !== undefined) unpushed = ids(out).size;
     }
 
+    // no await below: the folders move in one go, ingest cannot interleave
+    const moved = this.align(shares, inHead, dirty);
+
     const prev = this.sharing;
-    const next: Sharing = { environment, answered: !!settings.environment, remotes, class: cls, decidedBy, default: def, prompt: def !== "shared", unpushed };
-    const changed = JSON.stringify(prev) !== JSON.stringify(next) || JSON.stringify([...this.states]) !== JSON.stringify([...states]);
+    const priv = this.store.listSessions().filter((id) => this.store.place(id) !== "shared").length;
+    const next: Sharing = { environment, answered: !!settings.environment, remotes, class: cls, decidedBy, shares, private: priv, unpushed, migrated: this.migrated };
     this.sharing = next;
-    this.states = states;
-    if (changed) {
+    if (JSON.stringify(prev) !== JSON.stringify(next) || moved) {
       // stricter than before (a public remote was added, say): the UI says so once
-      const alert = !!prev && prev.default === "shared" && def !== "shared";
-      if (alert) this.log(`sessions are no longer shared by default: ${cls} remote ${decidedBy ?? ""}`.trim());
+      const alert = !!prev && prev.shares && !shares;
+      if (alert) this.log(`sessions stay on this machine from now on: ${cls} remote ${decidedBy ?? ""}`.trim());
       this.broadcast("sharing", { ...next, alert });
     }
     return next;
   }
 
-  /** Paths auto-commit must leave out: excluded sessions that were never committed. */
-  excludedPaths(): string[] {
-    // a session committed before and now private is removed from git's index; auto-commit commits that removal
-    return [...this.excluded].filter((id) => !this.inHead.has(id)).map((id) => this.sessionPath(id));
-  }
-
-  async decide(session: string, decision: SessionDecision): Promise<DecideResult> {
-    this.store.writeDecision(session, decision);
-    let warning: string | undefined;
-    if (decision === "private" && this.locate()) {
-      const dir = this.sessionPath(session);
-      const tracked = (await git(this.top!, ["ls-files", "--", dir]).catch(() => "")).trim();
-      if (tracked) {
-        await git(this.top!, ["rm", "-r", "--cached", "-q", "--", dir]);
-        warning = "Removed from git; the files stay on this machine. Earlier commits still contain this session, and so does every copy that was already pushed.";
-        this.log(`session ${session.slice(0, 8)} made private: removed from the git index`);
+  /** Move session folders to where the rule wants them. Returns how many moved. */
+  private align(shares: boolean, inHead: Set<string>, dirty: Set<string>): number {
+    // 0.1.5 decided per session: its private decisions are kept for good, the rest follows the rule
+    let legacy = false;
+    if (!this.checkedLegacy) {
+      this.checkedLegacy = true;
+      legacy = Object.keys(this.store.takeLegacyDecisions()).length > 0;
+    }
+    const keep = this.store.keptPrivate();
+    const { shared, private: priv } = this.store.listPlaced();
+    let toPrivate = 0;
+    let toShared = 0;
+    for (const id of shared) {
+      if (keep.has(id) || (!shares && !inHead.has(id))) {
+        this.store.demote(id);
+        toPrivate++;
+      } else if (!shares && dirty.has(id)) {
+        // committed, with changes made before the project stopped sharing: they go private, the committed copy back to HEAD
+        this.store.writableDir(id);
+        const p = `${this.rel}/sessions/${id}`;
+        gitSync(this.top!, ["checkout", "-q", "HEAD", "--", p]);
+        gitSync(this.top!, ["clean", "-fdq", "--", p]);
+        toPrivate++;
       }
     }
-    const sharing = await this.refresh();
-    const state = this.states.get(session) ?? { visibility: decision, decided: true };
-    this.broadcast("visibility", { session, ...state });
-    return { ...state, sharing, warning };
+    // 0.1.5's exclude block goes only after its sessions left sessions/, so git never sees them in between
+    if (this.excludeFile && fs.existsSync(this.excludeFile)) {
+      try {
+        legacy = writeExcludeBlock(this.excludeFile, []) || legacy;
+      } catch (e) {
+        this.log(`could not update ${this.excludeFile}: ${(e as Error).message}`);
+      }
+    }
+    if (shares) {
+      for (const id of priv) {
+        if (keep.has(id)) continue;
+        this.store.promote(id);
+        toShared++;
+      }
+    }
+    if (legacy) {
+      this.migrated = { private: toPrivate, kept: keep.size };
+      this.log(`converted 0.1.5 sharing state: ${toPrivate} sessions moved to private/, ${keep.size} kept private`);
+    } else if (toPrivate || toShared) this.log(`sessions moved: ${toPrivate} to private/, ${toShared} to sessions/`);
+    return toPrivate + toShared;
   }
 }

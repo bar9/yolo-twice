@@ -47,8 +47,8 @@ export interface AuthorRun extends Author {
   uncommitted?: boolean;
 }
 
-/** private: never leaves this machine. shared: committed with the project. undecided: waits for the user. */
-export type Visibility = "shared" | "private" | "undecided";
+/** shared: committed with the project. private: only on this machine. private-additions: committed, continued here with content that stays here. */
+export type Visibility = "shared" | "private" | "private-additions";
 /** restricted: this environment holds data that must not be published. open: it does not. */
 export type Environment = "restricted" | "open";
 
@@ -60,9 +60,13 @@ export interface Sharing {
   remotes: { name: string; url: string; id: string; class: "restricted" | "open" | "unknown"; by: "pattern" | "gh" | "local" | "none" }[];
   class: "restricted" | "open" | "unknown" | "none";
   decidedBy?: string;
-  default: Visibility;
-  prompt: boolean;
+  /** new content is committed with the project; otherwise it stays on this machine */
+  shares: boolean;
+  /** sessions with content that stays on this machine */
+  private: number;
   unpushed?: number;
+  /** 0.1.5's per-session state was converted once: sessions moved to the private folder, and those kept private for good */
+  migrated?: { private: number; kept: number };
   /** only on the SSE event: sharing just became stricter */
   alert?: boolean;
 }
@@ -81,7 +85,7 @@ export interface EnvironmentInfo {
 export type SessionIndex = Omit<ProjectIndex, "sessions"> & {
   current?: string;
   sharing?: Sharing;
-  sessions: (ProjectIndex["sessions"][number] & { authors?: Author[]; forked_from?: string; visibility?: Visibility; decided?: boolean })[];
+  sessions: (ProjectIndex["sessions"][number] & { authors?: Author[]; forked_from?: string; visibility?: Visibility; kept?: boolean })[];
 };
 
 /** Project key (or root) passed on every call; empty means "engine default". Set from the URL by App. */
@@ -153,12 +157,6 @@ export const api = {
       method: "PUT",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ project: project || undefined, enabled }),
-    }),
-  setVisibility: (id: string, visibility: "shared" | "private") =>
-    json<{ visibility: Visibility; decided: boolean; warning?: string }>(`/api/sessions/${id}/visibility`, {
-      method: "PUT",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ project: project || undefined, visibility }),
     }),
   environment: () => json<EnvironmentInfo>(`/api/environment${qs({})}`),
   setEnvironment: (patch: { environment?: Environment; restricted_remotes?: string[] }) =>

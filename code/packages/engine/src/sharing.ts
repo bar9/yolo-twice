@@ -8,17 +8,18 @@ import { gitSync } from "./git.js";
  * Which sessions may reach git. A session records prompts, tool output and command results; in a
  * public repository that can publish what must stay inside an organisation (internal names,
  * company accounts, customer data). Filtering the text was rejected: a blacklist of company terms
- * is costly to keep, never complete, and lets people stop paying attention. Instead sharing is an
- * explicit decision with sensible defaults, shown everywhere (user guide: code/site/install.md).
+ * is costly to keep, never complete, and lets people stop paying attention.
  *
- * Two facts decide the default: the environment (does this machine, VM or container hold data
+ * Instead one rule, from two facts: the environment (does this machine, VM or container hold data
  * that must not be published? what matters is the data, not who owns the machine) and where the
- * repository can be pushed. The rule: a restricted environment shares sessions only with
- * restricted remotes.
+ * repository can be pushed. A restricted environment shares sessions only when every remote is
+ * restricted (sharesWith). It is not decided per session: content written here is restricted
+ * whichever session it belongs to, also when it continues a session committed elsewhere.
  *
  * The environment and `restricted_remotes` live in ~/.yolo-twice/settings.json, machine-wide and
- * never committed; unanswered counts as restricted. Per-session decisions live in the gitignored
- * .yolo-twice/local.json. Visibility of each session: see VisibilityIndex in visibility.ts.
+ * never committed; unanswered counts as restricted. Where the content goes: the Store keeps a
+ * session in sessions/ (committed) or private/sessions/ (gitignored); SharingIndex in
+ * visibility.ts keeps the folders in line with the rule. User guide: code/site/install.md.
  */
 
 /** restricted: this environment holds data that must not be published. open: it does not. */
@@ -27,8 +28,6 @@ export type Environment = "restricted" | "open";
 export type RemoteClass = "restricted" | "open" | "unknown";
 /** The riskiest class of the project's remotes, or none without a remote. */
 export type ProjectClass = RemoteClass | "none";
-/** private: never leaves this machine. shared: committed with the project. undecided: waits for the user. */
-export type Visibility = "shared" | "private" | "undecided";
 
 export interface Remote {
   name: string;
@@ -48,12 +47,14 @@ export interface Sharing {
   class: ProjectClass;
   /** the remote that decided the class */
   decidedBy?: string;
-  /** what a new session starts as */
-  default: Visibility;
-  /** new sessions that start as private or undecided are offered to the user */
-  prompt: boolean;
+  /** new content goes to sessions/ and is committed; otherwise it stays in private/ */
+  shares: boolean;
+  /** sessions with content that stays on this machine */
+  private: number;
   /** sessions committed but not pushed yet, counted when the project is not safe to push to */
   unpushed?: number;
+  /** set once when 0.1.5's per-session state was converted: sessions moved to private/, and those kept private for good */
+  migrated?: { private: number; kept: number };
 }
 
 const RANK: Record<ProjectClass, number> = { none: 0, restricted: 1, unknown: 2, open: 3 };
@@ -144,19 +145,18 @@ export function riskier(a: ProjectClass, b: ProjectClass): boolean {
 }
 
 /**
- * What a new session starts as:
+ * The rule:
  *
- *   environment  remotes          new session  asked
- *   open         any              shared       no
- *   restricted   all restricted   shared       no
- *   restricted   any open         private      yes ("is a public repository")
- *   restricted   any unknown      undecided    yes (with a one-click "is internal")
- *   any          none             undecided    yes
+ *   environment  remotes               sessions
+ *   open         any, or none          shared
+ *   restricted   all restricted        shared
+ *   restricted   any public or unknown stay on this machine
+ *   restricted   none                  stay on this machine (until a restricted remote is added)
+ *
+ * An unknown remote counts as public; one click in the UI adds it to restricted_remotes.
  */
-export function defaultVisibility(env: Environment, cls: ProjectClass): Visibility {
-  if (cls === "none") return "undecided";
-  if (env === "open") return "shared";
-  return cls === "restricted" ? "shared" : cls === "open" ? "private" : "undecided";
+export function sharesWith(env: Environment, cls: ProjectClass): boolean {
+  return env === "open" || cls === "restricted";
 }
 
 /* ---------- the environment question ---------- */
@@ -212,6 +212,7 @@ export function candidatePatterns(remotes: Remote[]): string[] {
 
 /* ---------- .git/info/exclude ---------- */
 
+/** 0.1.5 kept private sessions out with a block here; 0.1.6 only removes it (private/ is gitignored instead). */
 const BEGIN = "# yolo-twice: private and undecided sessions stay on this machine (managed, edits are overwritten)";
 const END = "# yolo-twice: end";
 
@@ -223,6 +224,7 @@ export function writeExcludeBlock(file: string, lines: string[]): boolean {
   } catch {
     /* no file yet */
   }
+  if (!lines.length && !cur.includes(BEGIN)) return false;
   const re = new RegExp(`\\n?${escape(BEGIN)}\\n[\\s\\S]*?${escape(END)}\\n?`);
   const rest = cur.replace(re, "\n").replace(/\n+$/, "");
   const block = lines.length ? `${BEGIN}\n${[...lines].sort().join("\n")}\n${END}\n` : "";

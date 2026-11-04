@@ -170,8 +170,8 @@ export class Engine {
       const rt = need(c.req.query("project"));
       const index = rt.store.readProjectIndex() ?? { version: 1 as const, project: rt.name, sessions: [] };
       const forks = rt.forks.get();
-      const sharing = rt.visibility.get() ?? (await rt.visibility.refresh().catch(() => undefined));
-      const sessions = await Promise.all(index.sessions.map(async (s) => ({ ...s, authors: await rt.authors.authors(s.id), forked_from: forks.get(s.id)?.from, ...rt.visibility.of(s.id) })));
+      const sharing = rt.sharing.get() ?? (await rt.sharing.refresh().catch(() => undefined));
+      const sessions = await Promise.all(index.sessions.map(async (s) => ({ ...s, authors: await rt.authors.authors(s.id), forked_from: forks.get(s.id)?.from, ...rt.sharing.of(s.id) })));
       return c.json({ ...index, sessions, current: rt.currentSession(), sharing });
     });
 
@@ -226,17 +226,6 @@ export class Engine {
       const events = all.slice(start, start + limit);
       const next = start + limit < all.length ? events.at(-1)?.id : undefined;
       return c.json({ events, next });
-    });
-
-    // shared: committed with the project; private: never leaves this machine
-    app.put("/api/sessions/:id/visibility", async (c) => {
-      const body = (await c.req.json().catch(() => ({}))) as { project?: string; visibility?: string };
-      if (body.visibility !== "shared" && body.visibility !== "private") return c.json({ error: "visibility must be shared|private" }, 400);
-      const rt = need(body.project);
-      const id = c.req.param("id");
-      if (!rt.store.listSessions().includes(id)) throw new NotFound("session not found");
-      if (!rt.visibility.get() && !(await rt.visibility.refresh())) return c.json({ error: "not a git repository: sessions are never committed here" }, 409);
-      return c.json(await rt.visibility.decide(id, body.visibility));
     });
 
     app.post("/api/sessions/:id/text", async (c) => {
@@ -303,7 +292,7 @@ export class Engine {
     // the environment: does it hold data that must not be published? Machine-wide, never committed
     const environment = (rt: ProjectRuntime | undefined) => {
       const st = readSettings();
-      return { environment: st.environment, restricted_remotes: st.restricted_remotes ?? [], ...guessEnvironment(), candidates: candidatePatterns(rt?.visibility.get()?.remotes ?? []) };
+      return { environment: st.environment, restricted_remotes: st.restricted_remotes ?? [], ...guessEnvironment(), candidates: candidatePatterns(rt?.sharing.get()?.remotes ?? []) };
     };
     app.get("/api/environment", (c) => c.json(environment(this.resolve(c.req.query("project")))));
     app.put("/api/environment", async (c) => {
@@ -316,7 +305,7 @@ export class Engine {
         ...(patterns ? { restricted_remotes: [...new Set((patterns as string[]).map((p) => p.trim()))] } : {}),
       });
       // every project follows: the environment is the machine's, not one project's
-      await Promise.all([...this.projects.values()].map((rt) => rt.visibility.refresh().catch(() => undefined)));
+      await Promise.all([...this.projects.values()].map((rt) => rt.sharing.refresh().catch(() => undefined)));
       return c.json(environment(this.resolve(body.project)));
     });
 

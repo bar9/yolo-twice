@@ -60,8 +60,8 @@ session that never ran on their machine. `resume` rebuilds the Claude Code trans
 A session records what you did: prompts, tool output, command results. In a public repository
 that can publish things that must stay inside your organisation, such as internal project
 names, your company account or customer data. yolo-twice does not try to filter those out
-of the text, because no filter catches everything. Instead, it decides with you which sessions
-reach git at all, and shows that decision everywhere.
+of the text, because no filter catches everything. Instead, one rule decides whether what you
+do here may reach git at all, and the UI shows the outcome everywhere.
 
 Two facts decide it:
 
@@ -73,33 +73,46 @@ Two facts decide it:
   *unknown*. GitHub repositories are checked with `gh`, quietly; anything else counts when it
   matches a pattern you add, such as `git.acme.example` or `github.com/acme/*`.
 
-The rule: **a restricted environment shares sessions only with restricted remotes.**
+The rule: **a restricted environment shares sessions only when every remote is restricted.**
 
-| Environment | Remotes | A new session starts | Asked? |
-|---|---|---|---|
-| open | any | shared | no |
-| restricted | all restricted | shared | no |
-| restricted | any public | private | yes |
-| restricted | any unknown | undecided | yes |
-| any | none yet | undecided | yes |
+| Environment | Remotes | Sessions |
+|---|---|---|
+| open | any, or none | committed with the project |
+| restricted | all restricted | committed with the project |
+| restricted | any public or unknown | stay on this machine |
+| restricted | none yet | stay on this machine, until a restricted remote is added |
 
-- **Shared** sessions are committed with the project (by auto-commit, or your next commit).
-- **Private** sessions never leave your machine: they are listed in the clone's own
-  `.git/info/exclude`, so even `git add -A` leaves them out. The UI marks them with a mask.
-- **Undecided** sessions are kept out of git like private ones until you choose.
+It applies to everything written here, whichever session it belongs to. There is no switch per
+session: the content is restricted because of where it was written, also when you continue a
+session that someone committed from an open environment.
 
-In the UI, the button next to the settings shows where new sessions go and why, and holds the
-environment and the restricted remotes. The menu beside a session's pin shares it or keeps it
-private. A banner asks only when a decision is needed. A remote can be added at any time: when
-one makes sharing stricter, yolo-twice says so and counts the committed sessions you have not
-pushed yet.
+Where a session is decides whether it reaches git:
 
-Making a committed session private removes it from git from then on (the files stay on disk),
-but earlier commits, and every copy already pushed, still contain it. Sessions committed before
-this feature existed count as shared.
+- `.yolo-twice/sessions/<id>/` is committed with the project (by auto-commit, or your next
+  commit).
+- `.yolo-twice/private/sessions/<id>/` is gitignored and never leaves your machine. The UI marks
+  these sessions with a mask: **Private**.
+- A committed session you continue while the project does not share is copied to the private
+  folder once and continued there: **Private additions**. The committed copy is never touched,
+  so `git pull` keeps working, and what you added stays here.
 
-The environment and the restricted remotes are stored in `~/.yolo-twice/settings.json`; your
-per-session choices in `.yolo-twice/local.json`. Neither is ever committed.
+In the UI, the button next to the settings shows whether sessions are shared here and why, and
+holds the environment and the restricted remotes. An unknown remote gets a one-click "is
+internal". A remote can be added at any time: when one makes sharing stricter, yolo-twice says so
+and counts the committed sessions you have not pushed yet (yolo-twice never pushes). When the
+project may share again, for example after you mark its remote as internal, the private sessions
+move back and are committed.
+
+To publish one private session anyway, commit it yourself with
+`git add -f .yolo-twice/private/sessions/<id>`: a deliberate act, outside yolo-twice.
+
+The environment and the restricted remotes are stored in `~/.yolo-twice/settings.json`, never
+committed.
+
+**From 0.1.5**, which decided per session: sessions you made private stay private for good
+(listed as `keep_private` in `.yolo-twice/local.json`); every other session follows the rule.
+Sessions 0.1.5 kept out of git move to the private folder, and its block in `.git/info/exclude`
+is removed. The UI says once what was converted.
 
 ## Privacy
 

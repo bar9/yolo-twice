@@ -49,7 +49,7 @@ const GUIDE: { icon: LucideIcon; title: string; text: string }[] = [
   {
     icon: VenetianMask,
     title: "Private sessions",
-    text: "A session can hold things that must not be published: internal names, accounts, customer data. Say once whether this environment is restricted (it holds such data) or open. A restricted environment shares sessions only with restricted remotes, so in a public repository new sessions start private, marked with the mask. The Sessions button in the header says why and holds the settings; the menu beside the pin shares or hides one session. Private sessions are listed in this clone's .git/info/exclude, so even git add -A leaves them out. Making a committed session private removes it from git from then on, but earlier commits and pushed copies keep it.",
+    text: "A session can hold things that must not be published: internal names, accounts, customer data. Say once whether this environment is restricted (it holds such data) or open. One rule decides, for every session alike: a restricted environment shares sessions only when every remote of the repository is restricted. Otherwise what you write here stays on this machine, in the gitignored .yolo-twice/private folder, marked with the mask. That includes a committed session you continue here: the committed part stays as it was, the additions stay here (Private additions). The Sessions button in the header says why and holds the settings. When the project may share again, the private sessions move back and are committed.",
   },
 ];
 

@@ -21,7 +21,7 @@ import { isOpenNode,
 import { AuthorIndex } from "./authors.js";
 import { ForkIndex } from "./forks.js";
 import { AutoCommitter } from "./autocommit.js";
-import { VisibilityIndex } from "./visibility.js";
+import { SharingIndex } from "./visibility.js";
 import { lastActiveSession } from "./resume.js";
 
 export type Broadcast = (event: string, data: unknown) => void;
@@ -54,7 +54,7 @@ export class ProjectRuntime {
   readonly autoCommit: AutoCommitter;
   readonly authors: AuthorIndex;
   readonly forks: ForkIndex;
-  readonly visibility: VisibilityIndex;
+  readonly sharing: SharingIndex;
   private gitWatcher: FSWatcher | undefined;
 
   constructor(
@@ -70,10 +70,10 @@ export class ProjectRuntime {
     this.summarizer = hasClaudeCli() && cfg.analyzers.semantic && !process.env.YOLO_TWICE_NO_LLM ? new ClaudeCliSummarizer({ model: cfg.analyzers.model }) : this.structural;
     this.forks = new ForkIndex(this.store);
     this.authors = new AuthorIndex(this.store.dir, () => this.forks.get());
-    this.visibility = new VisibilityIndex(this.store, root, broadcast, (m) => this.log(m));
+    this.sharing = new SharingIndex(this.store, root, broadcast, (m) => this.log(m));
+    // the folders must match the rule before anything is committed
     this.autoCommit = new AutoCommitter(root, this.store.dir, (st) => broadcast("autocommit", st), (m) => this.log(m), opts.autoCommitMs, async () => {
-      await this.visibility.refresh();
-      return this.visibility.excludedPaths();
+      await this.sharing.refresh();
     });
     // warm the search index from what is already on disk
     for (const id of this.store.listSessions()) this.indexSession(id);
@@ -96,10 +96,10 @@ export class ProjectRuntime {
   start(): void {
     if (this.opts.watch === false || this.watcher) return;
     // a remote can be added at any time: re-classify when git's config changes
-    const gitConfig = this.visibility.gitConfigFile();
+    const gitConfig = this.sharing.gitConfigFile();
     if (gitConfig) {
       this.gitWatcher = chokidar.watch(gitConfig, { ignoreInitial: true });
-      this.gitWatcher.on("all", () => void this.visibility.refresh().catch((e: Error) => this.log(`sharing check failed: ${e.message}`)));
+      this.gitWatcher.on("all", () => void this.sharing.refresh().catch((e: Error) => this.log(`sharing check failed: ${e.message}`)));
     }
     if (!fs.existsSync(this.originDir)) fs.mkdirSync(this.originDir, { recursive: true });
     this.watcher = chokidar.watch(this.originDir, { ignoreInitial: true, depth: 3, awaitWriteFinish: { stabilityThreshold: 150, pollInterval: 50 } });
@@ -134,8 +134,6 @@ export class ProjectRuntime {
   ingest(session?: string): string[] {
     const res = ingestProject({ cwd: this.root, store: this.store, originDir: this.originDir, session });
     const changed = [...new Set([...res.changed, ...res.reset])];
-    // before anything else: a new session stays out of git until it has its sharing state
-    this.visibility.guard(changed);
     if (res.reset.length) {
       // a rebuilt session reuses its event ids with new content: the search index must start over
       this.search = new SearchIndex();
@@ -152,7 +150,7 @@ export class ProjectRuntime {
     }
     if (changed.length) deriveProject(this.store, this.name);
     else if (!this.store.readProjectIndex()) deriveProject(this.store, this.name);
-    if (changed.length || !this.visibility.get()) void this.visibility.refresh().catch((e: Error) => this.log(`sharing check failed: ${e.message}`));
+    if (changed.length || !this.sharing.get()) void this.sharing.refresh().catch((e: Error) => this.log(`sharing check failed: ${e.message}`));
     return changed;
   }
 
@@ -207,7 +205,7 @@ export class ProjectRuntime {
   private async summarize(session: string, job: SemanticJob): Promise<TextArtifact> {
     const events = this.store.readEvents(session);
     const byId = new Map(events.map((e) => [e.id, e]));
-    const cache = new TextCache(this.store.textDir(session), this.store.openTextDir(session));
+    const cache = new TextCache(() => this.store.textDir(session), this.store.openTextDir(session), () => this.store.writableTextDir(session));
     const root = this.store.readStructure(session);
     if (root) job = { ...job, open: isOpenNode(job.node, root) };
     let artifact: TextArtifact;

@@ -1,73 +1,27 @@
 import { useEffect, useState } from "react";
-import { Check, GitCommitHorizontal, Plus, ShieldQuestionMark, TriangleAlert, VenetianMask, X } from "lucide-react";
+import { GitCommitHorizontal, Plus, ShieldQuestionMark, TriangleAlert, VenetianMask, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { api, type Environment, type EnvironmentInfo, type SessionIndex, type Sharing, type Visibility } from "./api";
-import { ENVIRONMENT_MEANS, patternFor, pendingSessions, remoteClassLabel, sharingReason, sharingShort, sharingTip, unknownRemote, VISIBILITY_LABEL, VISIBILITY_MEANS } from "./sharingWords";
+import { ENVIRONMENT_MEANS, KEPT_PRIVATE, patternFor, remoteClassLabel, sharingReason, sharingShort, sharingTip, unknownRemote, VISIBILITY_LABEL, VISIBILITY_MEANS } from "./sharingWords";
 import { Tip } from "./Tip";
 
 /**
- * Private sessions, like private browsing: a session from a restricted environment never reaches a
- * repository it should not. The engine decides the default; these controls show it and let you
- * decide. The rules: packages/engine/src/sharing.ts; wording: sharingWords.ts.
+ * Private sessions, like private browsing: content from a restricted environment never reaches a
+ * repository it should not. One rule per project decides (packages/engine/src/sharing.ts); these
+ * controls show it, and the header popover holds the two facts behind it. Wording: sharingWords.ts.
  */
 
-const ICON = { private: VenetianMask, undecided: ShieldQuestionMark, shared: GitCommitHorizontal } as const;
-
-/** In the session list and the crumb: nothing for shared (the normal case stays clean), a mask for private. */
-export function VisibilityBadge({ visibility, decided, sharing }: { visibility?: Visibility; decided?: boolean; sharing?: Sharing }) {
+/** In the session list and the crumb: nothing for shared (the normal case stays clean), a mask otherwise. */
+export function VisibilityBadge({ visibility, kept }: { visibility?: Visibility; kept?: boolean }) {
   if (!visibility || visibility === "shared") return null;
-  const Icon = ICON[visibility];
-  const why = !decided && sharing ? ` ${visibility === "private" ? "Private" : "Undecided"} by default: ${sharingReason(sharing)}.` : "";
   return (
-    <Tip label={`${VISIBILITY_MEANS[visibility]}${why}`}>
-      <span className={`badge ${visibility} ml-2`} onClick={(e) => e.stopPropagation()}>
-        <Icon aria-hidden />
+    <Tip label={kept ? KEPT_PRIVATE : VISIBILITY_MEANS[visibility]}>
+      <span className="badge private ml-2" onClick={(e) => e.stopPropagation()}>
+        <VenetianMask aria-hidden />
         {VISIBILITY_LABEL[visibility]}
       </span>
     </Tip>
-  );
-}
-
-/** Beside the pin: what happens to this session, and the choice. */
-export function VisibilityMenu(props: { visibility?: Visibility; decided?: boolean; sharing?: Sharing; onChange: (v: "shared" | "private") => void }) {
-  const v = props.visibility;
-  if (!v || !props.sharing) return null;
-  const Icon = ICON[v];
-  const tip = v === "shared" ? `Shared: ${VISIBILITY_MEANS.shared} Click to keep it private instead.` : `${VISIBILITY_LABEL[v]}: ${VISIBILITY_MEANS[v]} Click to choose.`;
-  return (
-    <DropdownMenu>
-      <Tip label={tip}>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon-sm" className={`visibility ${v} size-7`} aria-label={`Session visibility: ${VISIBILITY_LABEL[v]}`}>
-            <Icon className="size-3.5" />
-          </Button>
-        </DropdownMenuTrigger>
-      </Tip>
-      <DropdownMenuContent align="start" className="w-72">
-        <DropdownMenuLabel className="text-[12.5px] font-normal leading-snug text-ink-2">
-          {props.decided ? "Your choice for this session." : `By default: ${sharingReason(props.sharing)}.`}
-        </DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem onSelect={() => props.onChange("shared")} className="items-start">
-          <GitCommitHorizontal className="mt-0.5" />
-          <span>
-            <span className="block font-medium">Share with the project</span>
-            <span className="block text-[12px] text-ink-2">Committed by auto-commit or your next commit; pushing publishes it to the remotes.</span>
-          </span>
-          {v === "shared" && <Check className="ml-auto mt-0.5" />}
-        </DropdownMenuItem>
-        <DropdownMenuItem onSelect={() => props.onChange("private")} className="items-start">
-          <VenetianMask className="mt-0.5" />
-          <span>
-            <span className="block font-medium">Keep private</span>
-            <span className="block text-[12px] text-ink-2">Never leaves this machine. If it was committed before, it is removed from git; earlier commits keep it.</span>
-          </span>
-          {v === "private" && <Check className="ml-auto mt-0.5" />}
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
   );
 }
 
@@ -81,7 +35,7 @@ export function SharingButton({ sharing, onChanged }: { sharing?: Sharing; onCha
     if (open) api.environment().then(setEnv).catch((e) => setError(String(e)));
   }, [open, sharing]);
   if (!sharing) return null;
-  const Icon = ICON[sharing.default];
+  const Icon = sharing.shares ? GitCommitHorizontal : VenetianMask;
   const save = async (patch: { environment?: Environment; restricted_remotes?: string[] }) => {
     try {
       setEnv(await api.setEnvironment(patch));
@@ -97,7 +51,7 @@ export function SharingButton({ sharing, onChanged }: { sharing?: Sharing; onCha
     <Popover open={open} onOpenChange={setOpen}>
       <Tip label={sharingTip(sharing)}>
         <PopoverTrigger asChild>
-          <Button variant="outline" size="sm" className={`sharing ${sharing.default}`} aria-label={sharingShort(sharing)}>
+          <Button variant="outline" size="sm" className={`sharing ${sharing.shares ? "shared" : "private"}`} aria-label={sharingShort(sharing)}>
             <Icon />
             <span className="hidden lg:inline">{sharingShort(sharing)}</span>
             {!sharing.answered && <span className="size-1.5 rounded-full bg-ink-3" aria-hidden />}
@@ -108,7 +62,9 @@ export function SharingButton({ sharing, onChanged }: { sharing?: Sharing; onCha
         <div>
           <span className="block text-[13px] font-semibold">Sharing sessions</span>
           <p className="mt-1 text-ink-2">
-            A restricted environment shares sessions only with restricted remotes. New sessions here start <b>{sharing.default}</b>: {sharingReason(sharing)}. Each session can still be changed from its menu beside the pin.
+            A restricted environment shares sessions only when every remote is restricted. Here {sharing.shares ? <b>sessions are committed with the project</b> : <b>what you do stays on this machine</b>}: {sharingReason(sharing)}.
+            {!sharing.shares && " Sessions committed earlier stay as they are; what you add to them stays here too."}
+            {!!sharing.private && ` ${sharing.private} session${sharing.private === 1 ? " has" : "s have"} content in the gitignored .yolo-twice/private folder.`}
           </p>
         </div>
 
@@ -133,7 +89,7 @@ export function SharingButton({ sharing, onChanged }: { sharing?: Sharing; onCha
 
         <div className="space-y-1.5 border-t pt-3">
           <span className="block text-[13px] font-semibold">Remotes of this repository</span>
-          {sharing.remotes.length === 0 && <p className="text-ink-2">None yet. Sessions wait for your decision until a remote is added; yolo-twice notices when one is.</p>}
+          {sharing.remotes.length === 0 && <p className="text-ink-2">None yet. {sharing.environment === "restricted" ? "Sessions stay on this machine until a restricted remote is added" : "Sessions are committed; nothing is pushed anywhere"}; yolo-twice notices when a remote is added.</p>}
           {sharing.remotes.map((r) => {
             const c = remoteClassLabel(r);
             return (
@@ -194,7 +150,7 @@ export function SharingButton({ sharing, onChanged }: { sharing?: Sharing; onCha
         {!!sharing.unpushed && (
           <p className="flex gap-2 border-t pt-3 text-destructive">
             <TriangleAlert className="size-4 flex-none" aria-hidden />
-            {sharing.unpushed} committed session{sharing.unpushed === 1 ? " is" : "s are"} not pushed yet. Pushing publishes {sharing.unpushed === 1 ? "it" : "them"}; make {sharing.unpushed === 1 ? "it" : "them"} private first if that is not intended.
+            {sharing.unpushed} committed session{sharing.unpushed === 1 ? " is" : "s are"} not pushed yet. Pushing publishes {sharing.unpushed === 1 ? "it" : "them"}; yolo-twice never pushes. Take {sharing.unpushed === 1 ? "it" : "them"} out of those commits before you push if that is not intended.
           </p>
         )}
         {error && <p className="text-destructive">{error}</p>}
@@ -203,13 +159,26 @@ export function SharingButton({ sharing, onChanged }: { sharing?: Sharing; onCha
   );
 }
 
+const MIGRATED_SEEN = "yolo-twice.sharing-migrated-seen";
+
+function seenMigration(): boolean {
+  try {
+    return localStorage.getItem(MIGRATED_SEEN) === "1";
+  } catch {
+    return false;
+  }
+}
+
 /**
- * Below the header, only when a decision is needed: the environment question (once per machine),
- * a stricter state after a remote change (once), or a new session that is not shared by default.
+ * Below the header, only when something needs you: the environment question (once per machine),
+ * the note after the upgrade from per-session decisions (once), a stricter state after a remote
+ * change (once), or a remote yolo-twice cannot classify (one click marks it internal).
  */
-export function SharingBanner(props: { index?: SessionIndex; alert?: Sharing; warning?: string; onDismissAlert: () => void; onDismissWarning: () => void; onVisibility: (id: string, v: "shared" | "private") => void; onChanged: () => void }) {
+export function SharingBanner(props: { index?: SessionIndex; alert?: Sharing; onDismissAlert: () => void; onChanged: () => void }) {
   const sh = props.index?.sharing;
   const [later, setLater] = useState(false);
+  const [migrationSeen, setMigrationSeen] = useState(seenMigration);
+  const [unknownLater, setUnknownLater] = useState(false);
   const [env, setEnv] = useState<EnvironmentInfo | undefined>();
   useEffect(() => {
     if (sh) api.environment().then(setEnv).catch(() => undefined);
@@ -219,24 +188,12 @@ export function SharingBanner(props: { index?: SessionIndex; alert?: Sharing; wa
     await api.setEnvironment(patch).catch(() => undefined);
     props.onChanged();
   };
-
-  if (props.warning)
-    return (
-      <div className="banner ask" role="status">
-        <VenetianMask size={15} aria-hidden />
-        <span className="flex-1">{props.warning}</span>
-        <Button variant="ghost" size="xs" onClick={props.onDismissWarning} aria-label="Dismiss">
-          <X />
-        </Button>
-      </div>
-    );
-
   if (!sh.answered && !later)
     return (
       <div className="banner ask" role="status">
         <ShieldQuestionMark size={15} aria-hidden />
         <span className="flex-1">
-          <b>Does this environment hold data that must not be published?</b> It decides which new sessions may reach git. Until you answer, it counts as restricted.
+          <b>Does this environment hold data that must not be published?</b> It decides whether sessions may reach git. Until you answer, it counts as restricted.
           {env?.signals.length ? ` Likely restricted: ${env.signals.slice(0, 2).join("; ")}${env.signals.length > 2 ? `, and ${env.signals.length - 2} more sign${env.signals.length > 3 ? "s" : ""}` : ""}.` : ""}
         </span>
         <Tip label={ENVIRONMENT_MEANS.restricted}>
@@ -255,12 +212,39 @@ export function SharingBanner(props: { index?: SessionIndex; alert?: Sharing; wa
       </div>
     );
 
+  if (sh.migrated && !migrationSeen)
+    return (
+      <div className="banner ask" role="status">
+        <VenetianMask size={15} aria-hidden />
+        <span className="flex-1">
+          Sharing is no longer chosen per session: it follows this environment and the repository&apos;s remotes. {sh.shares ? "Sessions are committed here" : "Here they stay on this machine"}: {sharingReason(sh)}.
+          {sh.migrated.private ? ` ${sh.migrated.private} session${sh.migrated.private === 1 ? " moved" : "s moved"} to the gitignored .yolo-twice/private folder.` : ""}
+          {sh.migrated.kept ? ` ${sh.migrated.kept} you made private stay${sh.migrated.kept === 1 ? "s" : ""} private for good.` : ""}
+        </span>
+        <Button
+          variant="ghost"
+          size="xs"
+          aria-label="Dismiss"
+          onClick={() => {
+            try {
+              localStorage.setItem(MIGRATED_SEEN, "1");
+            } catch {
+              /* remembered for this page only */
+            }
+            setMigrationSeen(true);
+          }}
+        >
+          <X />
+        </Button>
+      </div>
+    );
+
   if (props.alert)
     return (
       <div className="banner ask" role="status">
         <TriangleAlert size={15} aria-hidden />
         <span className="flex-1">
-          Sessions are no longer shared by default: {sharingReason(props.alert)}. New sessions now start {props.alert.default}.
+          From now on what you do here stays on this machine: {sharingReason(props.alert)}. Sessions committed earlier stay as they are.
           {props.alert.unpushed ? ` ${props.alert.unpushed} committed session${props.alert.unpushed === 1 ? " is" : "s are"} not pushed yet; pushing publishes ${props.alert.unpushed === 1 ? "it" : "them"}.` : ""}
         </span>
         <Button variant="ghost" size="xs" onClick={props.onDismissAlert} aria-label="Dismiss">
@@ -269,34 +253,22 @@ export function SharingBanner(props: { index?: SessionIndex; alert?: Sharing; wa
       </div>
     );
 
-  const pending = pendingSessions(props.index);
-  const s = pending[0];
-  if (!s || !sh.prompt) return null;
   const unknown = unknownRemote(sh);
+  if (!unknown || sh.shares || unknownLater) return null;
   return (
     <div className="banner ask" role="status">
-      {s.visibility === "private" ? <VenetianMask size={15} aria-hidden /> : <ShieldQuestionMark size={15} aria-hidden />}
+      <ShieldQuestionMark size={15} aria-hidden />
       <span className="flex-1">
-        <b>{s.label || s.id.slice(0, 8)}</b> {s.visibility === "private" ? "is kept private" : "stays out of git until you choose"}: {sharingReason(sh)}.
-        {pending.length > 1 && ` ${pending.length - 1} more session${pending.length > 2 ? "s" : ""} wait${pending.length > 2 ? "" : "s"} too.`}
+        Sessions stay on this machine: {sharingReason(sh)}. If it is a repository of your organisation, say so and sessions are committed with the project.
       </span>
-      {unknown && (
-        <Tip label={`Count ${patternFor(unknown.id)} as an internal repository on this machine. Sessions are then shared with it by default.`}>
-          <Button variant="outline" size="xs" onClick={() => void answer({ restricted_remotes: [...new Set([...(env?.restricted_remotes ?? []), patternFor(unknown.id)])] })}>
-            {unknown.id.split("/")[0]} is internal
-          </Button>
-        </Tip>
-      )}
-      <Tip label={VISIBILITY_MEANS.private}>
-        <Button variant={s.visibility === "private" ? "default" : "outline"} size="xs" onClick={() => props.onVisibility(s.id, "private")}>
-          <VenetianMask /> Keep private
+      <Tip label={`Count ${patternFor(unknown.id)} as an internal repository on this machine (restricted remotes in the Sessions settings).`}>
+        <Button variant="outline" size="xs" onClick={() => void answer({ restricted_remotes: [...new Set([...(env?.restricted_remotes ?? []), patternFor(unknown.id)])] })}>
+          {patternFor(unknown.id)} is internal
         </Button>
       </Tip>
-      <Tip label={`${VISIBILITY_MEANS.shared} Pushing publishes it to the remotes.`}>
-        <Button variant="outline" size="xs" onClick={() => props.onVisibility(s.id, "shared")}>
-          <GitCommitHorizontal /> Share
-        </Button>
-      </Tip>
+      <Button variant="ghost" size="xs" onClick={() => setUnknownLater(true)} aria-label="Dismiss">
+        <X />
+      </Button>
     </div>
   );
 }

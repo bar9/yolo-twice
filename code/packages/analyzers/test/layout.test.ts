@@ -12,7 +12,7 @@ function committed(store: Store): string[] {
     for (const e of fs.readdirSync(d, { withFileTypes: true })) {
       const p = path.join(d, e.name);
       const rel = path.relative(store.dir, p);
-      if (["cache", "engine.json", "local.json"].includes(rel.split(path.sep)[0]!)) continue;
+      if (["cache", "engine.json", "local.json", "private"].includes(rel.split(path.sep)[0]!)) continue;
       if (e.isDirectory()) walk(p);
       else out.push(rel);
     }
@@ -26,6 +26,7 @@ describe("one writer per committed file", () => {
     const fx = tempFixture("lay");
     try {
       const store = new Store(fx.projectRoot);
+      store.setSharing(true);
       ingestProject({ cwd: FIXTURE_CWD, store, originDir: fx.originDir });
       deriveSession(store, FIXTURE_SESSION);
       deriveProject(store, "demo");
@@ -70,7 +71,7 @@ describe("one writer per committed file", () => {
       expect(fs.existsSync(path.join(store.dir, "project.json"))).toBe(false);
       expect(fs.existsSync(path.join(store.sessionDir(FIXTURE_SESSION), "source.json"))).toBe(false);
       expect(fs.readFileSync(again.sourceFile(FIXTURE_SESSION), "utf8")).toBe(src);
-      expect(fs.readFileSync(path.join(store.dir, ".gitignore"), "utf8")).toBe("# old\ncache/\nengine.json\nlocal.json\n");
+      expect(fs.readFileSync(path.join(store.dir, ".gitignore"), "utf8")).toBe("# old\ncache/\nengine.json\nlocal.json\nprivate/\n");
       // and the cursor still works: nothing new to ingest
       expect(ingestProject({ cwd: FIXTURE_CWD, store: again, originDir: fx.originDir }).changed).toEqual([]);
     } finally {

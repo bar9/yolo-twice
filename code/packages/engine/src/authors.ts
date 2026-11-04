@@ -112,6 +112,11 @@ export class AuthorIndex {
     return path.join(this.dir, "sessions", session, "events.ndjson");
   }
 
+  /** A session continued or kept on this machine (gitignored): its own lines are the local user's. */
+  private privateFile(session: string): string {
+    return path.join(this.dir, "private", "sessions", session, "events.ndjson");
+  }
+
   private localAuthor(): Promise<Author> {
     this.local ??= Promise.all([git(this.dir, ["config", "user.name"]).catch(() => ""), git(this.dir, ["config", "user.email"]).catch(() => "")]).then(([n, e]) => ({
       name: n.trim() || "you",
@@ -143,24 +148,28 @@ export class AuthorIndex {
 
   private async lines(session: string): Promise<BlameLine[]> {
     const file = this.eventsFile(session);
-    let stat: fs.Stats;
-    try {
-      stat = fs.statSync(file);
-    } catch {
-      return [];
-    }
+    const priv = this.privateFile(session);
+    const stat = fs.statSync(file, { throwIfNoEntry: false });
+    const pstat = fs.statSync(priv, { throwIfNoEntry: false });
+    if (!stat && !pstat) return [];
     // a repo without commits has no HEAD yet, but its sessions are still the local user's
     const head = await git(this.dir, ["rev-parse", "--git-dir", "HEAD"]).catch((e: Error) => (/unknown revision|ambiguous argument/.test(e.message) ? "unborn" : ""));
     if (!head) return [];
-    const key = `${head.trim()}:${stat.size}:${stat.mtimeMs}`;
+    const key = `${head.trim()}:${stat?.size}:${stat?.mtimeMs}:${pstat?.size}:${pstat?.mtimeMs}`;
     const hit = this.cache.get(session);
     if (hit?.key === key) return hit.lines;
-    const lines = this.localAuthor().then((local) =>
-      git(this.dir, ["blame", "--line-porcelain", "--", file], 256 * 1024 * 1024).then(
-        (out) => parseBlame(out, local),
-        () => untracked(file, local), // a session nobody committed yet is the local user's
-      ),
-    );
+    const lines = this.localAuthor().then(async (local) => {
+      const committed = stat
+        ? await git(this.dir, ["blame", "--line-porcelain", "--", file], 256 * 1024 * 1024).then(
+            (out) => parseBlame(out, local),
+            () => untracked(file, local), // a session nobody committed yet is the local user's
+          )
+        : [];
+      if (!pstat) return committed;
+      // the private copy starts with the committed lines: those keep their authors, the rest is ours
+      const known = new Map(committed.map((l) => [l.id, l]));
+      return untracked(priv, local).map((l) => known.get(l.id) ?? l);
+    });
     this.cache.set(session, { key, lines });
     return lines;
   }

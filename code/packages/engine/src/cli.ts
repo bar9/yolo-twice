@@ -68,11 +68,11 @@ async function currentUrl(p: number, root: string): Promise<string> {
 }
 
 interface SessionsReply {
-  sessions?: { id: string; label: string; visibility?: string; decided?: boolean }[];
-  sharing?: { environment: string; answered: boolean; class: string; decidedBy?: string; default: string; remotes: { name: string; id: string; class: string }[]; unpushed?: number };
+  sessions?: { id: string; label: string; visibility?: string }[];
+  sharing?: { environment: string; answered: boolean; class: string; decidedBy?: string; shares: boolean; private: number; remotes: { name: string; id: string; class: string }[]; unpushed?: number };
 }
 
-/** The project's sharing state in a few lines, for status and visibility. */
+/** The project's sharing state in a few lines, for status. */
 function sharingLines(j: SessionsReply): string[] {
   const sh = j.sharing;
   if (!sh) return ["sharing: not a git repository, sessions are never committed"];
@@ -80,9 +80,8 @@ function sharingLines(j: SessionsReply): string[] {
   const kind = { restricted: "restricted", open: "public", unknown: "unclassified" }[sh.class as "restricted" | "open" | "unknown"];
   const why = sh.class === "none" ? "no remote yet" : `${kind} remote ${by ? `${by.name} (${by.id})` : ""}`.trim();
   const env = `${sh.environment} environment${sh.answered ? "" : " (not answered yet, see: yolo-twice environment)"}`;
-  const lines = [`sharing: new sessions start ${sh.default}: ${env}, ${why}`];
-  const open = (j.sessions ?? []).filter((s) => s.visibility && s.visibility !== "shared" && !s.decided);
-  if (open.length) lines.push(`waiting for a decision (yolo-twice visibility <session> shared|private): ${open.map((s) => s.id.slice(0, 8)).join(", ")}`);
+  const lines = [`sharing: ${sh.shares ? "sessions are committed with the project" : "sessions stay on this machine"}: ${env}, ${why}`];
+  if (sh.private) lines.push(`${sh.private} sessions have content that stays on this machine (.yolo-twice/private/)`);
   if (sh.unpushed) lines.push(`${sh.unpushed} committed sessions are not pushed yet; pushing publishes them to ${by?.id ?? "the remote"}`);
   return lines;
 }
@@ -187,29 +186,6 @@ async function main(): Promise<void> {
           for (const line of sharingLines(j)) console.log(line);
         }
       }
-      return;
-    }
-    case "visibility": {
-      // shared: committed with the project; private: never leaves this machine
-      const id = args[1] && !args[1].startsWith("--") ? args[1] : undefined;
-      const want = args[2];
-      const root = findProjectRoot(cwd);
-      const p = await ensureEngine();
-      await register(p);
-      const j = (await (await fetch(`${localUrl(p)}/api/sessions?project=${encodeURIComponent(root)}`)).json()) as SessionsReply;
-      if (!id) {
-        for (const line of sharingLines(j)) console.log(line);
-        for (const s of j.sessions ?? []) if (s.visibility) console.log(`  ${s.id.slice(0, 8)}  ${s.visibility}${s.decided ? "" : " (default)"}  ${s.label}`);
-        return;
-      }
-      if (want !== "shared" && want !== "private") throw new Error("usage: yolo-twice visibility [<session> shared|private]");
-      const matches = (j.sessions ?? []).filter((s) => s.id.startsWith(id));
-      if (matches.length !== 1) throw new Error(matches.length ? `${id} matches ${matches.length} sessions; give more of the id` : `no session ${id} in ${root}`);
-      const res = await fetch(`${localUrl(p)}/api/sessions/${matches[0]!.id}/visibility`, { method: "PUT", headers: { "content-type": "application/json" }, body: JSON.stringify({ project: root, visibility: want }) });
-      const out = (await res.json()) as { visibility?: string; warning?: string; error?: string };
-      if (!res.ok) throw new Error(out.error ?? `engine refused: ${res.status}`);
-      console.log(`session ${matches[0]!.id.slice(0, 8)}: ${out.visibility === "private" ? "private, stays on this machine" : "shared, committed with the project"}`);
-      if (out.warning) console.log(out.warning);
       return;
     }
     case "environment": {
@@ -319,8 +295,7 @@ async function main(): Promise<void> {
   status [--cwd <dir>] [--json]                  engine and project state
   index [--cwd <dir>]                            one-shot ingest + derive, no daemon
   mode <micro|attentive|balanced|yolo>           set the attention mode
-  autocommit [on|off] [--cwd <dir>]             commit only .yolo-twice every 10 min (this engine run only); private and undecided sessions stay out
-  visibility [<session> shared|private]          list or set which sessions reach git: shared is committed, private never leaves this machine
+  autocommit [on|off] [--cwd <dir>]             commit only .yolo-twice every 10 min (this engine run only); private sessions stay out
   environment [restricted|open]                  does this environment hold data that must not be published? restricted shares sessions only with restricted remotes
   resume [session] [--cwd <dir>] [--print]       rebuild a session from .yolo-twice and continue it as a fork (claude --resume <file> --fork-session)
   hook                                           forward a Claude Code hook JSON from stdin`);

@@ -171,10 +171,19 @@ export function artifactPath(textDir: string, nodeId: string, granularity: Granu
  * only churn the repository).
  */
 export class TextCache {
+  /**
+   * `textDir` may be a function: a session's folder can move (to its private copy) between reads.
+   * `writeDir` is where new finished summaries go, when that is not where they are read from.
+   */
   constructor(
-    readonly textDir: string,
+    private readonly dir: string | (() => string),
     readonly openDir?: string,
+    private readonly writeDir?: () => string,
   ) {}
+
+  get textDir(): string {
+    return typeof this.dir === "function" ? this.dir() : this.dir;
+  }
 
   private dirs(): string[] {
     return this.openDir ? [this.textDir, this.openDir] : [this.textDir];
@@ -189,7 +198,7 @@ export class TextCache {
   }
 
   put(artifact: TextArtifact, open = false): void {
-    const dir = open && this.openDir ? this.openDir : this.textDir;
+    const dir = open && this.openDir ? this.openDir : (this.writeDir?.() ?? this.textDir);
     writeJsonAtomic(artifactPath(dir, artifact.node, artifact.granularity, artifact.hash), artifact);
   }
 

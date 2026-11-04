@@ -76,9 +76,8 @@ export function App() {
   const [runs, setRuns] = useState<AuthorRun[]>([]);
   const [config, setConfig] = useState<Config | undefined>();
   const [autoCommit, setAutoCommit] = useState<AutoCommit | undefined>();
-  // sharing became stricter (a public remote was added, say), and the warning after making a committed session private
+  // sharing became stricter (a public remote was added, say)
   const [sharingAlert, setSharingAlert] = useState<Sharing | undefined>();
-  const [sharingWarning, setSharingWarning] = useState<string | undefined>();
   const [digest, setDigest] = useState<string | undefined>();
   const [error, setError] = useState<string | undefined>();
   const [hover, setHover] = useState<string | undefined>();
@@ -178,9 +177,6 @@ export function App() {
         break;
       case "sharing":
         if (ev.data.alert) setSharingAlert(ev.data);
-        void loadIndex();
-        break;
-      case "visibility":
         void loadIndex();
         break;
       case "activity":
@@ -422,17 +418,6 @@ export function App() {
     } catch (e) {
       setError(String(e));
     }
-  };
-
-  const setVisibility = async (id: string, v: "shared" | "private") => {
-    setIndex((i) => (i ? { ...i, sessions: i.sessions.map((s) => (s.id === id ? { ...s, visibility: v, decided: true } : s)) } : i));
-    try {
-      const res = await api.setVisibility(id, v);
-      if (res.warning) setSharingWarning(res.warning);
-    } catch (e) {
-      setError(String(e));
-    }
-    void loadIndex();
   };
 
   const catchMeUp = async () => {
@@ -737,9 +722,8 @@ export function App() {
     <div className="app">
       <Header
         project={view.project}
-        session={sessionId ? { id: sessionId, label: sessionMeta?.label || sessionId.slice(0, 8), pinned: view.pinned, visibility: sessionMeta?.visibility, decided: sessionMeta?.decided } : undefined}
+        session={sessionId ? { id: sessionId, label: sessionMeta?.label || sessionId.slice(0, 8), pinned: view.pinned, visibility: sessionMeta?.visibility, kept: sessionMeta?.kept } : undefined}
         sharing={index?.sharing}
-        onVisibility={setVisibility}
         onSharingChanged={() => void loadIndex()}
         path={path}
         canReset={Boolean(view.focus || view.window || (sessionId && !view.pinned))}
@@ -767,7 +751,7 @@ export function App() {
           Lost contact with the engine: {error}. Run /yolo:twice to start it again.
         </div>
       )}
-      <SharingBanner index={index} alert={sharingAlert} warning={sharingWarning} onDismissAlert={() => setSharingAlert(undefined)} onDismissWarning={() => setSharingWarning(undefined)} onVisibility={setVisibility} onChanged={() => void loadIndex()} />
+      <SharingBanner index={index} alert={sharingAlert} onDismissAlert={() => setSharingAlert(undefined)} onChanged={() => void loadIndex()} />
       <FilterBar q={view.q} k={view.k} tools={tools} matches={matchCount} scopeLabel={scopeLabel} onQuery={(q) => setView({ q })} onCodes={(k: FilterCode[]) => setView({ k })} folded={foldRest} onFolded={setFoldRest} position={sessionId && matchAt !== undefined ? matchAt + 1 : undefined} onStep={sessionId && resultIds.length ? stepMatch : undefined} onSubmit={() => ((pendingFirst.current = true), setSubmitted((n) => n + 1))} widen={widenLabel ? { label: widenLabel, run: widen } : undefined} />
       {bars.length > 0 && (
         <Timeline
@@ -978,7 +962,7 @@ function SessionList(props: {
                   {current && <span className="live-dot live" title="Active now" />}
                   {who && <Avatars authors={who} />}
                   {s.label || s.id}
-                  <VisibilityBadge visibility={s.visibility} decided={s.decided} sharing={index.sharing} />
+                  <VisibilityBadge visibility={s.visibility} kept={s.kept} />
                   {n ? <span className="badge hit ml-2">{n}</span> : null}
                   <small>{s.id.slice(0, 8)}</small>
                 </td>

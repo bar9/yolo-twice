@@ -2,7 +2,7 @@ import { afterAll, describe, expect, test } from "bun:test";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { classifyRemotes, defaultVisibility, matchRemote, parseRemotes, projectClass, remoteId, writeExcludeBlock } from "../src/sharing.js";
+import { classifyRemotes, matchRemote, sharesWith, parseRemotes, projectClass, remoteId, writeExcludeBlock } from "../src/sharing.js";
 
 describe("remote ids and patterns", () => {
   test("normalizes ssh, https and local remotes", () => {
@@ -64,14 +64,14 @@ describe("classification", () => {
     expect(r!.class).toBe("unknown");
   });
 
-  test("the default table", () => {
-    expect(defaultVisibility("open", "open")).toBe("shared");
-    expect(defaultVisibility("open", "unknown")).toBe("shared");
-    expect(defaultVisibility("restricted", "restricted")).toBe("shared");
-    expect(defaultVisibility("restricted", "open")).toBe("private");
-    expect(defaultVisibility("restricted", "unknown")).toBe("undecided");
-    expect(defaultVisibility("open", "none")).toBe("undecided");
-    expect(defaultVisibility("restricted", "none")).toBe("undecided");
+  test("the rule: a restricted environment shares only when every remote is restricted", () => {
+    expect(sharesWith("open", "open")).toBe(true);
+    expect(sharesWith("open", "unknown")).toBe(true);
+    expect(sharesWith("open", "none")).toBe(true);
+    expect(sharesWith("restricted", "restricted")).toBe(true);
+    expect(sharesWith("restricted", "open")).toBe(false);
+    expect(sharesWith("restricted", "unknown")).toBe(false);
+    expect(sharesWith("restricted", "none")).toBe(false);
   });
 });
 
@@ -94,5 +94,9 @@ describe("exclude block", () => {
     expect(twice.match(/yolo-twice: end/g)?.length).toBe(1);
     writeExcludeBlock(file, []);
     expect(fs.readFileSync(file, "utf8")).toBe("# git ls-files --others --exclude-from=.git/info/exclude\n*.log\n");
+    // no block to remove: the file is left exactly as it is
+    fs.writeFileSync(file, "*.log");
+    expect(writeExcludeBlock(file, [])).toBe(false);
+    expect(fs.readFileSync(file, "utf8")).toBe("*.log");
   });
 });
