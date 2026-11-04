@@ -1,6 +1,6 @@
 {
   "name": "yolo-twice",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Insights into long-running Claude Code sessions: semantic zoom, live flow graph, project-local history.",
   "type": "module",
   "license": "MIT",

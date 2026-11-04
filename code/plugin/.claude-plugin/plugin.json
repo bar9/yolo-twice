@@ -1,7 +1,7 @@
 {
   "name": "yolo",
   "displayName": "yolo-twice",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Insights into long-running Claude Code sessions: semantic zoom, live flow graph, attention slider, project-local history.",
   "author": { "name": "Matthias Cullmann, Roland Brand, Jan Babin, Thomas Schöller", "url": "https://github.com/bar9/yolo-twice" },
   "homepage": "https://bar9.github.io/yolo-twice/",
