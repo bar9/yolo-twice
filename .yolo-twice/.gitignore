@@ -2,3 +2,4 @@
 cache/
 engine.json
 local.json
+private/
